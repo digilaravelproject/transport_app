@@ -1,0 +1,487 @@
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 67.0.0 (97.0.0 available)
+  _flutterfire_internals 1.3.60 (1.3.67 available)
+  analyzer 6.4.1 (11.0.0 available)
+  archive 4.0.7 (4.0.9 available)
+  build 2.4.1 (4.0.4 available)
+  build_config 1.1.2 (1.3.0 available)
+  build_daemon 4.0.4 (4.1.1 available)
+  build_resolvers 2.4.2 (3.0.4 available)
+  build_runner 2.4.13 (2.12.2 available)
+  build_runner_core 7.3.2 (9.3.2 available)
+  built_value 8.11.1 (8.12.4 available)
+  characters 1.4.0 (1.4.1 available)
+  code_builder 4.10.1 (4.11.1 available)
+  connectivity_plus 6.1.5 (7.0.0 available)
+  cross_file 0.3.4+2 (0.3.5+2 available)
+  crypto 3.0.6 (3.0.7 available)
+  dart_style 2.3.6 (3.1.6 available)
+  dbus 0.7.11 (0.7.12 available)
+  device_info_plus 11.5.0 (12.3.0 available)
+  dio 5.9.0 (5.9.2 available)
+  dio_web_adapter 2.1.1 (2.1.2 available)
+  ffi 2.1.4 (2.2.0 available)
+  file_picker 10.3.2 (10.3.10 available)
+  file_selector_linux 0.9.3+2 (0.9.4 available)
+  file_selector_macos 0.9.4+4 (0.9.5 available)
+  file_selector_platform_interface 2.6.2 (2.7.0 available)
+  file_selector_windows 0.9.3+4 (0.9.3+5 available)
+  firebase_core 4.0.0 (4.5.0 available)
+  firebase_core_platform_interface 6.0.0 (6.0.2 available)
+  firebase_core_web 3.0.0 (3.5.0 available)
+  firebase_crashlytics 5.0.0 (5.0.8 available)
+  firebase_crashlytics_platform_interface 3.8.11 (3.8.18 available)
+  firebase_messaging 16.0.0 (16.1.2 available)
+  firebase_messaging_platform_interface 4.7.0 (4.7.7 available)
+  firebase_messaging_web 4.0.0 (4.1.3 available)
+  fl_chart 0.70.2 (1.1.1 available)
+  flutter_dynamic_icon_plus 1.3.1 (1.4.0 available)
+  flutter_native_splash 2.4.6 (2.4.7 available)
+  flutter_plugin_android_lifecycle 2.0.30 (2.0.33 available)
+  flutter_secure_storage 9.2.4 (10.0.0 available)
+  flutter_secure_storage_linux 1.2.3 (3.0.0 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+  flutter_secure_storage_web 1.2.1 (2.1.0 available)
+  flutter_secure_storage_windows 3.1.2 (4.1.0 available)
+  flutter_svg 2.2.0 (2.2.3 available)
+  get 4.7.2 (4.7.3 available)
+  google_fonts 6.3.0 (8.0.2 available)
+  http 1.5.0 (1.6.0 available)
+  image 4.5.4 (4.8.0 available)
+  image_picker 1.2.0 (1.2.1 available)
+  image_picker_android 0.8.13+1 (0.8.13+14 available)
+  image_picker_for_web 3.1.0 (3.1.1 available)
+  image_picker_ios 0.8.13 (0.8.13+6 available)
+  image_picker_macos 0.2.2 (0.2.2+1 available)
+  image_picker_platform_interface 2.11.0 (2.11.1 available)
+  js 0.6.7 (0.7.2 available)
+  json_annotation 4.9.0 (4.11.0 available)
+  leak_tracker 11.0.1 (11.0.2 available)
+  lints 6.0.0 (6.1.0 available)
+  lottie 3.3.1 (3.3.2 available)
+  matcher 0.12.17 (0.12.19 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.17.0 (1.18.1 available)
+  package_info_plus 8.3.1 (9.0.0 available)
+  path_provider_android 2.2.18 (2.2.22 available)
+  path_provider_foundation 2.4.2 (2.6.0 available)
+  petitparser 7.0.1 (7.0.2 available)
+  pool 1.5.1 (1.5.2 available)
+  posix 6.0.3 (6.5.0 available)
+  share_plus 11.1.0 (12.0.1 available)
+  shared_preferences 2.5.3 (2.5.4 available)
+  shared_preferences_android 2.4.12 (2.4.21 available)
+  shared_preferences_foundation 2.5.4 (2.5.6 available)
+  shelf_web_socket 2.0.1 (3.0.0 available)
+  source_gen 1.5.0 (4.2.0 available)
+  source_helper 1.3.5 (1.3.10 available)
+  source_span 1.10.1 (1.10.2 available)
+  sqflite_android 2.4.1 (2.4.2+2 available)
+  test_api 0.7.7 (0.7.10 available)
+  universal_io 2.2.2 (2.3.1 available)
+  url_launcher_android 6.3.18 (6.3.28 available)
+  url_launcher_ios 6.3.4 (6.4.1 available)
+  url_launcher_linux 3.2.1 (3.2.2 available)
+  url_launcher_macos 3.2.3 (3.2.5 available)
+  url_launcher_web 2.4.1 (2.4.2 available)
+  url_launcher_windows 3.1.4 (3.1.5 available)
+  uuid 4.5.1 (4.5.3 available)
+  vector_graphics_compiler 1.1.19 (1.2.0 available)
+  vm_service 15.0.0 (15.0.2 available)
+  watcher 1.1.3 (1.2.1 available)
+  win32 5.14.0 (6.0.0 available)
+  win32_registry 2.1.0 (3.0.2 available)
+Got dependencies!
+93 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Analyzing transport_management_system...                        
+
+warning • Unused import: '../theme/theme_controller.dart' • lib/core/bindings/initial_bindings.dart:13:8 • unused_import
+   info • Unnecessary use of string interpolation • lib/core/constants/app_constants.dart:15:31 • unnecessary_string_interpolations
+warning • Unused import: 'package:flutter/material.dart' • lib/core/constants/dimensions.dart:1:8 • unused_import
+warning • Unused import: 'package:get/get.dart' • lib/core/constants/dimensions.dart:2:8 • unused_import
+warning • Unused import: 'dart:convert' • lib/core/services/DynamicAppIcon/dynamic_app_icon_manager.dart:1:8 • unused_import
+   info • Don't invoke 'print' in production code • lib/core/services/DynamicAppIcon/dynamic_app_icon_manager.dart:35:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/DynamicAppIcon/dynamic_app_icon_manager.dart:55:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/DynamicAppIcon/dynamic_app_icon_manager.dart:65:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/DynamicAppIcon/dynamic_app_icon_manager.dart:68:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/config/env_config.dart:13:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/config/env_config.dart:16:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/services/config/env_config.dart:32:9 • avoid_print
+warning • This default clause is covered by the previous cases • lib/core/services/config/env_config.dart:45:7 • unreachable_switch_default
+warning • Dead code • lib/core/services/network/api_checker.dart:251:7 • dead_code
+   info • The imported package 'http_parser' isn't a dependency of the importing package • lib/core/services/network/api_client.dart:7:8 • depend_on_referenced_packages
+   info • The imported package 'path' isn't a dependency of the importing package • lib/core/services/network/api_client.dart:8:8 • depend_on_referenced_packages
+warning • The left operand can't be null, so the right operand is never executed • lib/core/services/network/api_client.dart:36:57 • dead_null_aware_expression
+   info • Angle brackets will be interpreted as HTML • lib/core/services/storage/shared_prefs.dart:52:17 • unintended_html_in_doc_comment
+   info • Angle brackets will be interpreted as HTML • lib/core/services/storage/shared_prefs.dart:57:17 • unintended_html_in_doc_comment
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/theme/light_theme.dart:21:37 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/core/theme/theme_controller.dart:39:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/core/theme/theme_controller.dart:51:5 • avoid_print
+warning • The value of the field '_mobileRegex' isn't used • lib/core/utils/app_validators.dart:3:16 • unused_field
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart' • lib/core/utils/custom_snackbar.dart:1:8 • unnecessary_import
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/utils/custom_toast.dart:27:33 • deprecated_member_use
+   info • Type could be non-nullable • lib/core/utils/custom_toast.dart:56:25 • unnecessary_nullable_for_final_variable_declarations
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/action_tile.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_bottom_sheet.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_button.dart:19:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/app_button.dart:49:51 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_card.dart:14:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_dropdown.dart:12:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/core/widgets/app_dropdown.dart:39:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_empty_state.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_filter_chip.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_header.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_input_field.dart:22:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/app_input_field.dart:63:44 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_list_tile.dart:15:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/app_list_tile.dart:38:65 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_logo.dart:9:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/app_logo.dart:23:49 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/app_logo.dart:29:42 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_scaffold.dart:16:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_search_bar.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_status_chip.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/app_text.dart:18:9 • use_super_parameters
+warning • This default clause is covered by the previous cases • lib/core/widgets/app_text.dart:77:7 • unreachable_switch_default
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_base_widget.dart:31:9 • use_super_parameters
+   info • Invalid use of a private type in a public API • lib/core/widgets/custom_base_widget.dart:61:3 • library_private_types_in_public_api
+warning • The value of the local variable 'textColor' isn't used • lib/core/widgets/custom_base_widget.dart:69:11 • unused_local_variable
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_base_widget.dart:86:31 • undefined_identifier
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_bottom_nav_bar.dart:20:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_bottom_nav_bar.dart:42:38 • deprecated_member_use
+warning • Unused import: 'package:google_fonts/google_fonts.dart' • lib/core/widgets/custom_button.dart:2:8 • unused_import
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:190:20 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:191:26 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:192:15 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:195:26 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:198:20 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:199:26 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:200:26 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:203:18 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:204:26 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:205:22 • deprecated_member_use
+  error • The getter 'black54' isn't defined for the type 'AppColors' • lib/core/widgets/custom_button.dart:205:58 • undefined_getter
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:206:20 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:209:26 • deprecated_member_use
+   info • 'MaterialState' is deprecated and shouldn't be used. Use WidgetState instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:210:25 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_button.dart:211:59 • deprecated_member_use
+   info • 'MaterialStateProperty' is deprecated and shouldn't be used. Use WidgetStateProperty instead. Moved to the Widgets layer to make code available outside of Material. This feature was deprecated after v3.19.0-0.3.pre • lib/core/widgets/custom_button.dart:213:26 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_image_widget.dart:40:9 • use_super_parameters
+warning • This default clause is covered by the previous cases • lib/core/widgets/custom_image_widget.dart:228:9 • unreachable_switch_default
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_otp_field.dart:21:9 • use_super_parameters
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_otp_field.dart:28:25 • undefined_identifier
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_otp_field.dart:29:23 • undefined_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_otp_field.dart:82:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_otp_field.dart:104:39 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_otp_field.dart:106:37 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_otp_field.dart:108:45 • deprecated_member_use
+   info • 'RawKeyboardListener' is deprecated and shouldn't be used. Use KeyboardListener instead. This feature was deprecated after v3.18.0-2.0.pre • lib/core/widgets/custom_otp_field.dart:147:26 • deprecated_member_use
+   info • 'isKeyPressed' is deprecated and shouldn't be used. Use HardwareKeyboard.instance.isLogicalKeyPressed instead. This feature was deprecated after v3.18.0-2.0.pre • lib/core/widgets/custom_otp_field.dart:150:33 • deprecated_member_use
+  error • Invalid constant value • lib/core/widgets/custom_otp_field.dart:190:49 • invalid_constant
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_otp_field.dart:190:49 • undefined_identifier
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_primary_button.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/custom_primary_button.dart:35:47 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/custom_text_field.dart:16:9 • use_super_parameters
+  error • Invalid constant value • lib/core/widgets/custom_text_field.dart:36:50 • invalid_constant
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_text_field.dart:36:50 • undefined_identifier
+  error • Invalid constant value • lib/core/widgets/custom_text_field.dart:52:47 • invalid_constant
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_text_field.dart:52:47 • undefined_identifier
+  error • Invalid constant value • lib/core/widgets/custom_text_field.dart:56:47 • invalid_constant
+  error • Undefined name 'AppColors' • lib/core/widgets/custom_text_field.dart:56:47 • undefined_identifier
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/empty_state_widget.dart:11:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/empty_state_widget.dart:32:47 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/error_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/error_screen.dart:46:47 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/info_row.dart:10:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/info_row.dart:31:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/info_row.dart:67:60 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/info_tile.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/liquid_background.dart:7:9 • use_super_parameters
+  error • Undefined name 'AppColors' • lib/core/widgets/liquid_background.dart:39:26 • undefined_identifier
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/liquid_background.dart:49:40 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/liquid_background.dart:56:39 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/list_item_card.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/list_item_card.dart:37:38 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/list_item_card.dart:49:30 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/list_item_card.dart:83:38 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/loading_indicator.dart:9:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/loading_indicator.dart:25:28 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/loading_widget.dart:12:9 • use_super_parameters
+warning • This default clause is covered by the previous cases • lib/core/widgets/loading_widget.dart:28:7 • unreachable_switch_default
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/loading_widget.dart:48:30 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/no_internet_screen.dart:8:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/no_internet_screen.dart:78:49 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/section_header.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/section_title.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/core/widgets/status_chip.dart:11:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/status_chip.dart:23:22 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/core/widgets/status_chip.dart:25:41 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/features/auth/controllers/auth_controller.dart:320:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/auth/domain/services/auth_service.dart:45:9 • avoid_print
+   info • Parameter 'key' could be a super parameter • lib/features/auth/views/forgot_password_screen.dart:10:9 • use_super_parameters
+warning • Unused import: 'package:credit_debit/core/widgets/loading_indicator.dart' • lib/features/auth/views/login_screen.dart:6:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/auth/views/login_screen.dart:14:9 • use_super_parameters
+warning • The value of the local variable 'cardBg' isn't used • lib/features/auth/views/login_screen.dart:29:11 • unused_local_variable
+warning • Unused import: 'package:credit_debit/core/widgets/app_input_field.dart' • lib/features/auth/views/otp_screen.dart:7:8 • unused_import
+warning • Unused import: 'package:credit_debit/core/widgets/app_text.dart' • lib/features/auth/views/otp_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/auth/views/otp_screen.dart:13:9 • use_super_parameters
+warning • The value of the local variable 'cardColor' isn't used • lib/features/auth/views/otp_screen.dart:46:11 • unused_local_variable
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/views/otp_screen.dart:85:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/views/otp_screen.dart:238:51 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/auth/views/otp_screen.dart:241:53 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/auth/views/reset_password_screen.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/auth/views/signup_screen.dart:12:9 • use_super_parameters
+warning • The value of the local variable 'cardColor' isn't used • lib/features/auth/views/signup_screen.dart:28:11 • unused_local_variable
+warning • The value of the local variable 'textColor' isn't used • lib/features/auth/views/signup_screen.dart:29:11 • unused_local_variable
+warning • The value of the local variable 'subtitleColor' isn't used • lib/features/auth/views/signup_screen.dart:30:11 • unused_local_variable
+warning • Unused import: '../../../core/theme/text_theme.dart' • lib/features/auth/widget/text_field.dart:4:8 • unused_import
+   info • The member 'build' overrides an inherited member but isn't annotated with '@override' • lib/features/auth/widget/text_field.dart:24:10 • annotate_overrides
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/corporate/views/assign_vehicle_to_contract_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/assign_vehicle_to_contract_screen.dart:13:9 • use_super_parameters
+warning • Unused import: '../../../core/widgets/app_search_bar.dart' • lib/features/corporate/views/company_list_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/company_list_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/corporate/views/company_list_screen.dart:77:79 • deprecated_member_use
+warning • Duplicate import • lib/features/corporate/views/contract_details_screen.dart:10:8 • duplicate_import
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/corporate/views/contract_details_screen.dart:12:8 • unused_import
+warning • Duplicate import • lib/features/corporate/views/contract_details_screen.dart:13:8 • duplicate_import
+warning • Duplicate import • lib/features/corporate/views/contract_details_screen.dart:14:8 • duplicate_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/contract_details_screen.dart:18:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/corporate/views/contract_details_screen.dart:60:49 • deprecated_member_use
+warning • Unused import: '../domain/models/company_model.dart' • lib/features/corporate/views/corporate_duty_tracking_screen.dart:9:8 • unused_import
+warning • Unused import: '../../../routes/route_helper.dart' • lib/features/corporate/views/corporate_duty_tracking_screen.dart:10:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/corporate_duty_tracking_screen.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/corporate/views/corporate_duty_tracking_screen.dart:72:38 • deprecated_member_use
+warning • Unused import: 'dart:io' • lib/features/corporate/views/corporate_invoice_screen.dart:11:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/corporate_invoice_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/corporate/views/corporate_invoice_screen.dart:71:33 • deprecated_member_use
+warning • Duplicate import • lib/features/corporate/views/create_corporate_contract_screen.dart:9:8 • duplicate_import
+warning • Duplicate import • lib/features/corporate/views/create_corporate_contract_screen.dart:13:8 • duplicate_import
+   info • Parameter 'key' could be a super parameter • lib/features/corporate/views/create_corporate_contract_screen.dart:17:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/corporate/views/create_corporate_contract_screen.dart:116:11 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/corporate/views/create_corporate_contract_screen.dart:146:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/dashboard/views/dashboard_screen.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/dashboard/views/home_screen.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/dashboard/views/more_screen.dart:11:9 • use_super_parameters
+  error • The constructor being called isn't a const constructor • lib/features/dashboard/views/more_screen.dart:52:30 • const_with_non_const
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/views/more_screen.dart:71:41 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/dashboard/widgets/app_drawer.dart:8:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/widgets/app_drawer.dart:55:46 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/widgets/app_drawer.dart:133:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/dashboard/widgets/app_drawer.dart:148:32 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/cash_in_entry_screen.dart:13:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/finance/views/cash_in_entry_screen.dart:98:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/cash_out_entry_screen.dart:13:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/finance/views/cash_out_entry_screen.dart:99:11 • deprecated_member_use
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/finance/views/cashbook_dashboard_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/cashbook_dashboard_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:83:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:100:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:130:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:132:66 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:152:45 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:154:64 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/cashbook_dashboard_screen.dart:184:34 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/finance_screen.dart:9:9 • use_super_parameters
+warning • Unused import: '../../../routes/route_helper.dart' • lib/features/finance/views/payment_details_screen.dart:11:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/payment_details_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/payment_details_screen.dart:52:36 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/payment_details_screen.dart:64:46 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/finance/views/payment_history_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/finance/views/payment_history_screen.dart:97:34 • deprecated_member_use
+warning • Unused import: 'package:credit_debit/routes/route_helper.dart' • lib/features/intro/views/intro_screen.dart:6:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/intro/views/intro_screen.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/inventory/views/add_inventory_item_screen.dart:13:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/inventory/views/add_inventory_item_screen.dart:116:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/inventory/views/inventory_details_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/inventory/views/inventory_details_screen.dart:109:53 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/inventory/views/inventory_list_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/inventory/views/inventory_list_screen.dart:50:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/inventory/views/inventory_list_screen.dart:52:66 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/inventory/views/stock_in_screen.dart:14:9 • use_super_parameters
+   info • The private field _supplier could be 'final' • lib/features/inventory/views/stock_in_screen.dart:23:10 • prefer_final_fields
+warning • The value of the field '_supplier' isn't used • lib/features/inventory/views/stock_in_screen.dart:23:10 • unused_field
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/inventory/views/stock_in_screen.dart:120:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/inventory/views/stock_out_screen.dart:14:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/inventory/views/stock_out_screen.dart:116:11 • deprecated_member_use
+warning • Unused import: 'package:get/get.dart' • lib/features/leads/domain/models/lead_model.dart:1:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/create_lead_screen.dart:15:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/create_lead_screen.dart:231:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/create_lead_screen.dart:269:61 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/edit_lead_screen.dart:15:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/edit_lead_screen.dart:231:63 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/edit_lead_screen.dart:263:61 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/follow_up_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/follow_up_screen.dart:126:59 • deprecated_member_use
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/leads/views/lead_details_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/lead_details_screen.dart:15:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/lead_list_screen.dart:17:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/lead_notes_screen.dart:14:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/pdf_viewer_screen.dart:9:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/pdf_viewer_screen.dart:43:49 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/leads/views/quotation_preview_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/quotation_preview_screen.dart:55:53 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/quotation_preview_screen.dart:160:48 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/leads/views/quotation_preview_screen.dart:162:29 • deprecated_member_use
+warning • Unused import: 'package:get/get.dart' • lib/features/notifications/views/notifications_screen.dart:2:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/notifications/views/notifications_screen.dart:10:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/profile/views/profile_screen.dart:9:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/compliance_reports_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/compliance_reports_screen.dart:55:44 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/financial_reports_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/financial_reports_screen.dart:55:46 • deprecated_member_use
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/reports/views/reports_dashboard_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/reports_dashboard_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/reports_dashboard_screen.dart:186:69 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/reports_dashboard_screen.dart:186:111 • deprecated_member_use
+  error • The method 'AppInputField' isn't defined for the type 'ReportsDashboardScreen' • lib/features/reports/views/reports_dashboard_screen.dart:232:15 • undefined_method
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/reports/views/reports_dashboard_screen.dart:241:17 • deprecated_member_use
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/reports/views/reports_dashboard_screen.dart:255:17 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/staff_reports_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/staff_reports_screen.dart:55:43 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/trip_reports_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/trip_reports_screen.dart:56:46 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/reports/views/vehicle_reports_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/reports/views/vehicle_reports_screen.dart:55:46 • deprecated_member_use
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/routes_management/views/assign_route_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/routes_management/views/assign_route_screen.dart:14:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/routes_management/views/assign_route_screen.dart:142:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/routes_management/views/create_route_screen.dart:13:9 • use_super_parameters
+warning • Unused import: '../../../routes/route_helper.dart' • lib/features/routes_management/views/route_details_screen.dart:11:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/routes_management/views/route_details_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/routes_management/views/route_details_screen.dart:69:70 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/routes_management/views/route_details_screen.dart:69:110 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/routes_management/views/route_list_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/routes_management/views/route_list_screen.dart:76:66 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/routes_management/views/route_list_screen.dart:76:106 • deprecated_member_use
+   info • Unnecessary 'this.' qualifier • lib/features/settings/controllers/settings_controller.dart:11:5 • unnecessary_this
+   info • Unnecessary 'this.' qualifier • lib/features/settings/controllers/settings_controller.dart:14:5 • unnecessary_this
+   info • Parameter 'key' could be a super parameter • lib/features/settings/views/change_password_screen.dart:13:9 • use_super_parameters
+  error • The named parameter 'hint' is required, but there's no corresponding argument • lib/features/settings/views/change_password_screen.dart:54:19 • missing_required_argument
+  error • The named parameter 'hint' is required, but there's no corresponding argument • lib/features/settings/views/change_password_screen.dart:65:19 • missing_required_argument
+  error • The named parameter 'hint' is required, but there's no corresponding argument • lib/features/settings/views/change_password_screen.dart:76:19 • missing_required_argument
+   info • Parameter 'key' could be a super parameter • lib/features/settings/views/edit_profile_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/settings/views/help_screen.dart:11:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/settings/views/profile_screen.dart:14:3 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/settings/views/subscription_screen.dart:11:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/settings/views/subscription_screen.dart:31:54 • deprecated_member_use
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/shifts/views/assign_driver_to_shift_screen.dart:9:8 • unused_import
+warning • Unused import: '../domain/models/shift_model.dart' • lib/features/shifts/views/assign_driver_to_shift_screen.dart:11:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/shifts/views/assign_driver_to_shift_screen.dart:14:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/shifts/views/create_shift_screen.dart:13:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/shifts/views/create_shift_screen.dart:108:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/shifts/views/shift_details_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/shifts/views/shift_details_screen.dart:67:78 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/shifts/views/shift_details_screen.dart:106:47 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/shifts/views/shift_details_screen.dart:108:66 • deprecated_member_use
+  error • There's no constant named 'dash' in 'BorderStyle' • lib/features/shifts/views/shift_details_screen.dart:108:103 • undefined_enum_constant
+   info • Parameter 'key' could be a super parameter • lib/features/shifts/views/shift_list_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/shifts/views/shift_list_screen.dart:75:74 • deprecated_member_use
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:12:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:41:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:46:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:48:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:52:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:58:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:66:9 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:70:7 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/controllers/splash_controller.dart:74:7 • avoid_print
+warning • The value of the field '_apiClient' isn't used • lib/features/splash/domain/repositories/splash_repository.dart:5:19 • unused_field
+   info • Don't invoke 'print' in production code • lib/features/splash/domain/repositories/splash_repository.dart:8:5 • avoid_print
+   info • Don't invoke 'print' in production code • lib/features/splash/domain/services/splash_service.dart:8:5 • avoid_print
+   info • Parameter 'key' could be a super parameter • lib/features/splash/views/splash_screen.dart:10:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/splash/views/splash_screen.dart:76:52 • deprecated_member_use
+warning • Unused import: 'package:get/get.dart' • lib/features/staff/domain/models/staff_model.dart:1:8 • unused_import
+warning • Unused import: '../../../core/widgets/app_text.dart' • lib/features/staff/views/add_duty_record_screen.dart:5:8 • unused_import
+warning • Unused import: '../../../core/theme/app_colors.dart' • lib/features/staff/views/add_duty_record_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/add_duty_record_screen.dart:15:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/add_staff_screen.dart:15:9 • use_super_parameters
+warning • The value of the field '_controller' isn't used • lib/features/staff/views/add_staff_screen.dart:22:9 • unused_field
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/staff/views/add_staff_screen.dart:181:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/advance_history_screen.dart:12:9 • use_super_parameters
+warning • Unused import: '../../../core/theme/app_colors.dart' • lib/features/staff/views/advance_payment_entry_screen.dart:3:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/advance_payment_entry_screen.dart:15:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/attendance_history_screen.dart:14:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/staff/views/attendance_history_screen.dart:103:29 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/staff/views/attendance_history_screen.dart:105:48 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/attendance_screen.dart:13:9 • use_super_parameters
+  error • Undefined name 'RouteHelper' • lib/features/staff/views/attendance_screen.dart:22:40 • undefined_identifier
+warning • Duplicate import • lib/features/staff/views/driver_license_tracker_screen.dart:12:8 • duplicate_import
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/driver_license_tracker_screen.dart:15:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/staff/views/driver_license_tracker_screen.dart:83:42 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/duty_hours_screen.dart:12:9 • use_super_parameters
+  error • Undefined name 'RouteHelper' • lib/features/staff/views/duty_hours_screen.dart:24:38 • undefined_identifier
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/edit_staff_screen.dart:15:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/staff/views/edit_staff_screen.dart:215:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/salary_history_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/salary_management_screen.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/staff/views/salary_management_screen.dart:168:75 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/salary_payment_entry_screen.dart:15:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/staff/views/salary_payment_entry_screen.dart:116:11 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/staff_details_screen.dart:15:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/staff_documents_screen.dart:12:9 • use_super_parameters
+warning • Unused import: '../../../core/widgets/app_button.dart' • lib/features/staff/views/staff_list_screen.dart:8:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/staff_list_screen.dart:17:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/staff/views/staff_performance_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/staff/views/staff_performance_screen.dart:160:43 • deprecated_member_use
+warning • Unused import: 'package:flutter/material.dart' • lib/features/trips/domain/models/trip_model.dart:1:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/assign_driver_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/assign_vehicle_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/create_trip_screen.dart:13:9 • use_super_parameters
+  error • Undefined name 'RouteHelper' • lib/features/trips/views/create_trip_screen.dart:190:44 • undefined_identifier
+warning • Unused import: '../controllers/trip_controller.dart' • lib/features/trips/views/duty_sheet_upload_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/duty_sheet_upload_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/duty_sheet_upload_screen.dart:107:66 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_details_screen.dart:15:9 • use_super_parameters
+warning • The declaration '_buildResourceCard' isn't referenced • lib/features/trips/views/trip_details_screen.dart:124:10 • unused_element
+warning • The declaration '_buildTimelineSection' isn't referenced • lib/features/trips/views/trip_details_screen.dart:201:10 • unused_element
+warning • The declaration '_buildExpenseSummary' isn't referenced • lib/features/trips/views/trip_details_screen.dart:246:10 • unused_element
+warning • Unused import: '../controllers/trip_controller.dart' • lib/features/trips/views/trip_expense_entry_screen.dart:10:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_expense_entry_screen.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_expense_entry_screen.dart:105:39 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_expense_list_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_expense_list_screen.dart:79:67 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_expense_list_screen.dart:86:43 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_expense_list_screen.dart:134:22 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_invoice_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_list_screen.dart:17:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_list_screen.dart:147:49 • deprecated_member_use
+warning • Unused import: '../controllers/trip_controller.dart' • lib/features/trips/views/trip_status_update_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_status_update_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_summary_screen.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/trips/views/trip_summary_screen.dart:52:43 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trip_tracking_screen.dart:13:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/trips/views/trips_screen.dart:9:9 • use_super_parameters
+warning • Unused import: 'package:flutter/material.dart' • lib/features/vehicles/domain/models/vehicle_model.dart:1:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/add_vehicle_screen.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/document_upload_screen.dart:11:9 • use_super_parameters
+warning • Unused import: '../widgets/upload_box.dart' • lib/features/vehicles/views/edit_vehicle_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/edit_vehicle_screen.dart:13:9 • use_super_parameters
+   info • 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre • lib/features/vehicles/views/edit_vehicle_screen.dart:146:11 • deprecated_member_use
+warning • Unused import: '../domain/models/vehicle_model.dart' • lib/features/vehicles/views/fuel_entry_screen.dart:9:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/fuel_entry_screen.dart:12:9 • use_super_parameters
+   info • Unnecessary 'const' keyword • lib/features/vehicles/views/fuel_entry_screen.dart:53:19 • unnecessary_const
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/fuel_history_screen.dart:12:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/vehicles/views/fuel_history_screen.dart:53:67 • deprecated_member_use
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/vehicles/views/fuel_history_screen.dart:60:43 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/maintenance_history_screen.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/repair_entry_screen.dart:11:9 • use_super_parameters
+   info • Unnecessary 'const' keyword • lib/features/vehicles/views/repair_entry_screen.dart:52:19 • unnecessary_const
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/service_entry_screen.dart:11:9 • use_super_parameters
+   info • Unnecessary 'const' keyword • lib/features/vehicles/views/service_entry_screen.dart:54:19 • unnecessary_const
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/service_history_screen.dart:12:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/vehicle_details_screen.dart:15:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/vehicle_documents_screen.dart:13:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/vehicles/views/vehicle_documents_screen.dart:55:55 • deprecated_member_use
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/vehicle_list_screen.dart:17:9 • use_super_parameters
+   info • Parameter 'key' could be a super parameter • lib/features/vehicles/views/vehicle_list_screen.dart:93:9 • use_super_parameters
+   info • 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss • lib/features/vehicles/widgets/upload_box.dart:28:54 • deprecated_member_use
+warning • Unused import: 'core/services/DynamicAppIcon/dynamic_app_icon_manager.dart' • lib/init_app.dart:3:8 • unused_import
+   info • Parameter 'key' could be a super parameter • lib/main.dart:17:9 • use_super_parameters
+warning • Unused import: 'package:credit_debit/main.dart' • test/widget_test.dart:12:8 • unused_import
+   info • Use interpolation to compose strings and values • update_appbars.dart:29:19 • prefer_interpolation_to_compose_strings
+   info • Don't invoke 'print' in production code • update_appbars.dart:32:7 • avoid_print
+   info • Don't invoke 'print' in production code • update_imports.dart:12:7 • avoid_print
+

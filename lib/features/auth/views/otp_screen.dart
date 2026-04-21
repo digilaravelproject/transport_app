@@ -237,7 +237,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                 children: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: List.generate(6, (index) => _otpBox(index)),
+                                    children: List.generate(4, (index) => _otpBox(index)),
                                   ),
                                   const SizedBox(height: 40),
                                   AppButton(

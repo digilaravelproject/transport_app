@@ -49,7 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           PremiumBottomNavItem(
             icon: Iconsax.routing,
-            activeIcon: Iconsax.routing_25,
+            activeIcon: Iconsax.routing,
             label: 'Trips',
           ),
           PremiumBottomNavItem(
@@ -59,7 +59,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           PremiumBottomNavItem(
             icon: Iconsax.wallet,
-            activeIcon: Iconsax.wallet5,
+            activeIcon: Iconsax.wallet,
             label: 'Finance',
           ),
           PremiumBottomNavItem(

@@ -12,6 +12,11 @@ class AuthService implements AuthServiceInterface {
   AuthService(this._authRepository);
 
   @override
+  Future<ResponseModel> sendOtp(String email) async {
+    return await _authRepository.sendOtp(email);
+  }
+
+  @override
   Future<ResponseModel> signup(String name, String mobile) async {
     return await _authRepository.signup(name, mobile);
   }

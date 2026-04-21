@@ -10,6 +10,18 @@ class AuthRepository implements AuthRepositoryInterface {
   AuthRepository(this._apiClient);
 
   @override
+  Future<ResponseModel> sendOtp(String email) async {
+    final response = await _apiClient.post(
+      AppConstants.sendOtpUrl,
+      data: {
+        'email': email,
+      },
+    );
+
+    return response;
+  }
+
+  @override
   Future<ResponseModel> signup(String name, String mobile) async {
     final response = await _apiClient.post(
       AppConstants.userSignupUrl,

@@ -155,7 +155,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                               child: SlideTransition(
                                 position: _titleSlideAnimation,
                                 child: const AppText(
-                                  'Agency Registration',
+                                  'Vendor Registration',
                                   style: AppTextStyle.heading,
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
@@ -168,7 +168,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                               child: SlideTransition(
                                 position: _subtitleSlideAnimation,
                                 child: AppText(
-                                  'Create your bus agency account',
+                                  'Create your bus vendor account',
                                   style: AppTextStyle.body,
                                   color: AppColors.textColorSecondary.withValues(alpha: 0.8),
                                   fontSize: 15,
@@ -215,8 +215,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                   children: [
                                     // Agency Name
                                     AppInputField(
-                                      label: 'Agency Name',
-                                      hint: 'Enter your bus agency name',
+                                      label: 'Vendor Name',
+                                      hint: 'Enter your bus vendor name',
                                       icon: Iconsax.building,
                                       controller: authController.companyNameController,
                                     ),
@@ -256,7 +256,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                     const SizedBox(height: 20),
         
                                     // Password
-                                    AppInputField(
+                                   /* AppInputField(
                                       label: 'Password',
                                       hint: 'Create password',
                                       icon: Iconsax.lock,
@@ -289,7 +289,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                           size: 20,
                                         ),
                                       ),
-                                    ),
+                                    ),*/
         
                                     const SizedBox(height: 32),
         

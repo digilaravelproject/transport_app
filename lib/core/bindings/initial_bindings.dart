@@ -28,10 +28,11 @@ class InitialBindings extends Bindings {
 
     // Intro
     Get.lazyPut(() => IntroController(), fenix: true);
-
     // Auth
+
     Get.lazyPut(() => AuthRepository(Get.find<ApiClient>()), fenix: true);
     Get.lazyPut(() => AuthService(Get.find<AuthRepository>()), fenix: true);
+    Get.lazyPut(() => SendOtpUseCase(Get.find<AuthService>()), fenix: true);
     Get.lazyPut(() => LoginUseCase(Get.find<AuthService>()), fenix: true);
     Get.lazyPut(() => RegisterUseCase(Get.find<AuthService>()), fenix: true);
     Get.lazyPut(() => VerifyOtpUseCase(Get.find<AuthService>()), fenix: true);
@@ -41,6 +42,7 @@ class InitialBindings extends Bindings {
 
     Get.lazyPut(
           () => AuthController(
+        sendOtpUseCase: Get.find<SendOtpUseCase>(),
         loginUseCase: Get.find<LoginUseCase>(),
         registerUseCase: Get.find<RegisterUseCase>(),
         verifyOtpUseCase: Get.find<VerifyOtpUseCase>(),

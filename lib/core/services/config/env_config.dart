@@ -50,6 +50,10 @@ class EnvConfig {
   static String get appName {
     return dotenv.env['APP_NAME'] ?? '';
   }
+
+  static String get apiToken {
+    return dotenv.env['API_TOKEN'] ?? '';
+  }
 }
 
 

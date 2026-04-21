@@ -3,6 +3,7 @@ import '../services/config/env_config.dart';
 class AppConstants {
     static String appName = EnvConfig.appName;
     static String baseUrl = EnvConfig.baseUrl;
+    static String apiToken = EnvConfig.apiToken;
     static const String fontFamily = 'Poppins';
     static const String defaultTag = 'PCB_APP'; // default tag for log checking
 
@@ -15,6 +16,7 @@ class AppConstants {
     static  String imageUrl = '$baseUrl';
 
     // API endpoints
+    static const String sendOtpUrl = '/api/auth/send-otp';
     static const String userSignupUrl = '/api/user_signup';
     static const String userLoginUrl = '/api/user_login';
     static const String otpVerifyUrl = '/api/otp_verify';

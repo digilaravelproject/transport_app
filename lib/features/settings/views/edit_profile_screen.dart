@@ -85,11 +85,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  AppText('Agency Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                  AppText('Vendor Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
                   const SizedBox(height: 16),
                   AppInputField(
-                    label: 'Agency Name',
-                    hint: 'Enter agency name',
+                    label: 'Vendor Name',
+                    hint: 'Enter vendor name',
                     controller: _nameController,
                     icon: Iconsax.building,
                   ),

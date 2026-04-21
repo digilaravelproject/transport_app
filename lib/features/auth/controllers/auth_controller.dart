@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/services/network/response_model.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/user_model.dart';
 import '../../../routes/route_helper.dart';
 import '../domain/services/auth_service.dart';
 
 class AuthController extends GetxController {
+  final SendOtpUseCase _sendOtpUseCase;
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
   final VerifyOtpUseCase _verifyOtpUseCase;
@@ -14,13 +16,15 @@ class AuthController extends GetxController {
   final GetUserInfoUseCase _getUserInfoUseCase;
 
   AuthController({
+    required SendOtpUseCase sendOtpUseCase,
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
     required VerifyOtpUseCase verifyOtpUseCase,
     required LogoutUseCase logoutUseCase,
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
     required GetUserInfoUseCase getUserInfoUseCase,
-  })  : _loginUseCase = loginUseCase,
+  })  : _sendOtpUseCase = sendOtpUseCase,
+        _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _verifyOtpUseCase = verifyOtpUseCase,
         _logoutUseCase = logoutUseCase,
@@ -102,15 +106,35 @@ class AuthController extends GetxController {
       isLoading.value = true;
       final email = emailController.text.trim();
       currentMobile.value = email; // Store email for OTP verification
-      final user = await _loginUseCase.execute(email);
+      
+      // Call send-otp API
+      final response = await _sendOtpUseCase.execute(email);
 
-      if (user != null) {
-        currentUser.value = user;
-        CustomSnackbar.showSuccess('Login successful. Verify OTP.');
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(
+          response.message ?? 'OTP has been sent to your email. Please check your inbox.'
+        );
+        // Navigate to OTP screen
         Get.toNamed(RouteHelper.getOtpRoute());
+      } else {
+        // If user not found, navigate to signup
+        if (response.statusCode == 404 || 
+            response.message?.toLowerCase().contains('not found') == true ||
+            response.message?.toLowerCase().contains('not registered') == true) {
+          CustomSnackbar.showError('User not found. Please sign up first.');
+          await Future.delayed(const Duration(milliseconds: 500));
+          Get.toNamed(RouteHelper.getSignupRoute());
+        } else {
+          CustomSnackbar.showError(
+            response.message ?? 'Failed to send OTP. Please try again.'
+          );
+        }
       }
     } catch (e) {
       CustomSnackbar.showError(e.toString());
+      // On error, navigate to signup as fallback
+      await Future.delayed(const Duration(milliseconds: 500));
+      Get.toNamed(RouteHelper.getSignupRoute());
     } finally {
       isLoading.value = false;
     }
@@ -237,6 +261,17 @@ class AuthController extends GetxController {
       return 'Please enter your company name';
     }
     return null;
+  }
+}
+
+
+class SendOtpUseCase {
+  final AuthService _authService;
+
+  SendOtpUseCase(this._authService);
+
+  Future<ResponseModel> execute(String email) async {
+    return await _authService.sendOtp(email);
   }
 }
 

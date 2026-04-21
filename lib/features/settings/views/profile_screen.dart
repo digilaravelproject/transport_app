@@ -20,7 +20,7 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: const AppHeader(
-        title: 'Agency Profile',
+        title: 'Vendor Profile',
         subtitle: 'Manage your business details',
       ),
       body: SingleChildScrollView(
@@ -111,13 +111,13 @@ class ProfileScreen extends StatelessWidget {
                     icon: const Icon(Icons.star_outline_rounded),
                     onTap: () => Get.toNamed(RouteHelper.getSubscriptionRoute()),
                   ),
-                  const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
-                  ActionTile(
-                    title: 'Change Password',
-                    subtitle: 'Update your login credentials',
-                    icon: const Icon(Iconsax.lock),
-                    onTap: () => Get.toNamed(RouteHelper.getChangePasswordRoute()),
-                  ),
+                  // const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                  // ActionTile(
+                  //   title: 'Change Password',
+                  //   subtitle: 'Update your login credentials',
+                  //   icon: const Icon(Iconsax.lock),
+                  //   onTap: () => Get.toNamed(RouteHelper.getChangePasswordRoute()),
+                  // ),
                   const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
                   ActionTile(
                     title: 'Help & Support',

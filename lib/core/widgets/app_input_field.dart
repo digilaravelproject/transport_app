@@ -107,10 +107,48 @@ class AppInputField extends StatelessWidget {
                   : null,
               suffixIconConstraints: const BoxConstraints(minWidth: 48),
               border: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
+              errorStyle: const TextStyle(height: 0, fontSize: 0), // Hide default error
               contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             ),
+            autovalidateMode: AutovalidateMode.onUserInteraction,
           ),
         ),
+        // Custom error message outside container
+        if (validator != null)
+          ValueListenableBuilder<TextEditingValue>(
+            valueListenable: controller ?? TextEditingController(),
+            builder: (context, value, child) {
+              final error = validator!(value.text);
+              if (error != null && value.text.isNotEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 4),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 14,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          error,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
       ],
     );
   }

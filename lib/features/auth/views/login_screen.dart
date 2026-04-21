@@ -9,6 +9,7 @@ import 'package:credit_debit/routes/route_helper.dart';
 import 'package:credit_debit/core/widgets/app_input_field.dart';
 import 'package:credit_debit/core/widgets/app_button.dart';
 import 'package:credit_debit/core/widgets/clean_auth_background.dart';
+import 'package:credit_debit/core/utils/app_validators.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -344,69 +345,23 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                   hint: 'you@example.com',
                                   icon: Iconsax.sms,
                                   keyboardType: TextInputType.emailAddress,
+                                  validator: AppValidators.validateEmail,
                                 ),
 
                                 const SizedBox(height: 28),
 
                                 // Sign in button
-                                /*Obx(() => Container(
-                                      height: 50,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppColors.primaryColor,
-                                            AppColors.primaryColor.withValues(alpha: 0.8),
-                                          ],
-                                          begin: Alignment.centerLeft,
-                                          end: Alignment.centerRight,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppColors.primaryColor.withValues(alpha: 0.4),
-                                            blurRadius: 20,
-                                            offset: const Offset(0, 10),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(16),
-                                          onTap: _authController.isLoading.value
-                                              ? null
-                                              : () {
-                                                  if (_formKey.currentState?.validate() ?? false) {
-                                                    _authController.login();
-                                                  }
-                                                },
-                                          child: Center(
-                                            child: _authController.isLoading.value
-                                                ? const SizedBox(
-                                                    width: 24,
-                                                    height: 24,
-                                                    child: CircularProgressIndicator(
-                                                      color: AppColors.white,
-                                                      strokeWidth: 2.5,
-                                                    ),
-                                                  )
-                                                : AppText(
-                                                    'Sign In',
-                                                   // style: AppTextStyle.button,
-                                                    fontSize: 17,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppColors.white,
-                                                  ),
-                                          ),
-                                        ),
-                                      ),
-                                    )),*/
-
                                 Obx(() => AppButton(
                                   text: 'Sign In',
                                   isLoading: _authController.isLoading.value,
                                   fontWeight: FontWeight.bold,
-                                  onPressed: () => Get.offAllNamed(RouteHelper.getDashboardRoute()),
+                                  onPressed: () {
+                                    // Validate form
+                                    if (_formKey.currentState?.validate() ?? false) {
+                                      // Call login API
+                                      _authController.login();
+                                    }
+                                  },
                                 )),
 
                                 const SizedBox(height: 24),
@@ -450,14 +405,6 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                       onTap: () => Get.toNamed(RouteHelper.getSignupRoute()),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(vertical: 16),
-                                        // decoration: BoxDecoration(
-                                        //   color: AppColors.primaryColor.withValues(alpha: 0.08),
-                                        //   borderRadius: BorderRadius.circular(16),
-                                        //   border: Border.all(
-                                        //     color: AppColors.primaryColor.withValues(alpha: 0.2),
-                                        //     width: 1.5,
-                                        //   ),
-                                        // ),
                                         child: Center(
                                           child: RichText(
                                             text: TextSpan(

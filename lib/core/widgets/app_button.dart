@@ -24,7 +24,7 @@ class AppButton extends StatelessWidget {
     this.color,
     this.textColor,
     this.width,
-    this.height = 56,
+    this.height = 50,
     this.borderRadius = 12,
     this.isLoading = false,
     this.icon,

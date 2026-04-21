@@ -100,11 +100,23 @@ class AuthController extends GetxController {
   }
 
   Future<void> login() async {
-    if (!formKey.currentState!.validate()) return;
-
     try {
       isLoading.value = true;
       final email = emailController.text.trim();
+      
+      // Validate email
+      if (email.isEmpty) {
+        CustomSnackbar.showError('Please enter your email');
+        isLoading.value = false;
+        return;
+      }
+      
+      if (!GetUtils.isEmail(email)) {
+        CustomSnackbar.showError('Please enter a valid email address');
+        isLoading.value = false;
+        return;
+      }
+      
       currentMobile.value = email; // Store email for OTP verification
       
       // Call send-otp API

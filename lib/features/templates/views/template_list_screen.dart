@@ -27,11 +27,11 @@ class TemplateListScreen extends GetView<TemplateController> {
         title: 'Templates',
         subtitle: 'Manage your documents',
       ),
-      floatingActionButton: FloatingActionButton(heroTag: null,
-        onPressed: () => Get.toNamed(RouteHelper.getAddTemplateRoute()),
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Iconsax.add, color: AppColors.white),
-      ),
+      // floatingActionButton: FloatingActionButton(heroTag: null,
+      //   onPressed: () => Get.toNamed(RouteHelper.getAddTemplateRoute()),
+      //   backgroundColor: AppColors.primaryColor,
+      //   child: const Icon(Iconsax.add, color: AppColors.white),
+      // ),
       body: Column(
         children: [
           Padding(
@@ -43,18 +43,23 @@ class TemplateListScreen extends GetView<TemplateController> {
           ),
           
           const SizedBox(height: 12),
-          SingleChildScrollView(
+          Obx(() => SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              children: [
-                AppFilterChip(label: 'All', isSelected: true, onTap: () {}),
-                AppFilterChip(label: 'Invoices', isSelected: false, onTap: () {}),
-                AppFilterChip(label: 'Quotations', isSelected: false, onTap: () {}),
-                AppFilterChip(label: 'Duty Slips', isSelected: false, onTap: () {}),
-              ],
+              children: controller.filterTypes.map((filter) {
+                final isSelected = controller.selectedFilter.value == filter;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: AppFilterChip(
+                    label: filter,
+                    isSelected: isSelected,
+                    onTap: () => controller.setFilter(filter),
+                  ),
+                );
+              }).toList(),
             ),
-          ),
+          )),
           
           const SizedBox(height: 16),
           Expanded(
@@ -87,7 +92,19 @@ class _TemplateCard extends StatelessWidget {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      onTap: () => Get.toNamed(RouteHelper.getTemplateDetailsRoute(), arguments: template),
+      onTap: () {
+        if (template.url != null && template.url!.isNotEmpty) {
+          Get.toNamed(
+            RouteHelper.getTemplateViewRoute(),
+            arguments: {
+              'title': template.name,
+              'url': template.url!,
+            },
+          );
+        } else {
+          Get.toNamed(RouteHelper.getTemplateDetailsRoute(), arguments: template);
+        }
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -129,16 +146,28 @@ class _TemplateCard extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Iconsax.eye, size: 20, color: AppColors.textColorSecondary),
-                    onPressed: () => Get.toNamed(RouteHelper.getTemplateDetailsRoute(), arguments: template),
+                    onPressed: () {
+                      if (template.url != null && template.url!.isNotEmpty) {
+                        Get.toNamed(
+                          RouteHelper.getTemplateViewRoute(),
+                          arguments: {
+                            'title': template.name,
+                            'url': template.url!,
+                          },
+                        );
+                      } else {
+                        Get.toNamed(RouteHelper.getTemplateDetailsRoute(), arguments: template);
+                      }
+                    },
                     constraints: const BoxConstraints(),
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                   ),
-                  IconButton(
-                    icon: const Icon(Iconsax.edit, size: 20, color: AppColors.primaryColor),
-                    onPressed: () => Get.toNamed(RouteHelper.getEditTemplateRoute(), arguments: template),
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                  ),
+                  // IconButton(
+                  //   icon: const Icon(Iconsax.edit, size: 20, color: AppColors.primaryColor),
+                  //   onPressed: () => Get.toNamed(RouteHelper.getEditTemplateRoute(), arguments: template),
+                  //   constraints: const BoxConstraints(),
+                  //   padding: EdgeInsets.zero,
+                  // ),
                 ],
               )
             ],

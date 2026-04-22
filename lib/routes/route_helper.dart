@@ -107,7 +107,9 @@ import '../features/settings/views/help_screen.dart';
 import '../features/templates/views/template_list_screen.dart';
 import '../features/templates/views/add_edit_template_screen.dart';
 import '../features/templates/views/template_details_screen.dart';
+import '../features/templates/views/template_view_screen.dart';
 import '../features/templates/controllers/template_controller.dart';
+import '../features/templates/controllers/template_view_controller.dart';
 import '../features/roles/views/role_list_screen.dart';
 import '../features/roles/views/add_edit_role_screen.dart';
 import '../features/roles/views/role_details_screen.dart';
@@ -233,6 +235,7 @@ class RouteHelper {
   static String getAddTemplateRoute() => AppRoutes.addTemplate;
   static String getEditTemplateRoute() => AppRoutes.editTemplate;
   static String getTemplateDetailsRoute() => AppRoutes.templateDetails;
+  static String getTemplateViewRoute() => AppRoutes.templateView;
   static String getRoleListRoute() => AppRoutes.roleList;
   static String getAddRoleRoute() => AppRoutes.addRole;
   static String getEditRoleRoute() => AppRoutes.editRole;
@@ -746,6 +749,12 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.templateDetails,
       page: () => const TemplateDetailsScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.templateView,
+      page: () => const TemplateViewScreen(),
+      binding: BindingsBuilder(() { Get.put(TemplateViewController()); }),
       transition: Transition.rightToLeft,
     ),
 

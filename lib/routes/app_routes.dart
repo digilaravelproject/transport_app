@@ -115,6 +115,7 @@ class AppRoutes {
   static const String addTemplate = '/add-template';
   static const String editTemplate = '/edit-template';
   static const String templateDetails = '/template-details';
+  static const String templateView = '/template-view';
   static const String roleList = '/role-list';
   static const String addRole = '/add-role';
   static const String editRole = '/edit-role';

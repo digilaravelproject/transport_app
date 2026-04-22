@@ -5,6 +5,7 @@ class TemplateModel {
   final String type; // e.g. 'Invoice', 'Quotation', 'Duty Slip'
   final DateTime lastUpdated;
   final bool isDefault;
+  final String? url; // URL for template preview
 
   TemplateModel({
     required this.id,
@@ -13,5 +14,6 @@ class TemplateModel {
     required this.type,
     required this.lastUpdated,
     this.isDefault = false,
+    this.url,
   });
 }

@@ -43,9 +43,9 @@ class LeadListScreen extends GetView<LeadController> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                InkWell(
-                  onTap: () => Get.back(),
-                  borderRadius: BorderRadius.circular(12),
+                GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  behavior: HitTestBehavior.opaque,
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
@@ -55,18 +55,26 @@ class LeadListScreen extends GetView<LeadController> {
                     child: const Icon(Iconsax.arrow_left_2, color: AppColors.textColorPrimary, size: 20),
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.slate100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
-                      SizedBox(width: 4),
-                      AppText('Filter', color: AppColors.textColorPrimary, fontSize: 12, fontWeight: FontWeight.w600),
-                    ],
+                GestureDetector(
+                  onTap: () => _showFilterBottomSheet(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
+                        const SizedBox(width: 4),
+                        Obx(() => AppText(
+                          controller.selectedDateFilter.value == 'All' ? 'Filter' : controller.selectedDateFilter.value,
+                          color: AppColors.textColorPrimary, 
+                          fontSize: 12, 
+                          fontWeight: FontWeight.w600
+                        )),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -171,6 +179,182 @@ class LeadListScreen extends GetView<LeadController> {
       ),
     );
   }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const AppText('Filter by Date', style: AppTextStyle.heading, fontSize: 20),
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate100,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, size: 18, color: AppColors.textColorPrimary),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _dateFilterItem('All', Iconsax.calendar),
+                    _dateFilterItem('Today', Iconsax.timer),
+                    _dateFilterItem('3 Days', Iconsax.judge),
+                    _dateFilterItem('Week', Iconsax.calendar_1),
+                    _dateFilterItem('Month', Iconsax.calendar_edit),
+                    _dateFilterItem('3 Months', Iconsax.chart_1),
+                    _dateFilterItem('6 Months', Iconsax.chart_21),
+                    _dateFilterItem('Year', Iconsax.archive_1),
+                    _customDateRangeItem(context),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  Widget _dateFilterItem(String label, IconData icon) {
+    return Obx(() {
+      final isSelected = controller.selectedDateFilter.value == label;
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: InkWell(
+          onTap: () {
+            controller.setDateFilter(label);
+            Get.back();
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.slate100,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primaryColor : AppColors.slate100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: isSelected ? Colors.white : AppColors.textColorPrimary, size: 16),
+                ),
+                const SizedBox(width: 12),
+                AppText(
+                  label,
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? AppColors.primaryColor : AppColors.textColorPrimary,
+                ),
+                const Spacer(),
+                if (isSelected)
+                  const Icon(Iconsax.tick_circle5, color: AppColors.primaryColor, size: 18)
+                else
+                  const Icon(Iconsax.arrow_right_3, color: AppColors.slate300, size: 16),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _customDateRangeItem(BuildContext context) {
+    return Obx(() {
+      final isSelected = controller.selectedDateFilter.value == 'Custom';
+      return InkWell(
+        onTap: () async {
+          Get.back();
+          final DateTimeRange? picked = await showDateRangePicker(
+            context: context,
+            firstDate: DateTime(2020),
+            lastDate: DateTime(2030),
+            builder: (context, child) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  colorScheme: const ColorScheme.light(
+                    primary: AppColors.primaryColor,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: AppColors.textColorPrimary,
+                  ),
+                ),
+                child: child!,
+              );
+            },
+          );
+          if (picked != null) {
+            controller.setCustomDateRange(picked);
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.slate100,
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primaryColor : AppColors.slate100,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(Iconsax.calendar_tick, color: isSelected ? Colors.white : AppColors.textColorPrimary, size: 16),
+              ),
+              const SizedBox(width: 12),
+              AppText(
+                'Custom Range',
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primaryColor : AppColors.textColorPrimary,
+              ),
+              const Spacer(),
+              if (isSelected)
+                const Icon(Iconsax.tick_circle5, color: AppColors.primaryColor, size: 18)
+              else
+                const Icon(Iconsax.arrow_right_3, color: AppColors.slate300, size: 16),
+            ],
+          ),
+        ),
+      );
+    });
+  }
 }
 
 class _LeadCard extends StatelessWidget {
@@ -193,10 +377,21 @@ class _LeadCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppText(
-                      lead.customerName,
-                      style: AppTextStyle.subheading,
-                      fontSize: 16,
+                    Row(
+                      children: [
+                        AppText(
+                          lead.customerName,
+                          style: AppTextStyle.subheading,
+                          fontSize: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        AppText(
+                          lead.leadNo,
+                          style: AppTextStyle.caption,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2),
                     AppText(

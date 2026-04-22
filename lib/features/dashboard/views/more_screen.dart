@@ -16,9 +16,10 @@ class MoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Standardized module list using AppColors and theme-aligned colors
     final modules = [
-      _ModuleItem('Leads', Iconsax.user_add5, AppColors.successColor, route: RouteHelper.getLeadListRoute()),
+      _ModuleItem('Leads', Iconsax.user_add, AppColors.successColor, route: RouteHelper.getLeadListRoute()),
       _ModuleItem('Vehicles', Iconsax.bus5, AppColors.primaryColor, route: RouteHelper.getVehicleListRoute()),
       _ModuleItem('Staff', Iconsax.people5, AppColors.warningColor, route: RouteHelper.getStaffListRoute()),
+      _ModuleItem('Attendance', Iconsax.calendar_tick5, AppColors.successColor, route: RouteHelper.getAttendanceRoute()),
       _ModuleItem('Corporate', Iconsax.building_35, AppColors.infoColor, route: RouteHelper.getCompanyListRoute()),
       _ModuleItem('Finance', Iconsax.money, AppColors.warningColor, route: RouteHelper.getCashbookDashboardRoute()),
       _ModuleItem('Inventory', Iconsax.box5, AppColors.secondaryColor, route: RouteHelper.getInventoryListRoute()),
@@ -26,9 +27,8 @@ class MoreScreen extends StatelessWidget {
       _ModuleItem('Shifts', Iconsax.clock5, AppColors.primaryColor, route: RouteHelper.getShiftListRoute()),
       _ModuleItem('Reports', Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
       _ModuleItem('Templates', Iconsax.document_copy5, AppColors.secondaryColor, route: RouteHelper.getTemplateListRoute()),
-      _ModuleItem('Roles', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
+      _ModuleItem('Role Management', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
       _ModuleItem('Membership', Iconsax.medal_star5, AppColors.warningColor, route: RouteHelper.getMembershipRoute()),
-      _ModuleItem('Settings', Iconsax.setting_25, AppColors.slate700, route: RouteHelper.getSubscriptionRoute()),
       _ModuleItem('Profile', Iconsax.profile_circle5, AppColors.primaryColor, route: RouteHelper.getProfileRoute()),
     ];
 

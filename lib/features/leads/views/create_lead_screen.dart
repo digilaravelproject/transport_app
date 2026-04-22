@@ -10,6 +10,7 @@ import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../controllers/lead_controller.dart';
 
 class CreateLeadScreen extends GetView<LeadController> {
@@ -28,9 +29,36 @@ class CreateLeadScreen extends GetView<LeadController> {
           children: [
             // ── Trip Details ─────────────────────────────────────────
             const SectionHeader(title: 'Trip Details'),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 38,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: controller.tripPresets.length,
+                itemBuilder: (context, index) {
+                  final preset = controller.tripPresets[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ActionChip(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      label: AppText(
+                        preset['label'], 
+                        fontSize: 12, 
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                      backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
+                      side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      onPressed: () => controller.applyPreset(index),
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 12),
             AppCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   Row(
@@ -61,60 +89,29 @@ class CreateLeadScreen extends GetView<LeadController> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  AppInputField(
-                    label: 'Trip Route',
-                    hint: 'e.g. Delhi to Manali',
-                    icon: Icons.route_rounded,
-                    controller: controller.routeController,
-                  ),
-                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
+                        flex: 2,
                         child: _DropdownField(
                           label: 'Vehicle Type',
                           value: controller.selectedVehicleType,
-                          items: const ['Sedan', 'SUV', 'Innova', 'Tempo Traveller', 'Mini Bus', 'Luxury Bus'],
+                          items: const ['Sedan (4 Seater)', 'SUV (7 Seater)', 'Innova (7 Seater)', 'Tempo Traveller (12 Seater)', 'Mini Bus (25 Seater)', 'Luxury Bus (45 Seater)'],
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
+                        flex: 1,
                         child: AppInputField(
-                          label: 'Count',
+                          label: 'Vehicle Count',
                           hint: '1',
                           icon: Icons.filter_9_plus_rounded,
+                          iconSize: 16,
                           keyboardType: TextInputType.number,
                           onChanged: (v) => controller.vehicleCount.value = int.tryParse(v) ?? 1,
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // ── Customer Details ─────────────────────────────────────
-            const SectionHeader(title: 'Customer Details'),
-            const SizedBox(height: 12),
-            AppCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  AppInputField(
-                    label: 'Customer Name',
-                    hint: 'Enter full name',
-                    icon: Iconsax.user,
-                    controller: controller.customerNameController,
-                  ),
-                  const SizedBox(height: 20),
-                  AppInputField(
-                    label: 'Mobile Number',
-                    hint: 'Enter 10 digit number',
-                    icon: Iconsax.call,
-                    keyboardType: TextInputType.phone,
-                    controller: controller.phoneController,
                   ),
                   const SizedBox(height: 20),
                   AppInputField(
@@ -129,13 +126,43 @@ class CreateLeadScreen extends GetView<LeadController> {
               ),
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 12),
+            const SectionHeader(title: 'Customer Details'),
+            const SizedBox(height: 6),
+            AppCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  AppInputField(
+                    label: 'Customer Name',
+                    hint: 'Enter full name',
+                    icon: Iconsax.user,
+                    controller: controller.customerNameController,
+                  ),
+                  const SizedBox(height: 20),
+                    Obx(() => AppInputField(
+                      label: 'Mobile Number',
+                      hint: 'Enter 10 digit number',
+                      keyboardType: TextInputType.phone,
+                      controller: controller.phoneController,
+                      icon: Iconsax.call,
+                      phoneCode: controller.selectedCountryCode.value,
+                      onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                        context: context,
+                        selectedCode: controller.selectedCountryCode,
+                      ),
+                    )),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             // ── Payment Details ──────────────────────────────────────
             const SectionHeader(title: 'Payment Details'),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             AppCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   Row(
@@ -212,6 +239,7 @@ class CreateLeadScreen extends GetView<LeadController> {
       ),
     );
   }
+
 }
 
 class _DatePickerField extends StatelessWidget {

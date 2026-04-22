@@ -19,23 +19,66 @@ class RepairEntryScreen extends StatefulWidget {
 
 class _RepairEntryScreenState extends State<RepairEntryScreen> {
   final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+  String? mode;
+  ServiceRecord? sourceRecord;
+
   DateTime selectedDate = DateTime.now();
   final TextEditingController typeController = TextEditingController();
-  final TextEditingController costController = TextEditingController();
+  final TextEditingController totalBillController = TextEditingController();
+  final TextEditingController paidAmountController = TextEditingController();
   final TextEditingController garageController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments;
+
+    if (args is Map) {
+      vehicle = args['vehicle'];
+      mode = args['mode'];
+      sourceRecord = args['record'];
+    } else {
+      vehicle = args;
+    }
+    
+    // Pre-fill from existing record if available
+    final record = sourceRecord;
+    if (record != null) {
+      garageController.text = record.workshop;
+      if (mode == 'payment') {
+        typeController.text = 'Payment for ${record.type}';
+      } else {
+        typeController.text = record.type;
+      }
+    }
+
+    // Set default values based on mode
+    if (mode == 'payment') {
+      if (typeController.text.isEmpty) typeController.text = 'Payment';
+      totalBillController.text = '0';
+    } else if (mode == 'bill') {
+      paidAmountController.text = '0';
+    }
+  }
 
   @override
   void dispose() {
     typeController.dispose();
-    costController.dispose();
+    totalBillController.dispose();
+    paidAmountController.dispose();
     garageController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    String title = 'Add Repair Entry';
+    if (mode == 'payment') title = 'Record Payment';
+    if (mode == 'bill') title = 'Add Repair Bill';
+
     return AppScaffold(
-      appBar: const AppHeader(title: 'Add Repair Entry'),
+      appBar: AppHeader(title: title),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -45,11 +88,26 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
                 children: [
                   _buildDateField(),
                   const SizedBox(height: 16),
-                  _buildTextField('Repair Type / Part', 'e.g. Brake Pad Replacement', typeController),
+                  if (mode != 'payment') ...[
+                    _buildTextField('Repair Type / Part', 'e.g. Brake Pad Replacement', typeController),
+                    const SizedBox(height: 16),
+                  ],
+                  Row(
+                    children: [
+                      if (mode != 'payment')
+                        Expanded(
+                            child: _buildTextField('Total Bill (₹)', 'e.g. 15000', totalBillController,
+                                keyboardType: TextInputType.number)),
+                      if (mode != 'payment' && mode != 'bill') const SizedBox(width: 12),
+                      if (mode != 'bill')
+                        Expanded(
+                            child: _buildTextField('Amount Paid (₹)', 'e.g. 10000', paidAmountController,
+                                keyboardType: TextInputType.number)),
+                    ],
+                  ),
                   const SizedBox(height: 16),
-                  _buildTextField('Repair Cost (₹)', 'e.g. 4500', costController, keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Garage Name', 'e.g. City Motors', garageController),
+                  if (mode != 'payment')
+                    _buildTextField('Garage Name', 'e.g. City Motors', garageController),
                 ],
               ),
             ),
@@ -71,22 +129,39 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
             ),
             const SizedBox(height: 40),
             AppButton(
-              text: 'Save Repair Entry',
+              text: mode == 'payment' ? 'Save Payment' : 'Save Entry',
               onPressed: () {
-                if (typeController.text.isNotEmpty && costController.text.isNotEmpty) {
-                  final record = ServiceRecord(
-                    date: selectedDate,
-                    type: typeController.text,
-                    cost: double.tryParse(costController.text) ?? 0.0,
-                    workshop: garageController.text.isNotEmpty ? garageController.text : 'Unknown Workshop',
-                  );
-                  controller.addRepairEntry(record);
+                bool isValid = true;
+                if (mode == 'payment') {
+                  isValid = paidAmountController.text.isNotEmpty;
+                } else {
+                  isValid = typeController.text.isNotEmpty && totalBillController.text.isNotEmpty;
+                }
+
+                if (isValid) {
+                  if (mode == 'payment' && sourceRecord != null) {
+                    controller.addPaymentToRepair(
+                      sourceRecord!.id, 
+                      double.tryParse(paidAmountController.text) ?? 0.0,
+                      selectedDate,
+                    );
+                  } else {
+                    final record = ServiceRecord(
+                      id: DateTime.now().millisecondsSinceEpoch,
+                      date: selectedDate,
+                      type: typeController.text,
+                      totalBill: double.tryParse(totalBillController.text) ?? 0.0,
+                      paidAmount: double.tryParse(paidAmountController.text) ?? 0.0,
+                      workshop: garageController.text.isNotEmpty ? garageController.text : 'Unknown Workshop',
+                    );
+                    controller.addRepairEntry(record);
+                  }
                   Get.back();
                 } else {
-                  Get.snackbar('Error', 'Please fill in all required fields', 
-                    snackPosition: SnackPosition.BOTTOM, 
-                    backgroundColor: AppColors.errorColor, 
-                    colorText: Colors.white);
+                  Get.snackbar('Error', 'Please fill in required fields',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.errorColor,
+                      colorText: Colors.white);
                 }
               },
             ),

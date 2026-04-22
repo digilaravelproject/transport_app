@@ -6,6 +6,7 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 
@@ -14,27 +15,84 @@ class RepairHistoryScreen extends GetView<VehicleController> {
 
   @override
   Widget build(BuildContext context) {
-    final VehicleModel vehicle = Get.arguments ?? controller.vehicles.first;
+    final dynamic args = Get.arguments;
+    final VehicleModel vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
 
     return AppScaffold(
       appBar: AppHeader(
         title: 'Repair History',
         subtitle: vehicle.vehicleNumber,
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.toNamed('/repair-entry', arguments: vehicle),
+        backgroundColor: AppColors.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSummaryCard(),
+          Obx(() => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                AppFilterChip(label: 'All', isSelected: controller.selectedRepairFilter.value == 'All', onTap: () => controller.setRepairFilter('All')),
+                const SizedBox(width: 8),
+                AppFilterChip(label: 'Pending', isSelected: controller.selectedRepairFilter.value == 'Pending', onTap: () => controller.setRepairFilter('Pending')),
+                const SizedBox(width: 8),
+                AppFilterChip(label: 'Paid', isSelected: controller.selectedRepairFilter.value == 'Paid', onTap: () => controller.setRepairFilter('Paid')),
+                const SizedBox(width: 8),
+                AppFilterChip(
+                  label: controller.repairStartDate.value == null 
+                    ? 'Date' 
+                    : '${controller.repairStartDate.value!.day}/${controller.repairStartDate.value!.month} - ${controller.repairEndDate.value!.day}/${controller.repairEndDate.value!.month}',
+                  isSelected: controller.repairStartDate.value != null,
+                  showIcon: true,
+                  onTap: () async {
+                    if (controller.repairStartDate.value != null) {
+                      controller.clearRepairDateRange();
+                    } else {
+                      final range = await showDateRangePicker(
+                        context: context,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.light(
+                                primary: AppColors.primaryColor,
+                                onPrimary: Colors.white,
+                                surface: Colors.white,
+                                onSurface: AppColors.textColorPrimary,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (range != null) {
+                        controller.setRepairDateRange(range.start, range.end);
+                      }
+                    }
+                  },
+                ),
+              ],
+            ),
+          )),
+          const SizedBox(height: 12),
           Expanded(
             child: Obx(() {
-              if (controller.repairHistory.isEmpty) {
+              final history = controller.filteredRepairHistory;
+              if (history.isEmpty) {
                 return const Center(child: AppText('No repair records found', style: AppTextStyle.body));
               }
               return ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: controller.repairHistory.length,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: history.length,
                 itemBuilder: (context, index) {
-                  final record = controller.repairHistory[index];
-                  return _buildRepairCard(record);
+                  final record = history[index];
+                  return _buildRepairCard(record, vehicle);
                 },
               );
             }),
@@ -48,68 +106,129 @@ class RepairHistoryScreen extends GetView<VehicleController> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.slate200),
       ),
       child: Obx(() {
-        final totalCost = controller.repairHistory.fold<double>(0, (sum, item) => sum + item.cost);
-        final lastRepair = controller.repairHistory.isNotEmpty ? controller.repairHistory.first.date : null;
-        final daysAgo = lastRepair != null ? DateTime.now().difference(lastRepair).inDays : null;
+        final totalBill =
+            controller.repairHistory.fold<double>(0.0, (sum, item) => sum + item.totalBill);
+        final totalPaid =
+            controller.repairHistory.fold<double>(0.0, (sum, item) => sum + item.paidAmount);
+        final totalPending = totalBill - totalPaid;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSummaryItem('Total Cost', '₹ ${totalCost.toStringAsFixed(0)}', Iconsax.card),
-            Container(width: 1, height: 40, color: AppColors.slate200),
-            _buildSummaryItem('Last Repair', daysAgo != null ? '$daysAgo Days ago' : 'N/A', Icons.build_rounded),
+            _buildSummaryItem('Total', '₹ ${totalBill.toStringAsFixed(0)}', Iconsax.receive_square_2,
+                color: AppColors.successColor),
+            _buildSummaryItem('Pay', '₹ ${totalPaid.toStringAsFixed(0)}', Iconsax.send_sqaure_2,
+                color: AppColors.errorColor),
+            _buildSummaryItem('Due', '₹ ${totalPending.toStringAsFixed(0)}', Iconsax.info_circle,
+                color: totalPending > 0 ? AppColors.indigo500 : AppColors.successColor),
           ],
         );
       }),
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, IconData icon) {
+  Widget _buildSummaryItem(String label, String value, IconData icon, {Color? color}) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.primaryColor, size: 20),
+        Icon(icon, color: color ?? AppColors.primaryColor, size: 20),
         const SizedBox(height: 8),
-        AppText(value, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+        AppText(value, 
+          style: AppTextStyle.body, 
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
         AppText(label, style: AppTextStyle.caption, fontSize: 10, color: AppColors.textColorHint),
       ],
     );
   }
 
-  Widget _buildRepairCard(ServiceRecord record) {
+  Widget _buildRepairCard(ServiceRecord record, VehicleModel vehicle) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 16),
+      onTap: () => Get.toNamed('/service-payment-history', arguments: {
+        'record': record,
+        'vehicle': vehicle,
+        'type': 'Repair',
+      }),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText(record.type, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-              AppText('₹ ${record.cost}', style: AppTextStyle.body, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText(record.type, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Iconsax.location, size: 12, color: AppColors.textColorHint),
+                        const SizedBox(width: 4),
+                        Expanded(child: AppText(record.workshop, style: AppTextStyle.caption, color: AppColors.textColorSecondary, overflow: TextOverflow.ellipsis)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Iconsax.calendar_1, size: 12, color: AppColors.textColorHint),
+                      const SizedBox(width: 4),
+                      AppText('${record.date.day}/${record.date.month}/${record.date.year}', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                    ],
+                  ),
+                  if (record.pendingAmount > 0)
+                    Container(
+                      margin: const EdgeInsets.only(top: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.errorColorAccent, borderRadius: BorderRadius.circular(4)),
+                      child: const AppText('Pending', style: AppTextStyle.caption, fontSize: 10, color: AppColors.errorColor, fontWeight: FontWeight.bold),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textColorHint),
             ],
           ),
-          const SizedBox(height: 4),
+          const Divider(height: 24, thickness: 0.5),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Iconsax.calendar_1, size: 12, color: AppColors.textColorHint),
-              const SizedBox(width: 4),
-              AppText('${record.date.day}/${record.date.month}/${record.date.year}', 
-                style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-              const SizedBox(width: 12),
-              const Icon(Iconsax.location, size: 12, color: AppColors.textColorHint),
-              const SizedBox(width: 4),
-              Expanded(child: AppText(record.workshop, style: AppTextStyle.caption, color: AppColors.textColorSecondary, overflow: TextOverflow.ellipsis)),
+              _buildMiniSummaryItem('Total', '₹${record.totalBill.toStringAsFixed(0)}', Iconsax.receive_square_2, color: AppColors.secondaryColor),
+              _buildMiniSummaryItem('Pay', '₹${record.paidAmount.toStringAsFixed(0)}', Iconsax.send_sqaure_2, color: AppColors.errorColor),
+              _buildMiniSummaryItem('Due', '₹${record.pendingAmount.toStringAsFixed(0)}', Iconsax.info_circle, color: record.pendingAmount > 0 ? AppColors.indigo500 : AppColors.successColor),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMiniSummaryItem(String label, String value, IconData icon, {Color? color}) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: color ?? AppColors.primaryColor, size: 12),
+            const SizedBox(width: 4),
+            AppText(value, style: AppTextStyle.caption, fontWeight: FontWeight.bold, color: color),
+          ],
+        ),
+        const SizedBox(height: 2),
+        AppText(label, style: AppTextStyle.caption, fontSize: 9, color: AppColors.textColorHint),
+      ],
     );
   }
 }

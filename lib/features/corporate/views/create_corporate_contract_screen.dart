@@ -43,7 +43,11 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                 children: [
                    AppText('Contract Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
                    const SizedBox(height: 16),
-                  _buildCompanyDropdown(),
+                  const AppInputField(
+                    label: 'Vendor Name',
+                    hint: 'Enter vendor name...',
+                    icon: Iconsax.building,
+                  ),
                   const SizedBox(height: 16),
                   const AppInputField(
                     label: 'Contract Name',
@@ -73,7 +77,25 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                   const SizedBox(height: 16),
                   _buildDropdown('Duty Type', _dutyType, ['Daily Commute', 'Event Transfer', 'Custom Route'], (val) => setState(() => _dutyType = val!)),
                   const SizedBox(height: 16),
-                  _buildDropdown('Vehicle Type', _vehicleType, ['Bus (50 Seater)', 'Mini Bus (30 Seater)', 'Tempo Traveller'], (val) => setState(() => _vehicleType = val!)),
+                  const SizedBox(height: 16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildDropdown('Vehicle Type', _vehicleType, ['Bus (50 Seater)', 'Mini Bus (30 Seater)', 'Tempo Traveller'], (val) => setState(() => _vehicleType = val!)),
+                      ),
+                      const SizedBox(width: 16),
+                      const Expanded(
+                        child: AppInputField(
+                          label: 'Quantity',
+                          hint: '0',
+                          icon: Iconsax.truck_fast,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const AppInputField(
                     label: 'Monthly Amount',

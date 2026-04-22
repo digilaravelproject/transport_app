@@ -56,5 +56,6 @@ class AppColors {
   static const Color slate800 = Color(0xFF1E293B);
   static const Color slate900 = Color(0xFF0F172A);
   static const Color slate950 = Color(0xFF020617);
+  static const Color indigo500 = Color(0xFF6366F1);
   static const Color white70 = Colors.white70;
 }

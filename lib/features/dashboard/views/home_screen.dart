@@ -44,28 +44,65 @@ class HomeScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Obx(() {
-                            final userName = authController.currentUser.value?.name ?? 'Partner';
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                AppText(
-                                  'Hello',
-                                  style: AppTextStyle.heading,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textColorPrimary,
-                                ),
-                                AppText(
-                                  '$userName!',
-                                  style: AppTextStyle.heading,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.textColorPrimary,
-                                ),
-                              ],
-                            );
-                          }),
+                          Expanded(
+                            child: Obx(() {
+                              final userName = authController.currentUser.value?.name ?? 'Partner';
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppText(
+                                    'Hello',
+                                    style: AppTextStyle.heading,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textColorPrimary,
+                                  ),
+                                  AppText(
+                                    '$userName!',
+                                    style: AppTextStyle.heading,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textColorPrimary,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              );
+                            }),
+                          ),
+                          GestureDetector(
+                            onTap: () => Get.toNamed(RouteHelper.getMembershipRoute()),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Iconsax.crown, color: AppColors.primaryColor, size: 14),
+                                  const SizedBox(width: 4),
+                                  AppText(
+                                    'PRO',
+                                    style: AppTextStyle.caption,
+                                    color: AppColors.primaryColor,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 12,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Container(
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -531,11 +568,15 @@ class _StatCard extends StatelessWidget {
                     ),
                   ),
                 if (isCurrency) const SizedBox(width: 2),
-                AppText(
-                  value,
-                  style: AppTextStyle.heading,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
+                Expanded(
+                  child: AppText(
+                    value,
+                    style: AppTextStyle.heading,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -548,11 +589,15 @@ class _StatCard extends StatelessWidget {
                   size: 16,
                 ),
                 const SizedBox(width: 4),
-                AppText(
-                  trend,
-                  color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                Expanded(
+                  child: AppText(
+                    trend,
+                    color: isPositive ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

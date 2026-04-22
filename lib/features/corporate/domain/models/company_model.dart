@@ -5,6 +5,7 @@ class CompanyModel {
   final String phone;
   final String email;
   final int activeContracts;
+  final bool isActive;
 
   CompanyModel({
     required this.id,
@@ -13,5 +14,20 @@ class CompanyModel {
     required this.phone,
     required this.email,
     required this.activeContracts,
+    this.isActive = true,
+  });
+}
+
+class InvoiceModel {
+  final String invNo;
+  final String amount;
+  final String status;
+  final String date;
+
+  InvoiceModel({
+    required this.invNo,
+    required this.amount,
+    required this.status,
+    required this.date,
   });
 }

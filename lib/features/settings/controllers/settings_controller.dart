@@ -7,11 +7,19 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_text.dart';
 
 class SettingsController extends GetxController {
+
   final agencyName = ''.obs;
   final email = ''.obs;
   final phone = ''.obs;
   final gstNumber = ''.obs;
   final address = ''.obs;
+// =======
+//   final agencyName = 'DigiEmperor Logistics'.obs;
+//   final email = 'info@digiemperor.com'.obs;
+//   final phone = '+91 9876543210'.obs;
+//   final gstNumber = '27AAAAA0000A1Z5'.obs;
+//   final address = '123 Business Hub, Mumbai, India'.obs;
+  final selectedCountryCode = '+91'.obs;
 
   void updateProfile(String name, String email, String phone, String gst, String address) {
     this.agencyName.value = name;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
@@ -46,8 +47,8 @@ class EditProfileScreen extends StatelessWidget {
                             backgroundImage: selectedImage != null
                                 ? FileImage(selectedImage)
                                 : (logoUrl != null && logoUrl.isNotEmpty
-                                    ? NetworkImage(logoUrl)
-                                    : null) as ImageProvider?,
+                                ? NetworkImage(logoUrl)
+                                : null) as ImageProvider?,
                             child: (selectedImage == null && (logoUrl == null || logoUrl.isEmpty))
                                 ? const Icon(Iconsax.building, color: AppColors.primaryColor, size: 50)
                                 : null,
@@ -110,14 +111,32 @@ class EditProfileScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      AppInputField(
+                      // AppInputField(
+                      //   label: 'Phone Number',
+                      //   hint: 'Enter phone number',
+                      //   controller: controller.phoneController,
+                      //   icon: Iconsax.call,
+                      //   keyboardType: TextInputType.phone,
+                      //   validator: controller.validatePhone,
+                      //   phoneCode: controller.selectedCountryCode.value,
+                      //   onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                      //     context: context,
+                      //     selectedCode: controller.selectedCountryCode,
+                      //   ),
+                      // ),
+
+                      Obx(() => AppInputField(
                         label: 'Phone Number',
-                        hint: 'Enter phone number',
                         controller: controller.phoneController,
+                        hint: 'Enter mobile number',
                         icon: Iconsax.call,
                         keyboardType: TextInputType.phone,
-                        validator: controller.validatePhone,
-                      ),
+                        phoneCode: controller.selectedCountryCode.value,
+                        onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                          context: context,
+                          selectedCode: controller.selectedCountryCode,
+                        ),
+                      )),
                     ],
                   ),
                 ),
@@ -165,10 +184,10 @@ class EditProfileScreen extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () {
-                          if (_formKey.currentState!.validate()) {
-                            controller.updateProfile();
-                          }
-                        },
+                    if (_formKey.currentState!.validate()) {
+                      controller.updateProfile();
+                    }
+                  },
                 ),
                 const SizedBox(height: 12),
                 AppButton.outline(

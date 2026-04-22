@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
 
@@ -6,6 +7,14 @@ class VehicleController extends GetxController {
   final filteredVehicles = <VehicleModel>[].obs;
   final searchQuery = ''.obs;
   final selectedFilter = 'All'.obs;
+  final selectedTypeFilter = 'All'.obs;
+  final selectedCapacityFilter = 'All'.obs;
+  final selectedRepairFilter = 'All'.obs;
+  final selectedServiceFilter = 'All'.obs;
+  final repairStartDate = Rxn<DateTime>();
+  final repairEndDate = Rxn<DateTime>();
+  final serviceStartDate = Rxn<DateTime>();
+  final serviceEndDate = Rxn<DateTime>();
 
   final fuelHistory = <FuelEntry>[].obs;
   final serviceHistory = <ServiceRecord>[].obs;
@@ -20,6 +29,8 @@ class VehicleController extends GetxController {
     
     debounce(searchQuery, (_) => _filterVehicles(), time: const Duration(milliseconds: 300));
     ever(selectedFilter, (_) => _filterVehicles());
+    ever(selectedTypeFilter, (_) => _filterVehicles());
+    ever(selectedCapacityFilter, (_) => _filterVehicles());
   }
 
   void _loadMockMaintenance() {
@@ -29,20 +40,124 @@ class VehicleController extends GetxController {
     ];
 
     serviceHistory.value = [
-      ServiceRecord(date: DateTime.now().subtract(const Duration(days: 30)), type: 'Full Service', cost: 12500, workshop: 'Tata Authorized Service Center'),
-      ServiceRecord(date: DateTime.now().subtract(const Duration(days: 120)), type: 'Oil Change', cost: 3500, workshop: 'Local Workshop'),
+      ServiceRecord(
+          id: 1,
+          date: DateTime.now().subtract(const Duration(days: 30)),
+          type: 'Full Service',
+          totalBill: 12500,
+          paidAmount: 12500,
+          workshop: 'Tata Authorized Service Center',
+          payments: [
+            PaymentLog(date: DateTime.now().subtract(const Duration(days: 30)), amount: 12500),
+          ]),
+      ServiceRecord(
+          id: 2,
+          date: DateTime.now().subtract(const Duration(days: 120)),
+          type: 'Oil Change',
+          totalBill: 3500,
+          paidAmount: 2000,
+          workshop: 'Local Workshop',
+          payments: [
+            PaymentLog(date: DateTime.now().subtract(const Duration(days: 120)), amount: 2000),
+          ]),
     ];
 
     repairHistory.value = [
-      ServiceRecord(date: DateTime.now().subtract(const Duration(days: 5)), type: 'Brake Pad Replacement', cost: 4500, workshop: 'City Garage'),
-      ServiceRecord(date: DateTime.now().subtract(const Duration(days: 60)), type: 'Tyre Change', cost: 18000, workshop: 'Michelin Store'),
+      ServiceRecord(
+          id: 3,
+          date: DateTime.now().subtract(const Duration(days: 5)),
+          type: 'Brake Pad Replacement',
+          totalBill: 4500,
+          paidAmount: 3000,
+          workshop: 'City Garage',
+          payments: [
+            PaymentLog(date: DateTime.now().subtract(const Duration(days: 5)), amount: 3000),
+          ]),
+      ServiceRecord(
+          id: 4,
+          date: DateTime.now().subtract(const Duration(days: 60)),
+          type: 'Tyre Change',
+          totalBill: 18000,
+          paidAmount: 18000,
+          workshop: 'Michelin Store',
+          payments: [
+            PaymentLog(date: DateTime.now().subtract(const Duration(days: 60)), amount: 18000),
+          ]),
     ];
 
     documents.value = [
-      VehicleDocument(name: 'Registration Certificate (RC)', uploadDate: DateTime.now().subtract(const Duration(days: 365)), expiryDate: DateTime.now().add(const Duration(days: 365*10)), fileUrl: 'rc.pdf'),
-      VehicleDocument(name: 'Insurance Policy', uploadDate: DateTime.now().subtract(const Duration(days: 200)), expiryDate: DateTime.now().add(const Duration(days: 165)), fileUrl: 'insurance.pdf'),
-      VehicleDocument(name: 'Vehicle Permit', uploadDate: DateTime.now().subtract(const Duration(days: 300)), expiryDate: DateTime.now().add(const Duration(days: 65)), fileUrl: 'permit.pdf'),
+      VehicleDocument(
+          name: 'Registration Certificate (RC)',
+          uploadDate: DateTime.now().subtract(const Duration(days: 365)),
+          expiryDate: DateTime.now().add(const Duration(days: 365 * 10)),
+          fileUrl: 'rc.pdf'),
+      VehicleDocument(
+          name: 'Insurance Policy',
+          uploadDate: DateTime.now().subtract(const Duration(days: 200)),
+          expiryDate: DateTime.now().add(const Duration(days: 165)),
+          fileUrl: 'insurance.pdf'),
+      VehicleDocument(
+          name: 'Vehicle Permit',
+          uploadDate: DateTime.now().subtract(const Duration(days: 300)),
+          expiryDate: DateTime.now().add(const Duration(days: 65)),
+          fileUrl: 'permit.pdf'),
     ];
+  }
+
+  double get totalMaintenanceSpent =>
+      serviceHistory.fold(0.0, (sum, item) => sum + item.totalBill) +
+      repairHistory.fold(0.0, (sum, item) => sum + item.totalBill);
+
+  double get totalMaintenancePaid =>
+      serviceHistory.fold(0.0, (sum, item) => sum + item.paidAmount) +
+      repairHistory.fold(0.0, (sum, item) => sum + item.paidAmount);
+
+  double get totalMaintenanceDue => totalMaintenanceSpent - totalMaintenancePaid;
+
+  List<ServiceRecord> get filteredRepairHistory {
+    List<ServiceRecord> list = List.from(repairHistory);
+    
+    // Status Filter
+    if (selectedRepairFilter.value == 'Pending') {
+      list = list.where((r) => r.pendingAmount > 0).toList();
+    } else if (selectedRepairFilter.value == 'Paid') {
+      list = list.where((r) => r.pendingAmount == 0).toList();
+    }
+
+    // Date Filter
+    if (repairStartDate.value != null) {
+      list = list.where((r) => r.date.isAfter(repairStartDate.value!) || r.date.isAtSameMomentAs(repairStartDate.value!)).toList();
+    }
+    if (repairEndDate.value != null) {
+      // Add one day to include the entire end date
+      final end = repairEndDate.value!.add(const Duration(days: 1));
+      list = list.where((r) => r.date.isBefore(end)).toList();
+    }
+    
+    return list;
+  }
+
+  List<ServiceRecord> get filteredServiceHistory {
+    List<ServiceRecord> list = List.from(serviceHistory);
+    
+    // Status Filter
+    if (selectedServiceFilter.value == 'Pending') {
+      list = list.where((s) => s.pendingAmount > 0).toList();
+    } else if (selectedServiceFilter.value == 'Paid') {
+      list = list.where((s) => s.pendingAmount == 0).toList();
+    }
+
+    // Date Filter
+    if (serviceStartDate.value != null) {
+      list = list.where((s) => s.date.isAfter(serviceStartDate.value!) || s.date.isAtSameMomentAs(serviceStartDate.value!)).toList();
+    }
+    if (serviceEndDate.value != null) {
+      // Add one day to include the entire end date
+      final end = serviceEndDate.value!.add(const Duration(days: 1));
+      list = list.where((s) => s.date.isBefore(end)).toList();
+    }
+    
+    return list;
   }
 
   void _loadMockVehicles() {
@@ -55,6 +170,8 @@ class VehicleController extends GetxController {
         model: 'Tata Marcopolo',
         year: '2022',
         driverName: 'Rajesh Kumar',
+        perKmPrice: 18.0,
+        acPricePerKm: 2.0,
         lastServiceDate: DateTime.now().subtract(const Duration(days: 15)),
         status: VehicleStatus.active,
       ),
@@ -66,6 +183,8 @@ class VehicleController extends GetxController {
         model: 'Ashok Leyland',
         year: '2021',
         driverName: 'Suresh Singh',
+        perKmPrice: 12.0,
+        acPricePerKm: 0.0,
         lastServiceDate: DateTime.now().subtract(const Duration(days: 45)),
         status: VehicleStatus.maintenance,
       ),
@@ -77,6 +196,8 @@ class VehicleController extends GetxController {
         model: 'Volvo 9400 B11R',
         year: '2023',
         driverName: 'Amit Sharma',
+        perKmPrice: 25.0,
+        acPricePerKm: 5.0,
         lastServiceDate: DateTime.now().subtract(const Duration(days: 5)),
         status: VehicleStatus.active,
       ),
@@ -86,17 +207,44 @@ class VehicleController extends GetxController {
 
   void _filterVehicles() {
     List<VehicleModel> list = List.from(vehicles);
+    
+    // Status Filter
     if (selectedFilter.value == 'Active') {
       list = list.where((v) => v.status == VehicleStatus.active).toList();
     } else if (selectedFilter.value == 'Maintenance') {
       list = list.where((v) => v.status == VehicleStatus.maintenance).toList();
     }
+
+    // Type Filter
+    if (selectedTypeFilter.value != 'All') {
+      list = list.where((v) => v.type == selectedTypeFilter.value).toList();
+    }
+
+    // Capacity Filter
+    if (selectedCapacityFilter.value != 'All') {
+      if (selectedCapacityFilter.value == '< 30') {
+        list = list.where((v) => v.capacity < 30).toList();
+      } else if (selectedCapacityFilter.value == '30 - 45') {
+        list = list.where((v) => v.capacity >= 30 && v.capacity <= 45).toList();
+      } else if (selectedCapacityFilter.value == '> 45') {
+        list = list.where((v) => v.capacity > 45).toList();
+      }
+    }
+
+    // Search Filter
     if (searchQuery.value.isNotEmpty) {
       list = list.where((v) =>
           v.vehicleNumber.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
           v.type.toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
     }
     filteredVehicles.assignAll(list);
+  }
+
+  void resetFilters() {
+    selectedFilter.value = 'All';
+    selectedTypeFilter.value = 'All';
+    selectedCapacityFilter.value = 'All';
+    searchQuery.value = '';
   }
 
   void updateSearch(String query) {
@@ -107,8 +255,85 @@ class VehicleController extends GetxController {
     selectedFilter.value = filter;
   }
 
+  void setRepairFilter(String filter) {
+    selectedRepairFilter.value = filter;
+  }
+
+  void setServiceFilter(String filter) {
+    selectedServiceFilter.value = filter;
+  }
+
+  void setRepairDateRange(DateTime? start, DateTime? end) {
+    repairStartDate.value = start;
+    repairEndDate.value = end;
+  }
+
+  void setServiceDateRange(DateTime? start, DateTime? end) {
+    serviceStartDate.value = start;
+    serviceEndDate.value = end;
+  }
+
+  void clearRepairDateRange() {
+    repairStartDate.value = null;
+    repairEndDate.value = null;
+  }
+
+  void clearServiceDateRange() {
+    serviceStartDate.value = null;
+    serviceEndDate.value = null;
+  }
+
   void addRepairEntry(ServiceRecord record) {
     repairHistory.insert(0, record);
     Get.snackbar('Success', 'Repair entry added successfully', snackPosition: SnackPosition.BOTTOM);
+  }
+
+  void addPaymentToRepair(int id, double amount, DateTime date, {String? receiptUrl}) {
+    final index = repairHistory.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      final old = repairHistory[index];
+      final newPayments = List<PaymentLog>.from(old.payments);
+      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
+      
+      repairHistory[index] = old.copyWith(
+        paidAmount: old.paidAmount + amount,
+        payments: newPayments,
+      );
+      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void addServiceEntry(ServiceRecord record) {
+    serviceHistory.insert(0, record);
+    Get.snackbar('Success', 'Service entry added successfully', snackPosition: SnackPosition.BOTTOM);
+  }
+
+  void addPaymentToService(int id, double amount, DateTime date, {String? receiptUrl}) {
+    final index = serviceHistory.indexWhere((s) => s.id == id);
+    if (index != -1) {
+      final old = serviceHistory[index];
+      final newPayments = List<PaymentLog>.from(old.payments);
+      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
+      
+      serviceHistory[index] = old.copyWith(
+        paidAmount: old.paidAmount + amount,
+        payments: newPayments,
+      );
+      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void updateVehicleStatus(VehicleModel vehicle, VehicleStatus newStatus) {
+    final index = vehicles.indexWhere((v) => v.id == vehicle.id);
+    if (index != -1) {
+      vehicles[index] = vehicle.copyWith(status: newStatus);
+      _filterVehicles();
+      Get.snackbar(
+        'Status Updated',
+        'Vehicle ${vehicle.vehicleNumber} is now ${newStatus.name.capitalizeFirst}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.white.withOpacity(0.9),
+      );
+    }
   }
 }

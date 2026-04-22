@@ -25,18 +25,73 @@ class LeadController extends GetxController {
   
   final selectedDate = DateTime.now().obs;
   final selectedDuration = '1 Day'.obs;
-  final selectedVehicleType = 'Sedan'.obs;
+  final selectedVehicleType = 'Sedan (4 Seater)'.obs;
   final vehicleCount = 1.obs;
   final destinationPoints = <String>[].obs;
+  final selectedDateFilter = 'All'.obs;
+  final customDateRange = Rxn<DateTimeRange>();
+  final selectedCountryCode = '+91'.obs;
+
+  // Quick Presets
+  final List<Map<String, dynamic>> tripPresets = [
+    {
+      'label': 'Delhi - Agra',
+      'pickup': 'Delhi',
+      'destinations': ['Agra'],
+      'duration': '1 Day',
+      'vehicle': 'Innova (7 Seater)',
+      'amount': '8500.0',
+    },
+    {
+      'label': 'Delhi - Jaipur',
+      'pickup': 'Delhi',
+      'destinations': ['Jaipur', 'Amer Fort'],
+      'duration': '2 Days',
+      'vehicle': 'Innova (7 Seater)',
+      'amount': '15500.0',
+    },
+    {
+      'label': 'Local 8/80',
+      'pickup': 'Delhi',
+      'destinations': ['Local Sightseeing'],
+      'duration': '1 Day',
+      'vehicle': 'Sedan (4 Seater)',
+      'amount': '2500.0',
+    },
+    {
+      'label': 'Airport Pick',
+      'pickup': 'IGI Airport T3',
+      'destinations': ['Gurugram'],
+      'duration': '1 Day',
+      'vehicle': 'Sedan (4 Seater)',
+      'amount': '1200.0',
+    },
+  ];
+
+  void applyPreset(int index) {
+    if (index < 0 || index >= tripPresets.length) return;
+    final preset = tripPresets[index];
+    
+    pickupAddressController.text = preset['pickup'];
+    destinationPoints.assignAll(List<String>.from(preset['destinations']));
+    selectedDuration.value = preset['duration'];
+    selectedVehicleType.value = preset['vehicle'];
+    totalAmountController.text = preset['amount'];
+    
+    // Refresh calculations
+    totalAmountController.notifyListeners();
+  }
 
   @override
   void onInit() {
     super.onInit();
     fetchLeads();
     
-    // Setup search listener
+    // Setup listeners
     debounce(searchQuery, (_) => filterLeads(), time: const Duration(milliseconds: 500));
     ever(selectedFilter, (_) => filterLeads());
+    ever(selectedDateFilter, (_) => filterLeads());
+    ever(customDateRange, (_) => filterLeads());
   }
 
   void fetchLeads() {
@@ -44,6 +99,7 @@ class LeadController extends GetxController {
     leads.value = [
       LeadModel(
         id: '1',
+        leadNo: '#LD-1001',
         customerName: 'Rahul Sharma',
         phone: '9876543210',
         route: 'Delhi - Manali',
@@ -58,6 +114,7 @@ class LeadController extends GetxController {
       ),
       LeadModel(
         id: '2',
+        leadNo: '#LD-1002',
         customerName: 'Amit Verma',
         phone: '9988776655',
         route: 'Noida - Jaipur',
@@ -76,17 +133,76 @@ class LeadController extends GetxController {
 
   void filterLeads() {
     List<LeadModel> list = List.from(leads);
+    
+    // 1. Filter by Status
     if (selectedFilter.value != 'All') {
       list = list.where((l) => l.status == selectedFilter.value).toList();
     }
+    
+    // 2. Filter by Search Query
     if (searchQuery.value.isNotEmpty) {
       list = list.where((lead) =>
         lead.customerName.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
         lead.phone.contains(searchQuery.value) ||
-        lead.route.toLowerCase().contains(searchQuery.value.toLowerCase())
+        lead.route.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
+        lead.leadNo.toLowerCase().contains(searchQuery.value.toLowerCase())
       ).toList();
     }
+
+    // 3. Filter by Date Range
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    
+    if (selectedDateFilter.value != 'All') {
+      list = list.where((lead) {
+        final leadDate = DateTime(lead.date.year, lead.date.month, lead.date.day);
+        
+        switch (selectedDateFilter.value) {
+          case 'Today':
+            return leadDate.isAtSameMomentAs(startOfToday);
+          case '3 Days':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 3)));
+          case 'Week':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 7)));
+          case 'Month':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 30)));
+          case '3 Months':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 90)));
+          case '6 Months':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 180)));
+          case 'Year':
+            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
+                   leadDate.isBefore(startOfToday.add(const Duration(days: 365)));
+          case 'Custom':
+            if (customDateRange.value != null) {
+              return (leadDate.isAtSameMomentAs(customDateRange.value!.start) || leadDate.isAfter(customDateRange.value!.start)) && 
+                     (leadDate.isAtSameMomentAs(customDateRange.value!.end) || leadDate.isBefore(customDateRange.value!.end));
+            }
+            return true;
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
     filteredLeads.value = list;
+  }
+
+  void setDateFilter(String filter) {
+    selectedDateFilter.value = filter;
+    if (filter != 'Custom') {
+      customDateRange.value = null;
+    }
+  }
+
+  void setCustomDateRange(DateTimeRange range) {
+    customDateRange.value = range;
+    selectedDateFilter.value = 'Custom';
   }
 
   void setFilter(String filter) {
@@ -106,6 +222,7 @@ class LeadController extends GetxController {
     selectedVehicleType.value = 'Sedan';
     vehicleCount.value = 1;
     destinationPoints.clear();
+    selectedCountryCode.value = '+91';
   }
 
   void addDestination(String point) {
@@ -127,10 +244,12 @@ class LeadController extends GetxController {
   // --- CRUD Operations ---
 
   void addLead() {
+    final nextId = leads.isEmpty ? 1001 : int.parse(leads.last.leadNo.split('-').last) + 1;
     final newLead = LeadModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate simple unique ID
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      leadNo: '#LD-$nextId',
       customerName: customerNameController.text.trim(),
-      phone: phoneController.text.trim(),
+      phone: '${selectedCountryCode.value} ${phoneController.text.trim()}',
       email: emailController.text.trim(),
       route: routeController.text.trim(),
       date: selectedDate.value,
@@ -162,8 +281,9 @@ class LeadController extends GetxController {
     if (index != -1) {
       final updatedLead = LeadModel(
         id: id,
+        leadNo: leads[index].leadNo,
         customerName: customerNameController.text.trim(),
-        phone: phoneController.text.trim(),
+        phone: '${selectedCountryCode.value} ${phoneController.text.trim()}',
         email: emailController.text.trim(),
         route: routeController.text.trim(),
         date: selectedDate.value,
@@ -210,6 +330,7 @@ class LeadController extends GetxController {
       final oldLead = leads[index];
       leads[index] = LeadModel(
         id: oldLead.id,
+        leadNo: oldLead.leadNo,
         customerName: oldLead.customerName,
         phone: oldLead.phone,
         email: oldLead.email,

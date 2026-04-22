@@ -55,21 +55,25 @@ class VehicleListScreen extends GetView<VehicleController> {
                   )
                 else
                   const SizedBox(width: 36),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.slate100,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
-                      SizedBox(width: 4),
-                      AppText('Filter',
-                          color: AppColors.textColorPrimary,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600),
-                    ],
+                InkWell(
+                  onTap: () => _showFilterBottomSheet(context),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
+                        SizedBox(width: 4),
+                        AppText('Filter',
+                            color: AppColors.textColorPrimary,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -210,6 +214,81 @@ class VehicleListScreen extends GetView<VehicleController> {
       ),
     );
   }
+
+  void _showFilterBottomSheet(BuildContext context) {
+    final vehicleTypes = ['All', 'AC Sleeper', 'Non-AC Sleeper', 'AC Seater', 'Non-AC Seater', 'Luxury Volvo'];
+    final capacities = ['All', '< 30', '30 - 45', '> 45'];
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const AppText('Filter Vehicles',
+                    style: AppTextStyle.subheading, fontSize: 18, fontWeight: FontWeight.bold),
+                TextButton(
+                  onPressed: () {
+                    controller.resetFilters();
+                    Get.back();
+                  },
+                  child: const AppText('Reset',
+                      color: AppColors.errorColor, fontWeight: FontWeight.w600, fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const AppText('Vehicle Type',
+                style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
+            const SizedBox(height: 12),
+            Obx(() => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: vehicleTypes.map((type) {
+                    final isSelected = controller.selectedTypeFilter.value == type;
+                    return AppFilterChip(
+                      label: type,
+                      isSelected: isSelected,
+                      onTap: () => controller.selectedTypeFilter.value = type,
+                    );
+                  }).toList(),
+                )),
+            const SizedBox(height: 24),
+            const AppText('Seating Capacity',
+                style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
+            const SizedBox(height: 12),
+            Obx(() => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: capacities.map((cap) {
+                    final isSelected = controller.selectedCapacityFilter.value == cap;
+                    return AppFilterChip(
+                      label: cap,
+                      isSelected: isSelected,
+                      onTap: () => controller.selectedCapacityFilter.value = cap,
+                    );
+                  }).toList(),
+                )),
+            const SizedBox(height: 32),
+            AppButton(
+              text: 'Apply Filters',
+              onPressed: () => Get.back(),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
 }
 
 class _VehicleCard extends StatelessWidget {
@@ -249,7 +328,11 @@ class _VehicleCard extends StatelessWidget {
                   ],
                 ),
               ),
-              AppStatusChip(status: vehicle.status.name.capitalizeFirst!, fontSize: 10),
+              InkWell(
+                onTap: () => _showStatusPicker(context, vehicle),
+                borderRadius: BorderRadius.circular(20),
+                child: AppStatusChip(status: vehicle.status.name.capitalizeFirst!, fontSize: 10),
+              ),
             ],
           ),
           const Divider(height: 24, thickness: 0.5),
@@ -257,12 +340,6 @@ class _VehicleCard extends StatelessWidget {
           // Driver & Last Service
           Row(
             children: [
-              _buildInfoColumn(
-                'Driver',
-                vehicle.driverName ?? 'Unassigned',
-                Iconsax.user,
-                AppColors.infoColor,
-              ),
               _buildInfoColumn(
                 'Last Service',
                 vehicle.lastServiceDate != null
@@ -281,7 +358,7 @@ class _VehicleCard extends StatelessWidget {
             children: [
               AppButton(
                 text: 'View Details',
-                width: 110,
+                width: 120,
                 height: 32,
                 fontSize: 12,
                 onPressed: () =>
@@ -290,7 +367,7 @@ class _VehicleCard extends StatelessWidget {
               const SizedBox(width: 8),
               AppButton.outline(
                 text: 'Edit',
-                width: 70,
+                width: 80,
                 height: 32,
                 fontSize: 12,
                 onPressed: () =>
@@ -300,6 +377,62 @@ class _VehicleCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showStatusPicker(BuildContext context, VehicleModel vehicle) {
+    final controller = Get.find<VehicleController>();
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AppText('Change Vehicle Status',
+                style: AppTextStyle.subheading, fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 8),
+            AppText('For ${vehicle.vehicleNumber}',
+                style: AppTextStyle.body, color: AppColors.textColorSecondary),
+            const SizedBox(height: 24),
+            ...VehicleStatus.values.map((status) {
+              final isSelected = vehicle.status == status;
+              return InkWell(
+                onTap: () {
+                  Get.back();
+                  controller.updateVehicleStatus(vehicle, status);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.05) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      AppStatusChip(status: status.name.capitalizeFirst!, fontSize: 13),
+                      const Spacer(),
+                      if (isSelected)
+                        const Icon(Iconsax.tick_circle5, color: Colors.green, size: 22),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 

@@ -32,6 +32,8 @@ class ProfileController extends GetxController {
   final ownerNameController = TextEditingController();
   final gstinController = TextEditingController();
   final addressController = TextEditingController();
+  var selectedCountryCode = '+91'.obs;
+
 
   @override
   void onInit() {

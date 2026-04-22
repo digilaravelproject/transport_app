@@ -17,6 +17,56 @@ class AuthService implements AuthServiceInterface {
   }
 
   @override
+  Future<ResponseModel> resendOtp(String email) async {
+    return await _authRepository.resendOtp(email);
+  }
+
+  @override
+  Future<ResponseModel> verifyLoginOtp(String email, String otp) async {
+    final response = await _authRepository.verifyLoginOtp(email, otp);
+
+    // Auto-save token and user if success
+    if (response.isSuccess && response.body != null) {
+      try {
+        final body = response.body as Map<String, dynamic>;
+
+        // Save token
+        final token = body['token'];
+        if (token != null && token.toString().isNotEmpty) {
+          await saveUserToken(token.toString());
+        }
+
+        // Save user
+        final userData = body['user'];
+        if (userData != null) {
+          final user = UserModel.fromJson(userData);
+          await saveUserInfo(user);
+          await SharedPrefs.setBool(AppConstants.isLoggedIn, true);
+        }
+      } catch (e) {
+        print('Error saving user data: $e');
+      }
+    }
+
+    return response;
+  }
+
+  @override
+  Future<ResponseModel> registerSendOtp({
+    required String vendorName,
+    required String ownerName,
+    required String phone,
+    required String email,
+  }) async {
+    return await _authRepository.registerSendOtp(
+      vendorName: vendorName,
+      ownerName: ownerName,
+      phone: phone,
+      email: email,
+    );
+  }
+
+  @override
   Future<ResponseModel> signup(String name, String mobile) async {
     return await _authRepository.signup(name, mobile);
   }
@@ -69,6 +119,11 @@ class AuthService implements AuthServiceInterface {
     await SharedPrefs.remove(AppConstants.userData);
     await TokenManager.clearToken();
     await SharedPrefs.setBool(AppConstants.isLoggedIn, false);
+  }
+
+  @override
+  Future<ResponseModel> logout() async {
+    return await _authRepository.logout();
   }
 
   @override

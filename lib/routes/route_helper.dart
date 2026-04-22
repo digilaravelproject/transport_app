@@ -707,7 +707,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.editProfile,
-      page: () => const EditProfileScreen(),
+      page: () =>  EditProfileScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

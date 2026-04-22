@@ -8,6 +8,9 @@ import '../domain/services/auth_service.dart';
 
 class AuthController extends GetxController {
   final SendOtpUseCase _sendOtpUseCase;
+  final ResendOtpUseCase _resendOtpUseCase;
+  final VerifyLoginOtpUseCase _verifyLoginOtpUseCase;
+  final RegisterSendOtpUseCase _registerSendOtpUseCase;
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
   final VerifyOtpUseCase _verifyOtpUseCase;
@@ -17,6 +20,9 @@ class AuthController extends GetxController {
 
   AuthController({
     required SendOtpUseCase sendOtpUseCase,
+    required ResendOtpUseCase resendOtpUseCase,
+    required VerifyLoginOtpUseCase verifyLoginOtpUseCase,
+    required RegisterSendOtpUseCase registerSendOtpUseCase,
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
     required VerifyOtpUseCase verifyOtpUseCase,
@@ -24,6 +30,9 @@ class AuthController extends GetxController {
     required CheckLoginStatusUseCase checkLoginStatusUseCase,
     required GetUserInfoUseCase getUserInfoUseCase,
   })  : _sendOtpUseCase = sendOtpUseCase,
+        _resendOtpUseCase = resendOtpUseCase,
+        _verifyLoginOtpUseCase = verifyLoginOtpUseCase,
+        _registerSendOtpUseCase = registerSendOtpUseCase,
         _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _verifyOtpUseCase = verifyOtpUseCase,
@@ -52,6 +61,14 @@ class AuthController extends GetxController {
 
   @override
   void onClose() {
+    // When using fenix: true, GetX will recreate the controller
+    // Don't dispose controllers here as they might still be in use during navigation
+    // Let Dart's garbage collector handle them when no longer referenced
+    super.onClose();
+  }
+  
+  // Manual cleanup method if needed
+  void disposeControllers() {
     emailController.dispose();
     passwordController.dispose();
     companyNameController.dispose();
@@ -59,7 +76,6 @@ class AuthController extends GetxController {
     nameController.dispose();
     phoneController.dispose();
     otpController.dispose();
-    super.onClose();
   }
 
   Future<void> checkLoginStatus() async {
@@ -99,6 +115,76 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> register() async {
+    try {
+      isLoading.value = true;
+      
+      // Get form data
+      final vendorName = companyNameController.text.trim();
+      final ownerName = nameController.text.trim();
+      final phone = phoneController.text.trim();
+      final email = emailController.text.trim();
+      
+      // Validate fields
+      if (vendorName.isEmpty) {
+        CustomSnackbar.showError('Please enter vendor name');
+        isLoading.value = false;
+        return;
+      }
+      
+      if (ownerName.isEmpty) {
+        CustomSnackbar.showError('Please enter owner name');
+        isLoading.value = false;
+        return;
+      }
+      
+      if (phone.isEmpty || phone.length != 10) {
+        CustomSnackbar.showError('Please enter a valid 10-digit mobile number');
+        isLoading.value = false;
+        return;
+      }
+      
+      if (email.isEmpty || !GetUtils.isEmail(email)) {
+        CustomSnackbar.showError('Please enter a valid email address');
+        isLoading.value = false;
+        return;
+      }
+      
+      // Store email for OTP verification
+      currentMobile.value = email;
+      
+      // Call register API
+      final response = await _registerSendOtpUseCase.execute(
+        vendorName: vendorName,
+        ownerName: ownerName,
+        phone: phone,
+        email: email,
+      );
+
+      print('📦 Register Response: $response');
+      print('✅ isSuccess: ${response.isSuccess}');
+      print('📨 message: ${response.message}');
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(
+          response.message ?? 'Registration successful! OTP has been sent to your email.'
+        );
+        // Navigate to OTP screen
+        await Future.delayed(const Duration(milliseconds: 500));
+        Get.toNamed(RouteHelper.getOtpRoute());
+      } else {
+        CustomSnackbar.showError(
+          response.message ?? 'Registration failed. Please try again.'
+        );
+      }
+    } catch (e) {
+      print('❌ Error in register: $e');
+      CustomSnackbar.showError('Something went wrong. Please try again.');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> login() async {
     try {
       isLoading.value = true;
@@ -122,10 +208,12 @@ class AuthController extends GetxController {
       // Call send-otp API
       final response = await _sendOtpUseCase.execute(email);
 
+      print('📦 Login Response: $response');
+      print('✅ isSuccess: ${response.isSuccess}');
+      print('📨 message: ${response.message}');
+
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(
-          response.message ?? 'OTP has been sent to your email. Please check your inbox.'
-        );
+        CustomSnackbar.showSuccess(response.message);
         // Navigate to OTP screen
         Get.toNamed(RouteHelper.getOtpRoute());
       } else {
@@ -137,16 +225,42 @@ class AuthController extends GetxController {
           await Future.delayed(const Duration(milliseconds: 500));
           Get.toNamed(RouteHelper.getSignupRoute());
         } else {
-          CustomSnackbar.showError(
-            response.message ?? 'Failed to send OTP. Please try again.'
-          );
+          CustomSnackbar.showError(response.message ?? 'Failed to send OTP. Please try again.');
         }
       }
     } catch (e) {
-      CustomSnackbar.showError(e.toString());
+      print('❌ Error in login: $e');
+      CustomSnackbar.showError('Something went wrong. Please try again.');
       // On error, navigate to signup as fallback
       await Future.delayed(const Duration(milliseconds: 500));
       Get.toNamed(RouteHelper.getSignupRoute());
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> resendOtp() async {
+    try {
+      isLoading.value = true;
+      final email = currentMobile.value.trim();
+      
+      if (email.isEmpty) {
+        CustomSnackbar.showError('Email not found. Please login again.');
+        isLoading.value = false;
+        return;
+      }
+      
+      // Call resend-otp API
+      final response = await _resendOtpUseCase.execute(email);
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'OTP has been resent to your email. Please check your inbox.');
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to resend OTP. Please try again.');
+      }
+    } catch (e) {
+      print('❌ Error in resendOtp: $e');
+      CustomSnackbar.showError('Something went wrong. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -215,21 +329,51 @@ class AuthController extends GetxController {
       return;
     }
 
+    if (otpController.text.length != 6) {
+      CustomSnackbar.showError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
     try {
       isLoading.value = true;
-      final user = await _verifyOtpUseCase.execute(
-        currentMobile.value,
+      final email = currentMobile.value.trim();
+      
+      if (email.isEmpty) {
+        CustomSnackbar.showError('Email not found. Please login again.');
+        isLoading.value = false;
+        return;
+      }
+      
+      // Call verify-login-otp API
+      final response = await _verifyLoginOtpUseCase.execute(
+        email,
         otpController.text.trim(),
       );
 
-      if (user != null) {
-        currentUser.value = user;
+      if (response.isSuccess && response.body != null) {
+        final body = response.body as Map<String, dynamic>;
+        
+        // Get user data
+        final userData = body['user'];
+        if (userData != null) {
+          currentUser.value = UserModel.fromJson(userData);
+          print('✅ User saved: ${currentUser.value}');
+        }
+        
         otpController.clear();
-        CustomSnackbar.showSuccess('OTP verified successfully');
+        
+        // Show success message
+        CustomSnackbar.showSuccess(response.message ?? 'Login successful. Welcome back!');
+        
+        // Navigate to dashboard after a short delay
+        await Future.delayed(const Duration(milliseconds: 500));
         Get.offAllNamed(RouteHelper.getDashboardRoute());
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Invalid OTP. Please try again.');
       }
     } catch (e) {
-      CustomSnackbar.showError(e.toString());
+      print('❌ Error in verifyOtp: $e');
+      CustomSnackbar.showError('Something went wrong. Please try again.');
     } finally {
       isLoading.value = false;
     }
@@ -238,11 +382,37 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     try {
       isLoading.value = true;
-      await _logoutUseCase.execute();
-      currentUser.value = null;
-      Get.offAllNamed(RouteHelper.getLoginRoute());
+      
+      // Call logout API
+      final response = await _logoutUseCase.execute();
+      
+      if (response.isSuccess) {
+        // Clear user data
+        currentUser.value = null;
+        currentMobile.value = '';
+        
+        // Show success message
+        CustomSnackbar.showSuccess(response.message ?? 'Logged out successfully');
+        
+        // Wait for snackbar to show
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Navigate to login screen - this will automatically clean up controllers
+        // Don't manually delete controller, let GetX handle it
+        Get.offAllNamed(RouteHelper.getLoginRoute());
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to logout');
+      }
     } catch (e) {
-      CustomSnackbar.showError(e.toString());
+      print('❌ Error in logout: $e');
+      // Even if API fails, clear local data and navigate to login
+      currentUser.value = null;
+      currentMobile.value = '';
+      
+      CustomSnackbar.showError('Logged out locally');
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      Get.offAllNamed(RouteHelper.getLoginRoute());
     } finally {
       isLoading.value = false;
     }
@@ -288,6 +458,49 @@ class SendOtpUseCase {
 }
 
 
+class ResendOtpUseCase {
+  final AuthService _authService;
+
+  ResendOtpUseCase(this._authService);
+
+  Future<ResponseModel> execute(String email) async {
+    return await _authService.resendOtp(email);
+  }
+}
+
+
+class VerifyLoginOtpUseCase {
+  final AuthService _authService;
+
+  VerifyLoginOtpUseCase(this._authService);
+
+  Future<ResponseModel> execute(String email, String otp) async {
+    return await _authService.verifyLoginOtp(email, otp);
+  }
+}
+
+
+class RegisterSendOtpUseCase {
+  final AuthService _authService;
+
+  RegisterSendOtpUseCase(this._authService);
+
+  Future<ResponseModel> execute({
+    required String vendorName,
+    required String ownerName,
+    required String phone,
+    required String email,
+  }) async {
+    return await _authService.registerSendOtp(
+      vendorName: vendorName,
+      ownerName: ownerName,
+      phone: phone,
+      email: email,
+    );
+  }
+}
+
+
 class LoginUseCase {
   final AuthService _authService;
 
@@ -324,8 +537,14 @@ class LogoutUseCase {
 
   LogoutUseCase(this._authService);
 
-  Future<void> execute() async {
+  Future<ResponseModel> execute() async {
+    // Call logout API
+    final response = await _authService.logout();
+    
+    // Clear local data regardless of API response
     await _authService.clearUserInfo();
+    
+    return response;
   }
 }
 

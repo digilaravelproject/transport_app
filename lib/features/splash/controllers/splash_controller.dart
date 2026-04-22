@@ -64,11 +64,11 @@ class SplashController extends GetxController with GetSingleTickerProviderStateM
         }
       } else {
         print("SplashController: isReady is false, going to login");
-        Get.offAllNamed(RouteHelper.getLoginRoute());
+        Get.offAllNamed(RouteHelper.getSignupRoute());
       }
     } catch (e) {
       print("SplashController: Error in initApp: $e");
-      Get.offAllNamed(RouteHelper.getLoginRoute());
+      Get.offAllNamed(RouteHelper.getSignupRoute());
     } finally {
       isLoading.value = false;
       print("SplashController: initApp finished");

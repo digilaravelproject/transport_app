@@ -4,6 +4,7 @@ import 'package:credit_debit/core/theme/light_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/utils/custom_snackbar.dart';
 import 'init_app.dart';
 import 'routes/route_helper.dart';
 import 'core/bindings/initial_bindings.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       navigatorKey: Get.key,
       initialBinding: InitialBindings(),
+      scaffoldMessengerKey: CustomSnackbar.messengerKey,
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,

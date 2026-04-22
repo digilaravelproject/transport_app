@@ -18,7 +18,8 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
-  final authController = Get.find<AuthController>();
+  // Use getter to ensure we always get the current controller instance
+  AuthController get authController => Get.find<AuthController>();
   final List<TextEditingController> _controllers = List.generate(6, (index) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
@@ -194,7 +195,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: AppText(
-                              'A 6-digit verification code has been sent to your registered mobile number.',
+                              'A 6-digit verification code has been sent to your registered email address.',
                               style: AppTextStyle.body,
                               color: AppColors.textColorSecondary.withValues(alpha: 0.8),
                               align: TextAlign.center,
@@ -215,7 +216,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                               color: AppColors.white,
                               borderRadius: BorderRadius.circular(32),
                               border: Border.all(
-                                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                                color: AppColors.primaryColor.withValues(alpha: 0.3),
                                 width: 1,
                               ),
                               boxShadow: [
@@ -232,38 +233,78 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                               ],
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(32),
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
                               child: Column(
                                 children: [
+                                  // OTP Boxes with proper spacing
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: List.generate(4, (index) => _otpBox(index)),
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(6, (index) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                                        child: SizedBox(
+                                          width: 40,  // same width
+                                          height: 45, // same height
+                                          child: _otpBox(index),
+                                        ),
+                                      );
+                                    }),
                                   ),
                                   const SizedBox(height: 40),
-                                  AppButton(
+                                  Obx(() => AppButton(
                                     text: 'Verify OTP',
                                     fontWeight: FontWeight.bold,
-                                    onPressed: () => Get.offAllNamed(RouteHelper.getLoginRoute()),
-                                  ),
+                                    isLoading: authController.isLoading.value,
+                                    onPressed: () {
+                                      // Collect OTP from all controllers
+                                      String otp = _controllers.map((c) => c.text).join();
+                                      
+                                      if (otp.length != 6) {
+                                        // Show error if OTP is incomplete
+                                        Get.snackbar(
+                                          'Error',
+                                          'Please enter complete 6-digit OTP',
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: Colors.red.withValues(alpha: 0.1),
+                                          colorText: Colors.red,
+                                        );
+                                        return;
+                                      }
+                                      
+                                      // Set OTP in controller and verify
+                                      authController.otpController.text = otp;
+                                      authController.verifyOtp();
+                                    },
+                                  )),
                                   const SizedBox(height: 24),
-                                  GestureDetector(
-                                    onTap: () {},
+                                  Obx(() => GestureDetector(
+                                    onTap: authController.isLoading.value 
+                                        ? null 
+                                        : () => authController.resendOtp(),
                                     child: RichText(
-                                      text: const TextSpan(
+                                      text: TextSpan(
                                         text: "Didn't receive code? ",
-                                        style: TextStyle(color: AppColors.textColorSecondary, fontSize: 13),
+                                        style: const TextStyle(
+                                          color: AppColors.textColorSecondary, 
+                                          fontSize: 13,
+                                          fontFamily: 'Poppins',
+                                        ),
                                         children: [
                                           TextSpan(
-                                            text: 'Resend OTP',
+                                            text: authController.isLoading.value 
+                                                ? 'Sending...' 
+                                                : 'Resend OTP',
                                             style: TextStyle(
-                                              color: AppColors.primaryColor,
+                                              color: authController.isLoading.value 
+                                                  ? AppColors.textColorHint 
+                                                  : AppColors.primaryColor,
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
+                                  )),
                                 ],
                               ),
                             ),
@@ -301,7 +342,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                 const SizedBox(width: 12),
                                 const Expanded(
                                   child: AppText(
-                                    'Enter the 6-digit code sent to your mobile. Code expires in 10 minutes.',
+                                    'Enter the 6-digit code sent to your email. Code expires in 10 minutes.',
                                     fontSize: 13,
                                     color: AppColors.textColorPrimary,
                                     fontWeight: FontWeight.w500,
@@ -355,33 +396,53 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
   }
 
   Widget _otpBox(int index) {
-    return Container(
-      width: 45,
-      height: 55,
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _focusNodes[index].hasFocus ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.1),
-          width: 1.5,
+    return AspectRatio(
+      aspectRatio: 1, // Makes it square/circular
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.5),
+          shape: BoxShape.circle, // Circular shape
+          border: Border.all(
+            color: _focusNodes[index].hasFocus 
+                ? AppColors.primaryColor 
+                : AppColors.primaryColor.withValues(alpha: 0.15),
+            width: _focusNodes[index].hasFocus ? 2 : 1.5,
+          ),
+          boxShadow: _focusNodes[index].hasFocus
+              ? [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : [],
         ),
-      ),
-      child: Center(
-        child: TextField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          maxLength: 1,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-          decoration: const InputDecoration(counterText: '', border: InputBorder.none),
-          onChanged: (value) {
-            if (value.isNotEmpty && index < 5) {
-              _focusNodes[index + 1].requestFocus();
-            } else if (value.isEmpty && index > 0) {
-              _focusNodes[index - 1].requestFocus();
-            }
-          },
+        child: Center(
+          child: TextField(
+            controller: _controllers[index],
+            focusNode: _focusNodes[index],
+            textAlign: TextAlign.center,
+            keyboardType: TextInputType.number,
+            maxLength: 1,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryColor,
+            ),
+            decoration: const InputDecoration(
+              counterText: '',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onChanged: (value) {
+              if (value.isNotEmpty && index < 5) {
+                _focusNodes[index + 1].requestFocus();
+              } else if (value.isEmpty && index > 0) {
+                _focusNodes[index - 1].requestFocus();
+              }
+            },
+          ),
         ),
       ),
     );

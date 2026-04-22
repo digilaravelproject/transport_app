@@ -321,16 +321,34 @@ class ApiChecker {
       }
     }
 
-    if (response.data is Map && (response.data['res']?.toString().toLowerCase() != 'success')) {
-      final message = response.data['msg']?.toString() ?? 'Something went wrong';
-      if (showToaster) CustomSnackbar.showError(message);
+    // Check for success in multiple ways (res or success field)
+    if (response.data is Map) {
+      final res = response.data['res']?.toString().toLowerCase();
+      final successValue = response.data['success'];
+      
+      bool isSuccess = false;
+      if (res == 'success') {
+        isSuccess = true;
+      } else if (successValue is bool) {
+        isSuccess = successValue;
+      } else if (successValue != null) {
+        isSuccess = successValue.toString().toLowerCase() == 'true';
+      }
+      
+      // If not successful, return error
+      if (!isSuccess && res != null) {
+        final message = response.data['msg']?.toString() ?? 
+                       response.data['message']?.toString() ?? 
+                       'Something went wrong';
+        if (showToaster) CustomSnackbar.showError(message);
 
-      return ResponseModel(
-        isSuccess: false,
-        message: message,
-        body: response.data['data'],
-        statusCode: statusCode,
-      );
+        return ResponseModel(
+          isSuccess: false,
+          message: message,
+          body: response.data['data'],
+          statusCode: statusCode,
+        );
+      }
     }
 
     return ResponseModel.fromJson(response.data, statusCode: statusCode);

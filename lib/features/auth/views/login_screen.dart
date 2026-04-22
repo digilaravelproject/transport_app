@@ -20,7 +20,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
-  final _authController = Get.find<AuthController>();
+  // Use getter to ensure we always get the current controller instance
+  AuthController get _authController => Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
 
   late AnimationController _animationController;
@@ -342,8 +343,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                 AppInputField(
                                   label: 'Email Address',
                                   controller: _authController.emailController,
-                                  hint: 'you@example.com',
+                                  hint: 'Enter your Email',
                                   icon: Iconsax.sms,
+                                  isRequired: true,
                                   keyboardType: TextInputType.emailAddress,
                                   validator: AppValidators.validateEmail,
                                 ),

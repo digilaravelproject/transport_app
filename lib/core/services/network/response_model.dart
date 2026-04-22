@@ -15,22 +15,77 @@ class ResponseModel {
 
   /// Factory method to create ResponseModel from JSON
   factory ResponseModel.fromJson(Map<String, dynamic> json, {int? statusCode}) {
+    // Check for success in multiple ways
     final res = json['res']?.toString().toLowerCase();
-    final success = res == 'success' || (json['success'] == true);
+    final successValue = json['success'];
+    
+    bool success = false;
+    if (res == 'success') {
+      success = true;
+    } else if (successValue is bool) {
+      success = successValue;
+    } else if (successValue != null) {
+      success = successValue.toString().toLowerCase() == 'true';
+    }
 
+    // Parse errors - handle both List and Map formats
     List<ErrorDetail>? errors;
+    String? firstErrorMessage;
+    
     if (json['errors'] is List) {
       errors = (json['errors'] as List)
           .map((e) => ErrorDetail.fromJson(e))
           .toList();
+      if (errors.isNotEmpty) {
+        firstErrorMessage = errors.first.message;
+      }
+    } else if (json['errors'] is Map) {
+      // Handle Laravel-style validation errors: {field: [messages]}
+      final errorsMap = json['errors'] as Map<String, dynamic>;
+      errors = [];
+      
+      errorsMap.forEach((field, messages) {
+        if (messages is List && messages.isNotEmpty) {
+          // Get first message for this field
+          final message = messages.first.toString();
+          errors!.add(ErrorDetail(code: field, message: message));
+          
+          // Store the very first error message
+          firstErrorMessage ??= message;
+        }
+      });
     }
 
+    // Determine body - prefer 'data' key, but fallback to entire json if not present
+    dynamic bodyData;
+    if (json.containsKey('data')) {
+      bodyData = json['data'];
+    } else {
+      // If no 'data' key, use the entire json (useful for responses with user, token, etc.)
+      // Remove success and message keys to avoid duplication
+      bodyData = Map<String, dynamic>.from(json);
+      bodyData.remove('success');
+      bodyData.remove('message');
+      bodyData.remove('msg');
+      bodyData.remove('res');
+      bodyData.remove('errors');
+      
+      // If body is empty after removing keys, set to entire json
+      if (bodyData.isEmpty) {
+        bodyData = json;
+      }
+    }
+
+    // Use first error message if available, otherwise use main message
+    final message = firstErrorMessage ?? 
+                   json['msg']?.toString() ??
+                   json['message']?.toString() ??
+                   (success ? 'Success' : 'Something went wrong');
+
     return ResponseModel(
-      isSuccess: success && (statusCode == 200 || statusCode == null),
-      message: json['msg']?.toString() ??
-          json['message']?.toString() ??
-          (success ? 'Success' : 'Something went wrong'),
-      body: json['data'],
+      isSuccess: success && (statusCode == 200 || statusCode == 201 || statusCode == null),
+      message: message,
+      body: bodyData,
       statusCode: statusCode,
       errors: errors,
     );

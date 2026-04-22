@@ -9,6 +9,7 @@ import 'package:credit_debit/core/widgets/app_input_field.dart';
 import 'package:credit_debit/core/widgets/app_button.dart';
 import 'package:credit_debit/core/widgets/clean_auth_background.dart';
 import 'package:credit_debit/core/widgets/app_logo.dart';
+import '../../../core/utils/app_validators.dart';
 import '../controllers/auth_controller.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -19,7 +20,8 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMixin {
-  final authController = Get.find<AuthController>();
+  // Use getter to ensure we always get the current controller instance
+  AuthController get authController => Get.find<AuthController>();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -218,6 +220,10 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       label: 'Vendor Name',
                                       hint: 'Enter your bus vendor name',
                                       icon: Iconsax.building,
+                                      validator: (value) => AppValidators.validateEmpty(
+                                        value,
+                                        fieldName: "Vendor Name",
+                                      ),
                                       controller: authController.companyNameController,
                                     ),
         
@@ -228,6 +234,11 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       label: 'Owner Name',
                                       hint: 'Enter owner full name',
                                       icon: Iconsax.user,
+                                      isRequired: true,
+                                      validator: (value) => AppValidators.validateEmpty(
+                                        value,
+                                        fieldName: "Owner Name",
+                                      ),
                                       controller: authController.nameController,
                                     ),
         
@@ -238,7 +249,9 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       label: 'Mobile Number',
                                       hint: 'Enter 10 digit number',
                                       icon: Iconsax.call,
-                                      keyboardType: TextInputType.phone,
+                                      isRequired: true,
+                                      validator: AppValidators.validateMobile,
+                                      keyboardType: TextInputType.number,
                                       controller: authController.phoneController,
                                     ),
         
@@ -249,6 +262,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       label: 'Email Address',
                                       hint: 'Enter your email',
                                       icon: Iconsax.sms,
+                                      isRequired: true,
+                                      validator: AppValidators.validateEmail,
                                       keyboardType: TextInputType.emailAddress,
                                       controller: authController.emailController,
                                     ),
@@ -298,7 +313,13 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       text: 'Register',
                                       isLoading: authController.isLoading.value,
                                       fontWeight: FontWeight.bold,
-                                      onPressed: () => Get.toNamed(RouteHelper.getOtpRoute()),
+                                      onPressed: () {
+                                        // Validate form
+                                        if (_formKey.currentState?.validate() ?? false) {
+                                          // Call register API
+                                          authController.register();
+                                        }
+                                      },
                                     )),
                                   ],
                                 ),

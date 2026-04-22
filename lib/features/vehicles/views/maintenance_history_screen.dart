@@ -25,8 +25,20 @@ class MaintenanceHistoryScreen extends GetView<VehicleController> {
         // Combine fuel and service for timeline
         final List<Map<String, dynamic>> timeline = [
           ...controller.fuelHistory.map((e) => {'date': e.date, 'type': 'Fuel', 'label': e.station, 'cost': e.amount, 'icon': Icons.local_gas_station_rounded}),
-          ...controller.serviceHistory.map((e) => {'date': e.date, 'type': 'Service', 'label': e.type, 'cost': e.cost, 'icon': Iconsax.setting_2}),
-          ...controller.repairHistory.map((e) => {'date': e.date, 'type': 'Repair', 'label': e.type, 'cost': e.cost, 'icon': Icons.build_circle_rounded}),
+          ...controller.serviceHistory.map((e) => {
+                'date': e.date,
+                'type': 'Service',
+                'label': e.type,
+                'cost': e.totalBill,
+                'icon': Iconsax.setting_2
+              }),
+          ...controller.repairHistory.map((e) => {
+                'date': e.date,
+                'type': 'Repair',
+                'label': e.type,
+                'cost': e.totalBill,
+                'icon': Icons.build_circle_rounded
+              }),
         ];
         timeline.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
 

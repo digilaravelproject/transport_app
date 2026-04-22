@@ -19,18 +19,23 @@ class AttendanceScreen extends GetView<StaffController> {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Attendance Management',
-        trailing: IconButton(
-          icon: const Icon(Iconsax.clock),
-          onPressed: () => Get.toNamed(RouteHelper.getAttendanceHistoryRoute()),
-        ),
+        trailing: Obx(() => controller.isToday() 
+          ? IconButton(
+              icon: const Icon(Iconsax.clock),
+              onPressed: () => Get.toNamed(RouteHelper.getAttendanceHistoryRoute()),
+            )
+          : TextButton(
+              onPressed: () => controller.changeDate(DateTime.now()),
+              child: const AppText('Today', color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+            )),
       ),
       body: Column(
         children: [
-          _buildDatePicker(),
+          Obx(() => _buildDatePicker()),
           Expanded(
             child: Obx(() {
               return ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: controller.staffList.length,
                 itemBuilder: (context, index) {
                   final staff = controller.staffList[index];
@@ -40,10 +45,19 @@ class AttendanceScreen extends GetView<StaffController> {
             }),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             child: AppButton(
               text: 'Save Attendance',
-              onPressed: () => Get.back(),
+              onPressed: () {
+                Get.snackbar(
+                  'Success',
+                  'Attendance for ${_getFormattedDate(controller.selectedDate.value)} saved!',
+                  backgroundColor: Colors.green,
+                  colorText: Colors.white,
+                  snackPosition: SnackPosition.BOTTOM,
+                );
+                Get.back();
+              },
             ),
           ),
         ],
@@ -53,108 +67,199 @@ class AttendanceScreen extends GetView<StaffController> {
 
   Widget _buildDatePicker() {
     return AppCard(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left_rounded),
-            onPressed: () {},
+            icon: const Icon(Icons.chevron_left_rounded, color: AppColors.primaryColor),
+            onPressed: () => controller.changeDate(controller.selectedDate.value.subtract(const Duration(days: 1))),
           ),
-          const SizedBox(width: 8),
-          const Icon(Iconsax.calendar_1, size: 18, color: AppColors.primaryColor),
-          const SizedBox(width: 12),
-          AppText(
-            'Today, 06 Mar 2024',
-            style: AppTextStyle.subheading,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              const Icon(Iconsax.calendar_1, size: 20, color: AppColors.primaryColor),
+              const SizedBox(width: 12),
+              AppText(
+                controller.isToday() ? 'Today, ${_getFormattedDate(controller.selectedDate.value)}' : _getFormattedDate(controller.selectedDate.value),
+                style: AppTextStyle.subheading,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.chevron_right_rounded),
-            onPressed: () {},
+            icon: const Icon(Icons.chevron_right_rounded, color: AppColors.primaryColor),
+            onPressed: () => controller.changeDate(controller.selectedDate.value.add(const Duration(days: 1))),
           ),
         ],
       ),
     );
   }
+
+  String _getFormattedDate(DateTime date) {
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
+  }
 }
 
-class _StaffAttendanceRow extends StatefulWidget {
+class _StaffAttendanceRow extends GetView<StaffController> {
   final StaffModel staff;
   const _StaffAttendanceRow({required this.staff});
 
   @override
-  State<_StaffAttendanceRow> createState() => _StaffAttendanceRowState();
-}
-
-class _StaffAttendanceRowState extends State<_StaffAttendanceRow> {
-  String status = 'Present';
-
-  @override
   Widget build(BuildContext context) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.primaryLight,
-                child: const Icon(Iconsax.user, size: 22, color: AppColors.primaryColor),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(widget.staff.name, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                    AppText(widget.staff.role.name.capitalizeFirst!, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                  ],
+    return Obx(() {
+      final currentStatus = controller.dailyAttendance[staff.id] ?? '';
+      
+      return AppCard(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppColors.primaryLight,
+                  child: const Icon(Iconsax.user, size: 26, color: AppColors.primaryColor),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _buildToggleOption('Present', Colors.green),
-              const SizedBox(width: 8),
-              _buildToggleOption('Absent', Colors.red),
-              const SizedBox(width: 8),
-              _buildToggleOption('Half Day', Colors.orange),
-            ],
-          ),
-        ],
-      ),
-    );
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
+                      AppText(staff.role.name.capitalizeFirst!, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                    ],
+                  ),
+                ),
+                _StatusIndicator(status: currentStatus),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildToggleOption(context, 'Present', Colors.green, currentStatus),
+                const SizedBox(width: 8),
+                _buildToggleOption(context, 'Absent', Colors.red, currentStatus),
+                const SizedBox(width: 8),
+                _buildToggleOption(context, 'Half Day', Colors.orange, currentStatus),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   }
 
-  Widget _buildToggleOption(String label, Color color) {
-    bool isSelected = status == label;
+  Widget _buildToggleOption(BuildContext context, String label, Color color, String currentStatus) {
+    bool isSelected = currentStatus == label;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => status = label),
+        onTap: () async {
+          if (isSelected) return;
+          
+          bool shouldUpdate = true;
+          if (!controller.isToday()) {
+            shouldUpdate = await _showEditConfirmation(context, label);
+          }
+          
+          if (shouldUpdate) {
+            controller.updateAttendance(staff.id, label);
+          }
+        },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? color : AppColors.slate100,
-            borderRadius: BorderRadius.circular(8),
+            color: isSelected ? color : AppColors.slate50,
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(color: isSelected ? color : AppColors.slate200),
+            boxShadow: isSelected ? [
+              BoxShadow(color: color.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2))
+            ] : null,
           ),
           child: AppText(
             label,
             align: TextAlign.center,
-            style: AppTextStyle.caption,
+            style: AppTextStyle.body,
+            fontSize: 12,
             color: isSelected ? Colors.white : AppColors.textColorSecondary,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
       ),
+    );
+  }
+
+  Future<bool> _showEditConfirmation(BuildContext context, String newStatus) async {
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Iconsax.warning_2, color: Colors.orange),
+            const SizedBox(width: 12),
+            const AppText('Edit Past Record', style: AppTextStyle.heading, fontSize: 18),
+          ],
+        ),
+        content: AppText(
+          'You are changing attendance for a past date. Are you sure you want to update ${staff.name}\'s record to "$newStatus"?',
+          style: AppTextStyle.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+          ),
+          ElevatedButton(
+            onPressed: () => Get.back(result: true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            child: const AppText('Update', color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+}
+
+class _StatusIndicator extends StatelessWidget {
+  final String status;
+  const _StatusIndicator({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    if (status.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.slate100,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: const AppText('Not Marked', style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontWeight: FontWeight.bold),
+      );
+    }
+
+    Color color;
+    switch (status) {
+      case 'Present': color = Colors.green; break;
+      case 'Absent': color = Colors.red; break;
+      case 'Half Day': color = Colors.orange; break;
+      default: color = Colors.grey;
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: AppText(status, style: AppTextStyle.caption, color: color, fontWeight: FontWeight.bold),
     );
   }
 }

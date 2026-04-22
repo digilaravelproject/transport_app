@@ -35,9 +35,7 @@ class StaffDetailsScreen extends GetView<StaffController> {
             const SizedBox(height: 24),
             _buildSectionTitle('Work Information'),
             _buildWorkInfo(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Attendance Summary'),
-            _buildAttendanceSummary(staff),
+            const SizedBox(height: 12),
             const SizedBox(height: 24),
             _buildSectionTitle('Actions'),
             _buildActionsGrid(staff),
@@ -128,32 +126,9 @@ class StaffDetailsScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildAttendanceSummary(StaffModel staff) {
-    return AppCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildAttendanceStat('Total', '26', AppColors.primaryColor),
-          _buildAttendanceStat('Present', '24', Colors.green),
-          _buildAttendanceStat('Absent', '02', Colors.red),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAttendanceStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        AppText(value, style: AppTextStyle.heading, color: color, fontSize: 18),
-        const SizedBox(height: 4),
-        AppText(label, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-      ],
-    );
-  }
 
   Widget _buildActionsGrid(StaffModel staff) {
     final List<Map<String, dynamic>> actions = [
-      {'label': 'Attendance', 'icon': Iconsax.calendar_1, 'route': RouteHelper.getAttendanceRoute()},
       {'label': 'Duty Hours', 'icon': Icons.more_time_rounded, 'route': RouteHelper.getDutyHoursRoute()},
       {'label': 'Salary', 'icon': Icons.wallet_rounded, 'route': RouteHelper.getSalaryManagementRoute()},
       {'label': 'Advance', 'icon': Icons.request_quote_rounded, 'route': RouteHelper.getAdvancePaymentEntryRoute()},

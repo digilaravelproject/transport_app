@@ -11,12 +11,22 @@ class StaffController extends GetxController {
   final salaryHistory = <SalaryRecord>[].obs;
   final advanceHistory = <AdvancePayment>[].obs;
   final staffDocuments = <StaffDocument>[].obs;
+  final selectedCountryCode = '+91'.obs;
+  
+  // Salary Filtering
+  final selectedSalaryMonth = 'All'.obs;
+  final selectedSalaryYear = '2024'.obs;
+  
+  // Attendance State
+  final selectedDate = DateTime.now().obs;
+  final dailyAttendance = <int, String>{}.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadMockStaff();
     _loadMockRecords();
+    _loadAttendanceForDate(selectedDate.value);
     
     debounce(searchQuery, (_) => _filterStaff(), time: const Duration(milliseconds: 300));
     ever(selectedFilter, (_) => _filterStaff());
@@ -84,19 +94,26 @@ class StaffController extends GetxController {
   }
 
   void _loadMockRecords() {
+    final now = DateTime.now();
     attendanceRecords.value = [
-      AttendanceRecord(date: DateTime.now(), checkIn: DateTime.now().subtract(const Duration(hours: 4)), staffName: 'Rahul Verma', totalHours: 4.0),
-      AttendanceRecord(date: DateTime.now(), checkIn: DateTime.now().subtract(const Duration(hours: 5)), staffName: 'Amit Kumar', totalHours: 5.0),
-    ];
+      AttendanceRecord(date: now, checkIn: now.subtract(const Duration(hours: 4)), staffName: 'Rahul Verma', totalHours: 4.0, status: 'Present'),
+      AttendanceRecord(date: now, checkIn: now.subtract(const Duration(hours: 5)), staffName: 'Amit Kumar', totalHours: 5.0, status: 'Present'),
+      
+      AttendanceRecord(date: now.subtract(const Duration(days: 1)), checkIn: DateTime(now.year, now.month, now.day - 1, 9, 0), checkOut: DateTime(now.year, now.month, now.day - 1, 18, 0), staffName: 'Rahul Verma', totalHours: 9.0, status: 'Present'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 1)), checkIn: DateTime(now.year, now.month, now.day - 1, 9, 30), checkOut: DateTime(now.year, now.month, now.day - 1, 14, 0), staffName: 'Amit Kumar', totalHours: 4.5, status: 'Half Day'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 1)), staffName: 'Suresh Mehra', totalHours: 0.0, status: 'Absent'),
 
-    salaryHistory.value = [
-      SalaryRecord(month: 'February 2024', totalSalary: 25000, paidAmount: 25000, pendingAmount: 0),
-      SalaryRecord(month: 'January 2024', totalSalary: 25000, paidAmount: 20000, pendingAmount: 5000),
-    ];
-
-    advanceHistory.value = [
-      AdvancePayment(amount: 2000, reason: 'Personal Emergency', date: DateTime.now().subtract(const Duration(days: 5)), staffName: 'Rahul Verma'),
-      AdvancePayment(amount: 5000, reason: 'Home Repair', date: DateTime.now().subtract(const Duration(days: 15)), staffName: 'Suresh Mehra'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 2)), checkIn: DateTime(now.year, now.month, now.day - 2, 8, 45), checkOut: DateTime(now.year, now.month, now.day - 2, 17, 30), staffName: 'Rahul Verma', totalHours: 8.75, status: 'Present'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 2)), checkIn: DateTime(now.year, now.month, now.day - 2, 9, 0), checkOut: DateTime(now.year, now.month, now.day - 2, 18, 0), staffName: 'Suresh Mehra', totalHours: 9.0, status: 'Present'),
+      
+      AttendanceRecord(date: now.subtract(const Duration(days: 3)), checkIn: DateTime(now.year, now.month, now.day - 3, 9, 15), checkOut: DateTime(now.year, now.month, now.day - 3, 18, 15), staffName: 'Rahul Verma', totalHours: 9.0, status: 'Present'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 3)), checkIn: DateTime(now.year, now.month, now.day - 3, 9, 0), checkOut: DateTime(now.year, now.month, now.day - 3, 18, 0), staffName: 'Amit Kumar', totalHours: 9.0, status: 'Present'),
+      
+      AttendanceRecord(date: now.subtract(const Duration(days: 4)), checkIn: DateTime(now.year, now.month, now.day - 4, 10, 0), checkOut: DateTime(now.year, now.month, now.day - 4, 15, 0), staffName: 'Rahul Verma', totalHours: 5.0, status: 'Half Day'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 4)), staffName: 'Amit Kumar', totalHours: 0.0, status: 'Absent'),
+      
+      AttendanceRecord(date: now.subtract(const Duration(days: 5)), checkIn: DateTime(now.year, now.month, now.day - 5, 9, 0), checkOut: DateTime(now.year, now.month, now.day - 5, 18, 0), staffName: 'Rahul Verma', totalHours: 9.0, status: 'Present'),
+      AttendanceRecord(date: now.subtract(const Duration(days: 5)), checkIn: DateTime(now.year, now.month, now.day - 5, 9, 0), checkOut: DateTime(now.year, now.month, now.day - 5, 18, 0), staffName: 'Amit Kumar', totalHours: 9.0, status: 'Present'),
     ];
 
     staffDocuments.value = [
@@ -128,5 +145,47 @@ class StaffController extends GetxController {
 
   void setFilter(String filter) {
     selectedFilter.value = filter;
+  }
+
+  // Attendance Methods
+  void changeDate(DateTime date) {
+    selectedDate.value = date;
+    _loadAttendanceForDate(date);
+  }
+
+  void _loadAttendanceForDate(DateTime date) {
+    // In a real app, this would fetch from a database
+    // For now, we'll mock daily attendance
+    final map = <int, String>{};
+    
+    // Check if the date is today
+    final now = DateTime.now();
+    bool isTodayDate = date.year == now.year && date.month == now.month && date.day == now.day;
+
+    for (var staff in staffList) {
+      if (isTodayDate) {
+        // Today's attendance starts empty
+        map[staff.id] = '';
+      } else {
+        // Mocking some data for past/future for variety
+        if (staff.id % 2 == 0) {
+          map[staff.id] = 'Present';
+        } else {
+          map[staff.id] = (date.day % 7 == 0) ? 'Absent' : 'Present';
+        }
+      }
+    }
+    dailyAttendance.assignAll(map);
+  }
+
+  void updateAttendance(int staffId, String status) {
+    dailyAttendance[staffId] = status;
+  }
+
+  bool isToday() {
+    final now = DateTime.now();
+    return selectedDate.value.year == now.year &&
+           selectedDate.value.month == now.month &&
+           selectedDate.value.day == now.day;
   }
 }

@@ -7,6 +7,8 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import '../controllers/vehicle_controller.dart';
+import '../domain/models/vehicle_model.dart';
 
 class ServiceEntryScreen extends StatefulWidget {
   const ServiceEntryScreen({Key? key}) : super(key: key);
@@ -14,14 +16,70 @@ class ServiceEntryScreen extends StatefulWidget {
   @override
   State<ServiceEntryScreen> createState() => _ServiceEntryScreenState();
 }
-
 class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+  String? mode;
+  ServiceRecord? sourceRecord;
+
   DateTime selectedDate = DateTime.now();
+  final TextEditingController typeController = TextEditingController();
+  final TextEditingController totalBillController = TextEditingController();
+  final TextEditingController paidAmountController = TextEditingController();
+  final TextEditingController workshopController = TextEditingController();
+  final TextEditingController kmController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments;
+
+    if (args is Map) {
+      vehicle = args['vehicle'];
+      mode = args['mode'];
+      sourceRecord = args['record'];
+    } else {
+      vehicle = args;
+    }
+    
+    // Pre-fill from existing record if available
+    final record = sourceRecord;
+    if (record != null) {
+      workshopController.text = record.workshop;
+      if (mode == 'payment') {
+        typeController.text = 'Payment for ${record.type}';
+      } else {
+        typeController.text = record.type;
+      }
+    }
+
+    // Set default values based on mode
+    if (mode == 'payment') {
+      if (typeController.text.isEmpty) typeController.text = 'Service Payment';
+      totalBillController.text = '0';
+    } else if (mode == 'bill') {
+      paidAmountController.text = '0';
+    }
+  }
+
+  @override
+  void dispose() {
+    typeController.dispose();
+    totalBillController.dispose();
+    paidAmountController.dispose();
+    workshopController.dispose();
+    kmController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    String title = 'Add Service Entry';
+    if (mode == 'payment') title = 'Record Service Payment';
+    if (mode == 'bill') title = 'Add Service Bill';
+
     return AppScaffold(
-      appBar: const AppHeader(title: 'Add Service Entry'),
+      appBar: AppHeader(title: title),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -31,13 +89,28 @@ class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
                 children: [
                   _buildDateField(),
                   const SizedBox(height: 16),
-                  _buildTextField('Service Type', 'e.g. Engine Oil Change'),
-                  const SizedBox(height: 16),
-                  _buildTextField('Service Cost (₹)', 'e.g. 12000', keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Workshop Name', 'e.g. Tata Authorized Center'),
-                  const SizedBox(height: 16),
-                  _buildTextField('Kilometer Reading', 'e.g. 45000', keyboardType: TextInputType.number),
+                  if (mode != 'payment') ...[
+                    _buildTextField('Service Type', 'e.g. Engine Oil Change', typeController),
+                    const SizedBox(height: 16),
+                  ],
+                  Row(
+                    children: [
+                      if (mode != 'payment')
+                        Expanded(
+                            child: _buildTextField('Total Bill (₹)', 'e.g. 12000', totalBillController,
+                                keyboardType: TextInputType.number)),
+                      if (mode != 'payment' && mode != 'bill') const SizedBox(width: 12),
+                      if (mode != 'bill')
+                        Expanded(
+                            child: _buildTextField('Amount Paid (₹)', 'e.g. 12000', paidAmountController,
+                                keyboardType: TextInputType.number)),
+                    ],
+                  ),
+                  if (mode != 'payment') ...[
+                    _buildTextField('Workshop Name', 'e.g. Tata Authorized Center', workshopController),
+                    const SizedBox(height: 16),
+                    _buildTextField('Kilometer Reading', 'e.g. 45000', kmController, keyboardType: TextInputType.number),
+                  ],
                 ],
               ),
             ),
@@ -52,15 +125,48 @@ class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
               child: const Row(
                 children: [
                   Icon(Iconsax.camera, color: AppColors.primaryColor),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   AppText('Upload Service Bill', style: AppTextStyle.body),
                 ],
               ),
             ),
             const SizedBox(height: 40),
             AppButton(
-              text: 'Save Service Entry',
-              onPressed: () => Get.back(),
+              text: mode == 'payment' ? 'Save Payment' : 'Save Entry',
+              onPressed: () {
+                bool isValid = true;
+                if (mode == 'payment') {
+                  isValid = paidAmountController.text.isNotEmpty;
+                } else {
+                  isValid = typeController.text.isNotEmpty && totalBillController.text.isNotEmpty;
+                }
+
+                if (isValid) {
+                  if (mode == 'payment' && sourceRecord != null) {
+                    controller.addPaymentToService(
+                      sourceRecord!.id, 
+                      double.tryParse(paidAmountController.text) ?? 0.0,
+                      selectedDate,
+                    );
+                  } else {
+                    final record = ServiceRecord(
+                      id: DateTime.now().millisecondsSinceEpoch,
+                      date: selectedDate,
+                      type: typeController.text,
+                      totalBill: double.tryParse(totalBillController.text) ?? 0.0,
+                      paidAmount: double.tryParse(paidAmountController.text) ?? 0.0,
+                      workshop: workshopController.text.isNotEmpty ? workshopController.text : 'Unknown Workshop',
+                    );
+                    controller.addServiceEntry(record);
+                  }
+                  Get.back();
+                } else {
+                  Get.snackbar('Error', 'Please fill in required fields',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: AppColors.errorColor,
+                      colorText: Colors.white);
+                }
+              },
             ),
           ],
         ),
@@ -104,13 +210,15 @@ class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, TextEditingController textController,
+      {TextInputType? keyboardType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
         const SizedBox(height: 8),
         TextField(
+          controller: textController,
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
@@ -119,11 +227,11 @@ class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
             fillColor: AppColors.slate50,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: const BorderSide(color: AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: const BorderSide(color: AppColors.slate200),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

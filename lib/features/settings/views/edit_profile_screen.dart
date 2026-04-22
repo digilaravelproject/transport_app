@@ -8,6 +8,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_input_field.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../controllers/settings_controller.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -31,9 +32,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _nameController = TextEditingController(text: controller.agencyName.value);
     _emailController = TextEditingController(text: controller.email.value);
-    _phoneController = TextEditingController(text: controller.phone.value);
     _gstController = TextEditingController(text: controller.gstNumber.value);
     _addressController = TextEditingController(text: controller.address.value);
+
+    // Parse phone number
+    final phoneValue = controller.phone.value;
+    if (phoneValue.contains(' ')) {
+      final parts = phoneValue.split(' ');
+      controller.selectedCountryCode.value = parts[0];
+      _phoneController = TextEditingController(text: parts.sublist(1).join(' '));
+    } else if (phoneValue.startsWith('+')) {
+      if (phoneValue.startsWith('+91')) {
+        controller.selectedCountryCode.value = '+91';
+        _phoneController = TextEditingController(text: phoneValue.substring(3).trim());
+      } else {
+        _phoneController = TextEditingController(text: phoneValue);
+      }
+    } else {
+      _phoneController = TextEditingController(text: phoneValue);
+    }
   }
 
   @override
@@ -102,13 +119,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  AppInputField(
+                  Obx(() => AppInputField(
                     label: 'Phone Number',
                     hint: 'Enter phone number',
                     controller: _phoneController,
                     icon: Iconsax.call,
                     keyboardType: TextInputType.phone,
-                  ),
+                    phoneCode: controller.selectedCountryCode.value,
+                    onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                      context: context,
+                      selectedCode: controller.selectedCountryCode,
+                    ),
+                  )),
                   const SizedBox(height: 16),
                   AppInputField(
                     label: 'GST Number',
@@ -134,7 +156,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 controller.updateProfile(
                    _nameController.text,
                    _emailController.text,
-                   _phoneController.text,
+                   '${controller.selectedCountryCode.value} ${_phoneController.text}'.trim(),
                    _gstController.text,
                    _addressController.text,
                 );

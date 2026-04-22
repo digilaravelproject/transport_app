@@ -6,6 +6,7 @@ class SettingsController extends GetxController {
   final phone = '+91 9876543210'.obs;
   final gstNumber = '27AAAAA0000A1Z5'.obs;
   final address = '123 Business Hub, Mumbai, India'.obs;
+  final selectedCountryCode = '+91'.obs;
 
   void updateProfile(String name, String email, String phone, String gst, String address) {
     this.agencyName.value = name;

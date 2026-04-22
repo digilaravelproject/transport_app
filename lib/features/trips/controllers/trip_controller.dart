@@ -28,6 +28,7 @@ class TripController extends GetxController {
   var selectedVehicleType = 'Luxury Bus'.obs;
   var selectedDriver = ''.obs;
   var tripDate = DateTime.now().obs;
+  var selectedCountryCode = '+91'.obs;
 
   @override
   void onInit() {

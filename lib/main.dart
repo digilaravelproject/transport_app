@@ -18,20 +18,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeController themeController = Get.find<ThemeController>();
-
-    return Obx(() => GetMaterialApp(
+    return GetMaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       navigatorKey: Get.key,
       initialBinding: InitialBindings(),
       theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      themeMode: ThemeMode.light,
       initialRoute: RouteHelper.getSplashRoute(),
       getPages: RouteHelper.routes,
       defaultTransition: Transition.fadeIn,
-    ));
+    );
   }
 }
 

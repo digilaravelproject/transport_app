@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import 'app_text.dart';
 
 class AppInputField extends StatelessWidget {
   final String? label;
@@ -10,7 +11,9 @@ class AppInputField extends StatelessWidget {
   final bool obscure;
   final bool? obscureText;
   final Widget? prefixIcon;
+  final Widget? prefix;
   final IconData? icon;
+  final double iconSize;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
@@ -18,6 +21,8 @@ class AppInputField extends StatelessWidget {
   final bool readOnly;
   final int maxLines;
   final VoidCallback? onTap;
+  final String? phoneCode;
+  final VoidCallback? onPhoneCodeTap;
 
   const AppInputField({
     Key? key,
@@ -29,7 +34,9 @@ class AppInputField extends StatelessWidget {
     this.obscure = false,
     this.obscureText,
     this.prefixIcon,
+    this.prefix,
     this.icon,
+    this.iconSize = 20,
     this.suffixIcon,
     this.validator,
     this.onChanged,
@@ -37,6 +44,8 @@ class AppInputField extends StatelessWidget {
     this.readOnly = false,
     this.maxLines = 1,
     this.onTap,
+    this.phoneCode,
+    this.onPhoneCodeTap,
   }) : super(key: key);
 
   @override
@@ -45,13 +54,9 @@ class AppInputField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
-          Text(
+          AppText(
             label!,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textColorPrimary,
-            ),
+            style: AppTextStyle.label,
           ),
           const SizedBox(height: 8),
         ],
@@ -86,16 +91,51 @@ class AppInputField extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: AppColors.textColorHint.withValues(alpha: 0.7),
               ),
-              prefixIcon: (prefixIcon != null || icon != null)
+              prefixIcon: (phoneCode != null || prefixIcon != null || icon != null)
                   ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: IconTheme(
-                        data: const IconThemeData(color: AppColors.primaryColor, size: 20),
-                        child: prefixIcon ?? Icon(icon),
+                      padding: const EdgeInsets.only(left: 14, right: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (phoneCode != null) ...[
+                            GestureDetector(
+                              onTap: onPhoneCodeTap,
+                              behavior: HitTestBehavior.opaque,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (icon != null) ...[
+                                    Icon(icon, color: AppColors.primaryColor, size: iconSize),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  AppText(
+                                    phoneCode!,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textColorPrimary,
+                                  ),
+                                  const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textColorSecondary),
+                                  const SizedBox(width: 4),
+                                  Container(
+                                    height: 24,
+                                    width: 1,
+                                    color: AppColors.slate200,
+                                  ),
+                                  const SizedBox(width: 8),
+                                ],
+                              ),
+                            ),
+                          ] else 
+                            IconTheme(
+                              data: IconThemeData(color: AppColors.primaryColor, size: iconSize),
+                              child: prefixIcon ?? Icon(icon),
+                            ),
+                        ],
                       ),
                     )
                   : null,
               prefixIconConstraints: const BoxConstraints(minWidth: 48),
+              prefix: prefix,
               suffixIcon: suffixIcon != null
                   ? Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -107,7 +147,12 @@ class AppInputField extends StatelessWidget {
                   : null,
               suffixIconConstraints: const BoxConstraints(minWidth: 48),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              contentPadding: EdgeInsets.only(
+                left: (prefixIcon != null || icon != null || prefix != null) ? 0 : 20,
+                right: 20,
+                top: 16,
+                bottom: 16,
+              ),
             ),
           ),
         ),

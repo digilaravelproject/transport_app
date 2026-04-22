@@ -8,6 +8,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../controllers/trip_controller.dart';
 import '../../../routes/route_helper.dart';
 
@@ -131,13 +132,18 @@ class CreateTripScreen extends GetView<TripController> {
                     icon: Iconsax.user,
                   ),
                   const SizedBox(height: 16),
-                  AppInputField(
+                  Obx(() => AppInputField(
                     label: 'Phone Number',
                     controller: controller.customerPhoneController,
                     hint: 'Enter mobile number',
                     icon: Iconsax.call,
                     keyboardType: TextInputType.phone,
-                  ),
+                    phoneCode: controller.selectedCountryCode.value,
+                    onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                      context: context,
+                      selectedCode: controller.selectedCountryCode,
+                    ),
+                  )),
                 ],
               ),
             ),

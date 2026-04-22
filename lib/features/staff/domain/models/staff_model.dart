@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 enum StaffRole { driver, manager, accountant, helper }
 enum StaffStatus { active, inactive }
+enum SalaryType { monthly, daily }
 
 class StaffModel {
   final int id;
@@ -23,6 +24,11 @@ class StaffModel {
   final double dutyHours;
   final double salaryBalance;
   final double advanceTaken;
+  final SalaryType salaryType;
+  final String? panNumber;
+  final String? badgeNumber;
+  final DateTime? badgeExpiry;
+  final String? bankPassbookUrl;
 
   StaffModel({
     required this.id,
@@ -44,6 +50,11 @@ class StaffModel {
     this.dutyHours = 0,
     this.salaryBalance = 0,
     this.advanceTaken = 0,
+    this.salaryType = SalaryType.monthly,
+    this.panNumber,
+    this.badgeNumber,
+    this.badgeExpiry,
+    this.bankPassbookUrl,
   });
 }
 
@@ -53,6 +64,7 @@ class AttendanceRecord {
   final DateTime? checkOut;
   final double totalHours;
   final String staffName;
+  final String? status;
 
   AttendanceRecord({
     required this.date,
@@ -60,6 +72,7 @@ class AttendanceRecord {
     this.checkOut,
     this.totalHours = 0,
     required this.staffName,
+    this.status,
   });
 }
 

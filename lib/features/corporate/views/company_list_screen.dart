@@ -19,53 +19,54 @@ class CompanyListScreen extends GetView<CorporateController> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: const AppHeader(
-        title: 'Companies',
+        title: 'Vendors',
+        subtitle: 'Manage corporate partners',
       ),
-      floatingActionButton: FloatingActionButton.extended(heroTag: null,
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getCreateCorporateContractRoute()),
         backgroundColor: AppColors.primaryColor,
+        elevation: 4,
         icon: const Icon(Iconsax.add, color: Colors.white),
-        label: const AppText('Add Company', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+        label: const AppText('Add Vendor', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: AppSearchBar(
-              hint: 'Search by name or contact...',
-              onChanged: (v) => controller.updateSearch(v),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              children: [
+                AppSearchBar(
+                  hint: 'Search by name or contact...',
+                  onChanged: (v) => controller.updateSearch(v),
+                ),
+                const SizedBox(height: 12),
+                Obx(() => Row(
+                  children: [
+                    _buildFilterChip('All', controller.selectedFilter.value == 'All'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Active', controller.selectedFilter.value == 'Active'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('No Contracts', controller.selectedFilter.value == 'No Contracts'),
+                  ],
+                )),
+              ],
             ),
           ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Obx(() => Row(
-              children: [
-                AppFilterChip(
-                  label: 'All',
-                  isSelected: controller.selectedFilter.value == 'All',
-                  onTap: () => controller.setFilter('All'),
-                ),
-                const SizedBox(width: 8),
-                AppFilterChip(
-                  label: 'Active',
-                  isSelected: controller.selectedFilter.value == 'Active',
-                  onTap: () => controller.setFilter('Active'),
-                ),
-                const SizedBox(width: 8),
-                AppFilterChip(
-                  label: 'No Contracts',
-                  isSelected: controller.selectedFilter.value == 'No Contracts',
-                  onTap: () => controller.setFilter('No Contracts'),
-                ),
-              ],
-            )),
-          ),
-          const SizedBox(height: 8),
           Expanded(
             child: Obx(() {
               if (controller.filteredCompanies.isEmpty) {
-                return const Center(child: AppText('No companies found'));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Iconsax.building_34, size: 64, color: AppColors.slate300),
+                      const SizedBox(height: 16),
+                      AppText('No vendors found', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                    ],
+                  ),
+                );
               }
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -81,6 +82,28 @@ class CompanyListScreen extends GetView<CorporateController> {
       ),
     );
   }
+
+  Widget _buildFilterChip(String label, bool isSelected) {
+    return GestureDetector(
+      onTap: () => controller.setFilter(label),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryColor : AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? AppColors.primaryColor : AppColors.slate200),
+          boxShadow: isSelected ? [BoxShadow(color: AppColors.primaryColor.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+        ),
+        child: AppText(
+          label,
+          style: AppTextStyle.caption,
+          color: isSelected ? Colors.white : AppColors.textColorSecondary,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+        ),
+      ),
+    );
+  }
 }
 
 class _CompanyCard extends StatelessWidget {
@@ -90,48 +113,113 @@ class _CompanyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isActive = company.isActive;
+    final CorporateController controller = Get.find<CorporateController>();
+    
     return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.zero,
       onTap: () => Get.toNamed(RouteHelper.getContractDetailsRoute(), arguments: company),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              AppText(company.name, style: AppTextStyle.subheading, fontSize: 18),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: company.activeContracts > 0 ? AppColors.successColor.withOpacity(0.1) : AppColors.slate200,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: AppText(
-                  'Contracts: ${company.activeContracts}',
-                  style: AppTextStyle.caption,
-                  color: company.activeContracts > 0 ? AppColors.successColor : AppColors.textColorHint,
-                  fontWeight: FontWeight.bold,
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            Container(
+              width: 5,
+              decoration: BoxDecoration(
+                color: isActive ? AppColors.successColor : AppColors.slate300,
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: AppColors.primaryLight,
+                          child: AppText(
+                            company.name.substring(0, 1).toUpperCase(),
+                            style: AppTextStyle.subheading,
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppText(company.name, style: AppTextStyle.subheading, fontSize: 17, fontWeight: FontWeight.bold),
+                              AppText('Corporate Partner', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: () => controller.toggleCompanyStatus(company.id),
+                          child: _buildStatusBadge(isActive),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 32),
+                    Row(
+                      children: [
+                        _buildInfoItem(Iconsax.user, 'Contact', company.contactPerson),
+                        const Spacer(),
+                        _buildInfoItem(Iconsax.call, 'Phone', company.phone),
+                        const Spacer(),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(Iconsax.user, size: 16, color: AppColors.textColorSecondary),
-              const SizedBox(width: 8),
-              AppText('Contact: ${company.contactPerson}', style: AppTextStyle.body),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Iconsax.call, size: 16, color: AppColors.textColorSecondary),
-              const SizedBox(width: 8),
-              AppText('Phone: ${company.phone}', style: AppTextStyle.body),
-            ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: AppColors.textColorSecondary),
+            const SizedBox(width: 4),
+            AppText(label, style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontSize: 10),
+          ],
+        ),
+        const SizedBox(height: 2),
+        AppText(value, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w600),
+      ],
+    );
+  }
+
+  Widget _buildStatusBadge(bool isActive) {
+    final Color color = isActive ? AppColors.successColor : AppColors.errorColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(isActive ? Iconsax.tick_circle : Iconsax.close_circle, size: 12, color: color),
+          const SizedBox(width: 4),
+          AppText(
+            isActive ? 'Active' : 'Inactive',
+            style: AppTextStyle.caption,
+            fontSize: 10,
+            color: color,
+            fontWeight: FontWeight.bold,
           ),
         ],
       ),

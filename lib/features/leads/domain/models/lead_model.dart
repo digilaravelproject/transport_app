@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 class LeadModel {
   final String? id;
+  final String leadNo;
   final String customerName;
   final String phone;
   final String? email;
@@ -19,6 +20,7 @@ class LeadModel {
 
   LeadModel({
     this.id,
+    required this.leadNo,
     required this.customerName,
     required this.phone,
     this.email,
@@ -39,6 +41,7 @@ class LeadModel {
 
   factory LeadModel.fromJson(Map<String, dynamic> json) => LeadModel(
         id: json['id'],
+        leadNo: json['lead_no'] ?? '',
         customerName: json['customer_name'] ?? '',
         phone: json['phone'] ?? '',
         email: json['email'],
@@ -57,6 +60,7 @@ class LeadModel {
 
   Map<String, dynamic> toJson() => {
         'id': id,
+        'lead_no': leadNo,
         'customer_name': customerName,
         'phone': phone,
         'email': email,

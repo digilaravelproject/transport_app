@@ -100,7 +100,10 @@ class _StaffCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16),
+                    Expanded(
+                      child: AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, overflow: TextOverflow.ellipsis),
+                    ),
+                    const SizedBox(width: 8),
                     AppStatusChip(status: staff.status.name.capitalizeFirst!),
                   ],
                 ),

@@ -40,6 +40,7 @@ class AppRoutes {
   static const String repairEntry = '/repair-entry';
   static const String maintenanceHistory = '/maintenance-history';
   static const String documentUpload = '/document-upload';
+  static const String servicePaymentHistory = '/service-payment-history';
 
   // Staff
   static const String staffList = '/staff-list';

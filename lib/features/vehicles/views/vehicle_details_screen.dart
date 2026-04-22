@@ -17,7 +17,8 @@ class VehicleDetailsScreen extends GetView<VehicleController> {
 
   @override
   Widget build(BuildContext context) {
-    final VehicleModel vehicle = Get.arguments ?? controller.vehicles.first;
+    final dynamic args = Get.arguments;
+    final VehicleModel vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
 
     return AppScaffold(
       appBar: AppHeader(
@@ -31,11 +32,11 @@ class VehicleDetailsScreen extends GetView<VehicleController> {
           children: [
             _buildHeaderCard(vehicle),
             const SizedBox(height: 24),
-            _buildSectionTitle('Assigned Driver'),
-            _buildDriverCard(vehicle),
-            const SizedBox(height: 24),
             _buildSectionTitle('Maintenance Summary'),
             _buildMaintenanceGrid(vehicle),
+            const SizedBox(height: 24),
+            _buildSectionTitle('Payment Ledger (Khata)'),
+            _buildPaymentLedger(vehicle),
             const SizedBox(height: 24),
             _buildSectionTitle('Compliance Documents'),
             _buildDocumentsPreview(vehicle),
@@ -86,70 +87,149 @@ class VehicleDetailsScreen extends GetView<VehicleController> {
     );
   }
 
-  Widget _buildDriverCard(VehicleModel vehicle) {
+
+  Widget _buildMaintenanceGrid(VehicleModel vehicle) {
+    return Column(
+      children: [
+        // View History Section
+        Row(
+          children: [
+            Expanded(child: _buildLogCard('Fuel', Iconsax.gas_station, Colors.orange, RouteHelper.getFuelHistoryRoute(), vehicle)),
+            const SizedBox(width: 10),
+            Expanded(child: _buildLogCard('Service', Iconsax.setting_2, Colors.blue, RouteHelper.getServiceHistoryRoute(), vehicle)),
+            const SizedBox(width: 10),
+            Expanded(child: _buildLogCard('Repair', Iconsax.command, Colors.red, RouteHelper.getRepairHistoryRoute(), vehicle)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Quick Actions Section
+        Row(
+          children: [
+            Expanded(child: _buildAddButton('Fuel', Colors.orange, RouteHelper.getFuelEntryRoute(), vehicle)),
+            const SizedBox(width: 10),
+            Expanded(child: _buildAddButton('Service', Colors.blue, RouteHelper.getServiceEntryRoute(), vehicle)),
+            const SizedBox(width: 10),
+            Expanded(child: _buildAddButton('Repair', Colors.red, RouteHelper.getRepairEntryRoute(), vehicle)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLogCard(String label, IconData icon, Color color, String route, VehicleModel vehicle) {
     return AppCard(
-      child: Row(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+      onTap: () => Get.toNamed(route, arguments: vehicle),
+      child: Column(
         children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: AppColors.primaryLight,
-            child: const Icon(Iconsax.user, color: AppColors.primaryColor),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppText(vehicle.driverName ?? 'Unassigned', style: AppTextStyle.body, fontWeight: FontWeight.w600),
-              AppText('Primary Driver', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-            ],
-          ),
-          const Spacer(),
-          if (vehicle.driverName != null)
-            IconButton(
-              icon: const Icon(Iconsax.call, color: AppColors.successColor, size: 20),
-              onPressed: () {},
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.08),
+              shape: BoxShape.circle,
             ),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(height: 10),
+          AppText('$label Logs', 
+            style: AppTextStyle.body, 
+            fontSize: 11, 
+            fontWeight: FontWeight.w700, 
+            textAlign: TextAlign.center,
+            color: AppColors.textColorPrimary,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMaintenanceGrid(VehicleModel vehicle) {
-    final items = [
-      {'label': 'Fuel History', 'icon': Icons.local_gas_station_rounded, 'route': RouteHelper.getFuelHistoryRoute()},
-      {'label': 'Service logs', 'icon': Iconsax.setting_2, 'route': RouteHelper.getServiceHistoryRoute()},
-      {'label': 'Repair History', 'icon': Icons.build_circle_rounded, 'route': RouteHelper.getRepairHistoryRoute()},
-      {'label': 'Add Fuel', 'icon': Iconsax.add, 'route': RouteHelper.getFuelEntryRoute()},
-      {'label': 'Add Service', 'icon': Iconsax.add, 'route': RouteHelper.getServiceEntryRoute()},
-      {'label': 'Add Repair', 'icon': Iconsax.add, 'route': RouteHelper.getRepairEntryRoute()},
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 2.2,
+  Widget _buildAddButton(String label, Color color, String route, VehicleModel vehicle) {
+    return InkWell(
+      onTap: () => Get.toNamed(route, arguments: vehicle),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Iconsax.add_circle, color: color, size: 14),
+            const SizedBox(width: 6),
+            AppText('Add', 
+              style: AppTextStyle.body, 
+              fontSize: 11, 
+              color: color, 
+              fontWeight: FontWeight.w800,
+            ),
+          ],
+        ),
       ),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        return AppCard(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          onTap: () => Get.toNamed(items[index]['route'] as String, arguments: vehicle),
-          child: Row(
-            children: [
-              Icon(items[index]['icon'] as IconData, color: AppColors.primaryColor, size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: AppText(items[index]['label'] as String, 
-                  style: AppTextStyle.body, fontSize: 12, fontWeight: FontWeight.w500),
+    );
+  }
+
+  Widget _buildPaymentLedger(VehicleModel vehicle) {
+    return Obx(() {
+      final spent = controller.totalMaintenanceSpent;
+      final paid = controller.totalMaintenancePaid;
+      final due = controller.totalMaintenanceDue;
+
+      return AppCard(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _buildLedgerStat('Total', spent, AppColors.successColor, Iconsax.receive_square_2),
+                ),
+                Container(width: 1, height: 40, color: AppColors.slate200),
+                Expanded(
+                  child: _buildLedgerStat('Pay', paid, AppColors.errorColor, Iconsax.send_sqaure_2),
+                ),
+                Container(width: 1, height: 40, color: AppColors.slate200),
+                Expanded(
+                  child: _buildLedgerStat('Due', due, AppColors.indigo500, Iconsax.info_circle),
+                ),
+              ],
+            ),
+            if (due > 0) ...[
+              const Divider(height: 32),
+              Row(
+                children: [
+                  const Icon(Iconsax.danger, color: AppColors.errorColor, size: 16),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: AppText('You have pending payments to garages',
+                        style: AppTextStyle.caption, color: AppColors.errorColor, fontWeight: FontWeight.w600),
+                  ),
+                  TextButton(
+                    onPressed: () => Get.toNamed(RouteHelper.getRepairHistoryRoute(), arguments: vehicle),
+                    style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: const Size(50, 30)),
+                    child: const AppText('View Dues',
+                        color: AppColors.primaryColor, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
             ],
-          ),
-        );
-      },
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildLedgerStat(String label, double value, Color color, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: color.withOpacity(0.7), size: 18),
+        const SizedBox(height: 8),
+        AppText('₹ ${value.toStringAsFixed(0)}',
+            style: AppTextStyle.body, fontWeight: FontWeight.bold, color: color, fontSize: 13),
+        const SizedBox(height: 2),
+        AppText(label, style: AppTextStyle.caption, fontSize: 10, color: AppColors.textColorHint),
+      ],
     );
   }
 

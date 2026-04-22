@@ -98,6 +98,7 @@ import '../features/reports/views/staff_reports_screen.dart';
 import '../features/reports/views/compliance_reports_screen.dart';
 import '../features/reports/views/profit_loss_report_screen.dart';
 import '../features/vehicles/views/repair_history_screen.dart';
+import '../features/vehicles/views/service_payment_history_screen.dart';
 import '../features/reports/controllers/reports_controller.dart';
 import '../features/settings/views/profile_screen.dart';
 import '../features/settings/views/edit_profile_screen.dart';
@@ -158,6 +159,7 @@ class RouteHelper {
   static String getRepairEntryRoute() => AppRoutes.repairEntry;
   static String getMaintenanceHistoryRoute() => AppRoutes.maintenanceHistory;
   static String getDocumentUploadRoute() => AppRoutes.documentUpload;
+  static String getServicePaymentHistoryRoute() => AppRoutes.servicePaymentHistory;
   static String getCreateLeadRoute() => AppRoutes.createLead;
   static String getLeadDetailsRoute() => AppRoutes.leadDetails;
   static String getEditLeadRoute() => AppRoutes.editLead;
@@ -451,6 +453,10 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.documentUpload,
       page: () => const DocumentUploadScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.servicePaymentHistory,
+      page: () => const ServicePaymentHistoryScreen(),
     ),
 
     GetPage(

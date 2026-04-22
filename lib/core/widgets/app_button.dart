@@ -54,7 +54,7 @@ class AppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius),
             side: borderSide ?? BorderSide.none,
           ),
-          padding: EdgeInsets.symmetric(horizontal: icon != null ? 16 : 24),
+          padding: EdgeInsets.symmetric(horizontal: icon != null ? 12 : 16),
         ),
         child: isLoading
             ? const SizedBox(

@@ -20,160 +20,141 @@ class MembershipScreen extends GetView<MembershipController> {
 
     return AppScaffold(
       useScaffold: false,
-      appBar: const AppHeader(
-        title: 'Membership',
-        subtitle: 'Manage your SaaS subscription',
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+      safeArea: true,
+      body: Container(
+        color: Colors.white,
         child: Column(
           children: [
-            // Current Plan Card
-            AppCard(
-              padding: EdgeInsets.zero,
-              color: AppColors.primaryColor,
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -20,
-                    top: -20,
-                    child: Icon(Iconsax.medal_star, size: 120, color: AppColors.white.withOpacity(0.1)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
+            // Header
+            Padding(
+              padding: const EdgeInsets.only(top: 10, bottom: 20),
+              child: Center(
+                child: AppText(
+                  'Membership',
+                  color: AppColors.primaryColor,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    // Logo/Icon
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryLight.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Iconsax.medal_star,
+                          size: 36,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Titles
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      child: AppText(
+                        'Start Your 7-Day Trial Today',
+                        style: AppTextStyle.heading,
+                        fontSize: 20,
+                        align: TextAlign.center,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 40),
+                      child: AppText(
+                        'Experience the magic of immersive growth with AI-powered social tools—free for 7 days.',
+                        style: AppTextStyle.body,
+                        fontSize: 13,
+                        color: AppColors.textColorSecondary,
+                        align: TextAlign.center,
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Horizontal Plans
+                    SizedBox(
+                      height: 280,
+                      child: PageView.builder(
+                        itemCount: controller.plans.length,
+                        controller: PageController(viewportFraction: 0.65, initialPage: 1),
+                        onPageChanged: (index) => controller.selectPlan(index),
+                        itemBuilder: (context, index) {
+                          final plan = controller.plans[index];
+                          return Obx(() {
+                            final isSelected = controller.selectedPlanIndex.value == index;
+                            return AnimatedScale(
+                              scale: isSelected ? 1.0 : 0.9,
+                              duration: const Duration(milliseconds: 300),
+                              child: _PlanCard(
+                                plan: plan,
+                                isSelected: isSelected,
                               ),
-                              child: const Icon(Iconsax.verify, color: AppColors.white, size: 24),
-                            ),
-                            const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const AppText('Current Plan', style: AppTextStyle.caption, color: Colors.white70),
-                                Obx(() => AppText('${controller.currentPlan.value} Agency', style: AppTextStyle.heading, color: AppColors.white, fontSize: 22)),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const AppText('Billing Cycle', style: AppTextStyle.caption, color: Colors.white70),
-                                const AppText('Yearly', style: AppTextStyle.body, color: AppColors.white, fontWeight: FontWeight.bold),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const AppText('Renews In', style: AppTextStyle.caption, color: Colors.white70),
-                                Obx(() => AppText('${controller.remainingDays.value} Days', style: AppTextStyle.body, color: AppColors.white, fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                          ],
-                        ),
+                            );
+                          });
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Continue Button
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Obx(() {
+                        final planName = controller.plans[controller.selectedPlanIndex.value]['name'];
+                        return AppButton(
+                          text: 'CONTINUE WITH ${planName.toUpperCase()}',
+                          color: AppColors.primaryColor,
+                          height: 56,
+                          borderRadius: 28,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          onPressed: () => controller.continueWithPlan(),
+                        );
+                      }),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const AppText(
+                      'Cancel Anytime',
+                      color: AppColors.textColorSecondary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Footer Links
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _FooterLink(text: 'Privacy Policy', onTap: () {}),
+                        const SizedBox(width: 20),
+                        _FooterLink(text: 'Terms of Service', onTap: () {}),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            // Plan Features
-            AppCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const AppText('Pro Features Included:', style: AppTextStyle.subheading, fontSize: 16),
-                  const SizedBox(height: 16),
-                  _FeatureRow(text: 'Unlimited Vehicles & Staff'),
-                  const Divider(height: 24),
-                  _FeatureRow(text: 'Advanced Live Tracking'),
-                  const Divider(height: 24),
-                  _FeatureRow(text: 'Custom Invoices & Duty Slips'),
-                  const Divider(height: 24),
-                  _FeatureRow(text: 'Priority Email & Call Support'),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Auto Renew Toggle
-            AppCard(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                   Row(
-                     children: [
-                       const Icon(Iconsax.refresh, color: AppColors.primaryColor, size: 20),
-                       const SizedBox(width: 12),
-                       const AppText('Auto-Renew Plan', style: AppTextStyle.body),
-                     ],
-                   ),
-                   Obx(() => Switch(
-                     value: controller.isAutoRenew.value,
-                     onChanged: (_) => controller.toggleAutoRenew(),
-                     activeColor: AppColors.primaryColor,
-                   )),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Upgrade Section
-            AppCard(
-              padding: const EdgeInsets.all(20),
-              color: AppColors.warningColor.withOpacity(0.1),
-              child: Column(
-                children: [
-                  const Icon(Iconsax.crown, size: 48, color: AppColors.warningColor),
-                  const SizedBox(height: 12),
-                  const AppText('Need more power?', style: AppTextStyle.subheading, fontSize: 18),
-                  const SizedBox(height: 6),
-                  const AppText(
-                    'Upgrade to the Enterprise plan for custom API integrations, white-labeling, and dedicated account managers.',
-                    style: AppTextStyle.body,
-                    color: AppColors.textColorSecondary,
-                    align: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
-                  AppButton(
-                    text: 'Upgrade to Enterprise',
-                    color: AppColors.warningColor,
-                    textColor: AppColors.white,
-                    onPressed: controller.upgradePlan,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Danger Zone
-            AppButton.outline(
-              text: 'Cancel Subscription',
-              color: AppColors.errorColor,
-              onPressed: controller.cancelSubscription,
-            ),
-            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -181,18 +162,150 @@ class MembershipScreen extends GetView<MembershipController> {
   }
 }
 
-class _FeatureRow extends StatelessWidget {
-  final String text;
-  const _FeatureRow({required this.text});
+class _PlanCard extends StatelessWidget {
+  final Map<String, dynamic> plan;
+  final bool isSelected;
+
+  const _PlanCard({
+    required this.plan,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const Icon(Icons.check_circle_rounded, color: AppColors.successColor, size: 20),
-        const SizedBox(width: 12),
-        Expanded(child: AppText(text, style: AppTextStyle.body)),
-      ],
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(
+          color: isSelected ? AppColors.primaryColor : Colors.black.withOpacity(0.05),
+          width: isSelected ? 3 : 1,
+        ),
+        boxShadow: [
+          if (isSelected)
+            BoxShadow(
+              color: AppColors.primaryColor.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Plan Badge
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryColor : Colors.black.withOpacity(0.03),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
+              ),
+            ),
+            child: AppText(
+              plan['badge'],
+              align: TextAlign.center,
+              color: isSelected ? Colors.white : AppColors.textColorSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.0,
+            ),
+          ),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  AppText(
+                    plan['name'],
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Feature List
+                  Expanded(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: plan['features'].length,
+                      itemBuilder: (context, fIndex) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle, color: AppColors.primaryColor, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: AppText(
+                                  plan['features'][fIndex],
+                                  fontSize: 11,
+                                  color: AppColors.textColorSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Price
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppText(
+                          plan['price'],
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        AppText(
+                          plan['priceSub'],
+                          fontSize: 11,
+                          color: AppColors.textColorSecondary,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+
+  const _FooterLink({required this.text, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AppText(
+        text,
+        fontSize: 12,
+        color: AppColors.textColorHint,
+        fontWeight: FontWeight.w500,
+        style: AppTextStyle.caption,
+      ),
     );
   }
 }

@@ -1,68 +1,136 @@
 import 'package:get/get.dart';
+import '../../../../core/services/network/api_client.dart';
+import '../../../../core/utils/custom_snackbar.dart';
 import '../domain/models/shift_model.dart';
+import '../domain/repositories/shift_repository.dart';
+import '../domain/repositories/shift_list_repository.dart';
+import '../domain/repositories/shift_details_repository.dart';
 
 class ShiftController extends GetxController {
   final RxList<ShiftModel> _shifts = <ShiftModel>[].obs;
   final RxString searchQuery = ''.obs;
   final RxString selectedFilter = 'All'.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isSuccess = false.obs;
+  final Rx<ShiftModel?> currentShift = Rx<ShiftModel?>(null);
+
+  late ShiftRepository _shiftRepository;
+  late ShiftListRepository _shiftListRepository;
+  late ShiftDetailsRepository _shiftDetailsRepository;
 
   List<ShiftModel> get shifts => _shifts;
 
-  List<ShiftModel> get filteredShifts {
-    if (searchQuery.value.isEmpty && selectedFilter.value == 'All') {
-      return _shifts;
-    }
-    return _shifts.where((shift) {
-      final matchesSearch = shift.shiftName.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          (shift.notes?.toLowerCase().contains(searchQuery.value.toLowerCase()) ?? false);
-      
-      final matchesFilter = selectedFilter.value == 'All' || shift.type == selectedFilter.value;
-      
-      return matchesSearch && matchesFilter;
-    }).toList();
+  List<ShiftModel> get filteredShifts => _shifts;
+
+  void updateSearch(String query) {
+    searchQuery.value = query;
+    _loadShifts();
   }
 
-  void updateSearch(String query) => searchQuery.value = query;
-  void setFilter(String filter) => selectedFilter.value = filter;
+  void setFilter(String filter) {
+    selectedFilter.value = filter;
+    _loadShifts();
+  }
 
   @override
   void onInit() {
     super.onInit();
-    _loadMockData();
+    _initializeRepository();
+    _loadShifts();
   }
 
-  void _loadMockData() {
-    _shifts.assignAll([
-      ShiftModel(
-        id: 'SHF001',
-        shiftName: 'Morning Shift A',
-        startTime: '06:00 AM',
-        endTime: '02:00 PM',
-        type: 'Regular',
-        assignedDrivers: ['Ravi Kumar', 'Amit Singh'],
-        date: DateTime.now(),
-        notes: 'Tech park route drivers',
-      ),
-      ShiftModel(
-        id: 'SHF002',
-        shiftName: 'Evening Shift B',
-        startTime: '02:00 PM',
-        endTime: '10:00 PM',
-        type: 'Regular',
-        assignedDrivers: ['John Doe'],
-        date: DateTime.now(),
-        notes: 'School drop-off',
-      ),
-      ShiftModel(
-        id: 'SHF003',
-        shiftName: 'Night Extra',
-        startTime: '10:00 PM',
-        endTime: '06:00 AM',
-        type: 'Overtime',
-        assignedDrivers: [],
-        date: DateTime.now().add(const Duration(days: 1)),
-        notes: 'Airport transfers',
-      ),
-    ]);
+  void _initializeRepository() {
+    _shiftRepository = ShiftRepositoryImpl(ApiClient());
+    _shiftListRepository = ShiftListRepositoryImpl(ApiClient());
+    _shiftDetailsRepository = ShiftDetailsRepositoryImpl(ApiClient());
+  }
+
+  Future<void> _loadShifts() async {
+    try {
+      isLoading.value = true;
+      
+      final type = selectedFilter.value == 'All' ? null : selectedFilter.value;
+      final search = searchQuery.value.isEmpty ? null : searchQuery.value;
+
+      final response = await _shiftListRepository.getShifts(
+        type: type,
+        search: search,
+        page: 1,
+      );
+
+      if (response.isSuccess && response.body != null) {
+        final shifts = response.body as List<ShiftModel>;
+        _shifts.assignAll(shifts);
+      } else {
+        _shifts.clear();
+      }
+    } catch (e) {
+      print('Error loading shifts: $e');
+      _shifts.clear();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> createShift({
+    required String name,
+    required String startTime,
+    required String endTime,
+    required String type,
+    String? date,
+    String? notes,
+  }) async {
+    try {
+      isLoading.value = true;
+      isSuccess.value = false;
+
+      final response = await _shiftRepository.createShift(
+        name: name,
+        startTime: startTime,
+        endTime: endTime,
+        type: type,
+        date: date,
+        notes: notes,
+      );
+
+      if (response.isSuccess && response.body != null) {
+        final shift = response.body as ShiftModel;
+        _shifts.add(shift);
+        isSuccess.value = true;
+        print("shift craeted :  successful  "+response.message);
+        CustomSnackbar.showSuccess(response.message ?? 'Shift created successfully');
+      } else {
+        isSuccess.value = false;
+        print("shift craeted :  failed  "+response.message);
+        CustomSnackbar.showError(response.message ?? 'Failed to create shift');
+      }
+    } catch (e) {
+      isSuccess.value = false;
+      print('Error creating shift: $e');
+      CustomSnackbar.showError('Error creating shift: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> getShiftDetails(int shiftId) async {
+    try {
+      isLoading.value = true;
+
+      final response = await _shiftDetailsRepository.getShiftDetails(shiftId);
+
+      if (response.isSuccess && response.body != null) {
+        currentShift.value = response.body as ShiftModel;
+        print('Shift details loaded successfully');
+      } else {
+        print('Failed to load shift details: ${response.message}');
+        CustomSnackbar.showError(response.message ?? 'Failed to load shift details');
+      }
+    } catch (e) {
+      print('Error loading shift details: $e');
+      CustomSnackbar.showError('Error loading shift details: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

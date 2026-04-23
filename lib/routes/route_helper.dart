@@ -628,6 +628,9 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.createShift,
       page: () => const CreateShiftScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(ShiftController());
+      }),
       transition: Transition.downToUp,
     ),
     GetPage(

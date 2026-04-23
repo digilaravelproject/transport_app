@@ -95,6 +95,36 @@ class _TemplateCard extends StatelessWidget {
   final TemplateModel template;
   const _TemplateCard({required this.template});
 
+  void _showMakeDefaultDialog(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Make Default Template'),
+        content: Text('Do you want to make "${template.name}" as the default template?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              _makeTemplateDefault();
+            },
+            child: const Text('Yes', style: TextStyle(color: Colors.green)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _makeTemplateDefault() {
+    final controller = Get.find<TemplateController>();
+    final templateId = int.tryParse(template.id) ?? 0;
+    if (templateId > 0) {
+      controller.setTemplateAsDefault(templateId);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppCard(
@@ -126,15 +156,27 @@ class _TemplateCard extends StatelessWidget {
                   AppText(template.type, style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                 ],
               ),
-              if (template.isDefault)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.successColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const AppText('DEFAULT', style: AppTextStyle.caption, color: AppColors.successColor, fontSize: 10),
-                ),
+              Row(
+                children: [
+                  if (!template.isDefault)
+                    GestureDetector(
+                      onTap: () => _showMakeDefaultDialog(context),
+                      child: Text(
+                        "Make default",
+                        style: const TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.successColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const AppText('DEFAULT', style: AppTextStyle.caption, color: AppColors.successColor, fontSize: 10),
+                    ),
+                ],
+              )
             ],
           ),
           const SizedBox(height: 12),
@@ -150,34 +192,27 @@ class _TemplateCard extends StatelessWidget {
                 style: AppTextStyle.caption, 
                 color: AppColors.textColorHint
               ),
-              Row(
+              /*Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Iconsax.eye, size: 20, color: AppColors.textColorSecondary),
-                    onPressed: () {
-                      if (template.url != null && template.url!.isNotEmpty) {
-                        Get.toNamed(
-                          RouteHelper.getTemplateViewRoute(),
-                          arguments: {
-                            'title': template.name,
-                            'url': template.url!,
-                          },
-                        );
-                      } else {
-                        Get.toNamed(RouteHelper.getTemplateDetailsRoute(), arguments: template);
-                      }
-                    },
-                    constraints: const BoxConstraints(),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                  // IconButton(
-                  //   icon: const Icon(Iconsax.edit, size: 20, color: AppColors.primaryColor),
-                  //   onPressed: () => Get.toNamed(RouteHelper.getEditTemplateRoute(), arguments: template),
-                  //   constraints: const BoxConstraints(),
-                  //   padding: EdgeInsets.zero,
-                  // ),
+                  if (!template.isDefault)
+                    GestureDetector(
+                      onTap: () => _showMakeDefaultDialog(context),
+                      child: Text(
+                        "Make default",
+                        style: const TextStyle(color: AppColors.errorColor, fontWeight: FontWeight.w500),
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.successColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const AppText('DEFAULT', style: AppTextStyle.caption, color: AppColors.successColor, fontSize: 10),
+                    ),
                 ],
-              )
+              )*/
             ],
           )
         ],

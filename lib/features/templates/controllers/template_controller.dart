@@ -3,6 +3,7 @@ import '../../../../core/services/network/api_client.dart';
 import '../../../../core/utils/custom_snackbar.dart';
 import '../domain/models/template_model.dart';
 import '../domain/repositories/template_repository.dart';
+import '../domain/repositories/template_default_repository.dart';
 
 class TemplateController extends GetxController {
   final RxList<TemplateModel> templates = <TemplateModel>[].obs;
@@ -14,6 +15,7 @@ class TemplateController extends GetxController {
   final List<String> filterTypes = ['All', 'Invoice', 'Quotation', 'Duty Slip'];
 
   late TemplateRepository _templateRepository;
+  late TemplateDefaultRepository _templateDefaultRepository;
 
   @override
   void onInit() {
@@ -24,6 +26,7 @@ class TemplateController extends GetxController {
 
   void _initializeRepository() {
     _templateRepository = TemplateRepositoryImpl(ApiClient());
+    _templateDefaultRepository = TemplateDefaultRepositoryImpl(ApiClient());
   }
 
   Future<void> _loadTemplates({String? category, String? search}) async {
@@ -96,6 +99,30 @@ class TemplateController extends GetxController {
       category: selectedFilter.value != 'All' ? selectedFilter.value : null,
       search: query.isNotEmpty ? query : null,
     );
+  }
+
+  Future<void> setTemplateAsDefault(int templateId) async {
+    try {
+      isLoading.value = true;
+
+      final response = await _templateDefaultRepository.setTemplateAsDefault(
+        templateId: templateId,
+        referenceType: 'Trip',
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Template set as default successfully');
+        // Refresh the template list
+        await _loadTemplates();
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to set template as default');
+      }
+    } catch (e) {
+      print('Error setting template as default: $e');
+      CustomSnackbar.showError('Error setting template as default: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void addTemplate(TemplateModel template) {

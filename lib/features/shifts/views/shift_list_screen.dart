@@ -62,22 +62,37 @@ class ShiftListScreen extends GetView<ShiftController> {
                   isSelected: controller.selectedFilter.value == 'Overtime',
                   onTap: () => controller.setFilter('Overtime'),
                 ),
+                const SizedBox(width: 8),
+                AppFilterChip(
+                  label: 'Special Duty',
+                  isSelected: controller.selectedFilter.value == 'Special Duty',
+                  onTap: () => controller.setFilter('Special Duty'),
+                ),
               ],
             )),
           ),
           const SizedBox(height: 8),
           Expanded(
             child: Obx(() {
-               if (controller.filteredShifts.isEmpty) {
-                 return const Center(child: AppText('No shifts found.'));
-               }
-               return ListView.builder(
-                 padding: const EdgeInsets.all(16),
-                 itemCount: controller.filteredShifts.length,
-                 itemBuilder: (context, index) {
-                   return _buildShiftItem(controller.filteredShifts[index]);
-                 },
-               );
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                );
+              }
+              
+              if (controller.filteredShifts.isEmpty) {
+                return const Center(child: AppText('No shifts found.'));
+              }
+              
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: controller.filteredShifts.length,
+                itemBuilder: (context, index) {
+                  return _buildShiftItem(controller.filteredShifts[index]);
+                },
+              );
             }),
           ),
         ],
@@ -86,7 +101,7 @@ class ShiftListScreen extends GetView<ShiftController> {
   }
 
   Widget _buildShiftItem(ShiftModel shift) {
-    bool isUnassigned = shift.assignedDrivers.isEmpty;
+    bool hasDrivers = (shift.driversCount ?? 0) > 0;
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       onTap: () => Get.toNamed(RouteHelper.getShiftDetailsRoute(), arguments: shift),
@@ -96,14 +111,19 @@ class ShiftListScreen extends GetView<ShiftController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText(shift.shiftName, style: AppTextStyle.subheading, fontSize: 16),
+              AppText(shift.name, style: AppTextStyle.subheading, fontSize: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: shift.type == 'Overtime' ? AppColors.errorColor.withOpacity(0.1) : AppColors.primaryLight,
+                  color: shift.type.toLowerCase() == 'overtime' ? AppColors.errorColor.withOpacity(0.1) : AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: AppText(shift.type, style: AppTextStyle.caption, color: shift.type == 'Overtime' ? AppColors.errorColor : AppColors.primaryColor, fontWeight: FontWeight.bold),
+                child: AppText(
+                  shift.type.replaceFirst(shift.type[0], shift.type[0].toUpperCase()),
+                  style: AppTextStyle.caption,
+                  color: shift.type.toLowerCase() == 'overtime' ? AppColors.errorColor : AppColors.primaryColor,
+                  fontWeight: FontWeight.bold
+                ),
               ),
             ],
           ),
@@ -114,7 +134,10 @@ class ShiftListScreen extends GetView<ShiftController> {
             children: [
               const Icon(Icons.access_time_rounded, size: 16, color: AppColors.textColorSecondary),
               const SizedBox(width: 8),
-              AppText('${shift.startTime} - ${shift.endTime}', style: AppTextStyle.body),
+              AppText(
+                shift.formattedTimeRange ?? '${shift.startTime} - ${shift.endTime}',
+                style: AppTextStyle.body
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -125,10 +148,10 @@ class ShiftListScreen extends GetView<ShiftController> {
               const SizedBox(width: 8),
               Expanded(
                 child: AppText(
-                  isUnassigned ? 'No drivers assigned' : '${shift.assignedDrivers.length} Driver(s) Assigned',
+                  hasDrivers ? '${shift.driversCount} Driver(s) Assigned' : 'No drivers assigned',
                   style: AppTextStyle.body,
-                  color: isUnassigned ? AppColors.errorColor : AppColors.textColorPrimary,
-                  fontWeight: isUnassigned ? FontWeight.bold : FontWeight.normal,
+                  color: hasDrivers ? AppColors.textColorPrimary : AppColors.errorColor,
+                  fontWeight: hasDrivers ? FontWeight.normal : FontWeight.bold,
                 ),
               ),
             ],

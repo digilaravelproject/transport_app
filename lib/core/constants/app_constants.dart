@@ -35,4 +35,9 @@ class AppConstants {
     static const String userData = 'user_data';
     static const String profileData = 'profile_data';
     static const String isLoggedIn = 'is_logged_in';
+
+
+    static const String createShift = '/api/v1/shifts';
+    static const String getShift = '/api/v1/shifts';
+    static  String getShiftById(int id) => '/api/v1/shifts/$id';
 }

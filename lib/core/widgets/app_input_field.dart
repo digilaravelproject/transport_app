@@ -337,13 +337,13 @@ class AppInputField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null) ...[
-          AppText(
-            label!,
-            style: AppTextStyle.label,
-          ),
-          const SizedBox(height: 8),
-        ],
+        // if (label != null) ...[
+        //   AppText(
+        //     label!,
+        //     style: AppTextStyle.label,
+        //   ),
+        //   const SizedBox(height: 8),
+        // ],
 
 
         if (label != null) ...[
@@ -351,7 +351,7 @@ class AppInputField extends StatelessWidget {
             text: TextSpan(
               text: label!,
               style: const TextStyle(
-                fontSize: 14,
+                //fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textColorPrimary,
               ),

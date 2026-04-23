@@ -22,6 +22,7 @@ class TemplateViewScreen extends GetView<TemplateViewController> {
         ),
       )),
       body: Obx(() {
+        print("template url : "+controller.url.toString());
         if (controller.isLoading.value) {
           return Center(
             child: Column(

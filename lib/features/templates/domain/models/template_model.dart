@@ -2,10 +2,11 @@ class TemplateModel {
   final String id;
   final String name;
   final String description;
-  final String type; // e.g. 'Invoice', 'Quotation', 'Duty Slip'
+  final String type;
+  final String? thumbnail;
   final DateTime lastUpdated;
   final bool isDefault;
-  final String? url; // URL for template preview
+  final String? url;
 
   TemplateModel({
     required this.id,
@@ -14,6 +15,7 @@ class TemplateModel {
     required this.type,
     required this.lastUpdated,
     this.isDefault = false,
+   this.thumbnail,
     this.url,
   });
 }

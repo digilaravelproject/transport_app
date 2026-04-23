@@ -26,6 +26,7 @@ class AppConstants {
     static const String userSignupUrl = '/api/user_signup';
     static const String userLoginUrl = '/api/user_login';
     static const String otpVerifyUrl = '/api/otp_verify';
+    static const String documentTemplatesEndpoint = '/api/v1/document-templates/';
 
     // Shared Preferences keys
     static const String theme = 'theme';

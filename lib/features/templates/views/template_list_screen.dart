@@ -38,7 +38,7 @@ class TemplateListScreen extends GetView<TemplateController> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: AppSearchBar(
               hint: 'Search templates...',
-              onChanged: (val) => controller.searchQuery.value = val,
+              onChanged: (val) => controller.onSearchChanged(val),
             ),
           ),
           
@@ -64,6 +64,14 @@ class TemplateListScreen extends GetView<TemplateController> {
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                );
+              }
+              
               if (controller.filteredTemplates.isEmpty) {
                 return const Center(child: AppText('No templates found', style: AppTextStyle.body));
               }

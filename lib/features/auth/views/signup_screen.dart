@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:credit_debit/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
@@ -337,7 +338,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                         child: SlideTransition(
                           position: _footerSlideAnimation,
                           child: GestureDetector(
-                            onTap: () => Get.back(),
+                            onTap: () => Get.toNamed(RouteHelper.getLoginRoute()),
                             child: RichText(
                               text: TextSpan(
                                 text: 'Already have an account? ',

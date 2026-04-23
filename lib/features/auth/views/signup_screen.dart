@@ -11,6 +11,7 @@ import 'package:credit_debit/core/widgets/app_button.dart';
 import 'package:credit_debit/core/widgets/clean_auth_background.dart';
 import 'package:credit_debit/core/widgets/app_logo.dart';
 import '../../../core/utils/app_validators.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../controllers/auth_controller.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -254,6 +255,11 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       validator: AppValidators.validateMobile,
                                       keyboardType: TextInputType.number,
                                       controller: authController.phoneController,
+                                      phoneCode: authController.selectedCountryCode.value,
+                                      onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                                        context: context,
+                                        selectedCode: authController.selectedCountryCode,
+                                      ),
                                     ),
         
                                     const SizedBox(height: 20),
@@ -338,7 +344,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                         child: SlideTransition(
                           position: _footerSlideAnimation,
                           child: GestureDetector(
-                            onTap: () => Get.toNamed(RouteHelper.getLoginRoute()),
+                            onTap: () => Get.back(),
+                                //Get.toNamed(RouteHelper.getLoginRoute()),
                             child: RichText(
                               text: TextSpan(
                                 text: 'Already have an account? ',

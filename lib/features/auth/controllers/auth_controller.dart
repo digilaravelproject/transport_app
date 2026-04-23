@@ -17,6 +17,8 @@ class AuthController extends GetxController {
   final LogoutUseCase _logoutUseCase;
   final CheckLoginStatusUseCase _checkLoginStatusUseCase;
   final GetUserInfoUseCase _getUserInfoUseCase;
+  var selectedCountryCode = '+91'.obs;
+
 
   AuthController({
     required SendOtpUseCase sendOtpUseCase,

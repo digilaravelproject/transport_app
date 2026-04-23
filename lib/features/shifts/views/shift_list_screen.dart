@@ -83,15 +83,30 @@ class ShiftListScreen extends GetView<ShiftController> {
               }
               
               if (controller.filteredShifts.isEmpty) {
-                return const Center(child: AppText('No shifts found.'));
+                return RefreshIndicator(
+                  onRefresh: () => controller.refreshShifts(),
+                  color: AppColors.primaryColor,
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(child: AppText('No shifts found.')),
+                    ],
+                  ),
+                );
               }
               
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: controller.filteredShifts.length,
-                itemBuilder: (context, index) {
-                  return _buildShiftItem(controller.filteredShifts[index]);
-                },
+              return RefreshIndicator(
+                onRefresh: () => controller.refreshShifts(),
+                color: AppColors.primaryColor,
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: controller.filteredShifts.length,
+                  itemBuilder: (context, index) {
+                    return _buildShiftItem(controller.filteredShifts[index]);
+                  },
+                ),
               );
             }),
           ),

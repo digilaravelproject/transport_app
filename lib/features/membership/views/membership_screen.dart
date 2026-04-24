@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'active_subscription_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -8,6 +9,8 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/membership_controller.dart';
+
+import '../../../core/widgets/loading_widget.dart';
 
 class MembershipScreen extends GetView<MembershipController> {
   const MembershipScreen({Key? key}) : super(key: key);
@@ -18,146 +21,98 @@ class MembershipScreen extends GetView<MembershipController> {
       Get.put(MembershipController());
     }
 
-    return AppScaffold(
-      useScaffold: false,
-      safeArea: true,
-      body: Container(
-        color: Colors.white,
-        child: Column(
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 20),
-              child: Center(
-                child: AppText(
-                  'Membership',
-                  color: AppColors.primaryColor,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
+    return Stack(
+      children: [
+        AppScaffold(
+          useScaffold: true,
+          safeArea: true,
+          appBar: AppHeader(
+            title: 'Subscription Plan',
+            onBack: () => Get.back(),
+          ),
+          body: Container(
+            color: Colors.white,
+            child: Obx(() {
+              return SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
-                    // Logo/Icon
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight.withOpacity(0.5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Iconsax.medal_star,
-                          size: 36,
-                          color: AppColors.primaryColor,
-                        ),
+                    const SizedBox(height: 20),
+                    
+                    // Welcome / Trial Info
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryLight.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Iconsax.medal_star, size: 36, color: AppColors.primaryColor),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          const AppText('Choose Your Plan', fontSize: 22, fontWeight: FontWeight.w800, align: TextAlign.center),
+                          const SizedBox(height: 8),
+                          const AppText('Experience the magic of immersive growth with AI-powered social tools.', 
+                            fontSize: 14, color: AppColors.textColorSecondary, align: TextAlign.center),
+                        ],
                       ),
                     ),
 
                     const SizedBox(height: 32),
 
-                    // Titles
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: AppText(
-                        'Start Your 7-Day Trial Today',
-                        style: AppTextStyle.heading,
-                        fontSize: 20,
-                        align: TextAlign.center,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: AppText(
-                        'Experience the magic of immersive growth with AI-powered social tools—free for 7 days.',
-                        style: AppTextStyle.body,
-                        fontSize: 13,
-                        color: AppColors.textColorSecondary,
-                        align: TextAlign.center,
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Horizontal Plans
+                    // Plans Carousel
                     SizedBox(
                       height: 280,
-                      child: PageView.builder(
-                        itemCount: controller.plans.length,
-                        controller: PageController(viewportFraction: 0.65, initialPage: 1),
-                        onPageChanged: (index) => controller.selectPlan(index),
-                        itemBuilder: (context, index) {
-                          final plan = controller.plans[index];
-                          return Obx(() {
-                            final isSelected = controller.selectedPlanIndex.value == index;
-                            return AnimatedScale(
-                              scale: isSelected ? 1.0 : 0.9,
-                              duration: const Duration(milliseconds: 300),
-                              child: _PlanCard(
-                                plan: plan,
-                                isSelected: isSelected,
-                              ),
-                            );
-                          });
-                        },
-                      ),
+                      child: controller.plans.isEmpty 
+                        ? const Center(child: CircularProgressIndicator())
+                        : PageView.builder(
+                            itemCount: controller.plans.length,
+                            controller: PageController(viewportFraction: 0.6, initialPage: controller.plans.length > 1 ? 1 : 0),
+                            onPageChanged: (index) => controller.selectPlan(index),
+                            itemBuilder: (context, index) {
+                              final plan = controller.plans[index];
+                              return Obx(() {
+                                final isSelected = controller.selectedPlanIndex.value == index;
+                                return AnimatedScale(
+                                  scale: isSelected ? 1.0 : 0.9,
+                                  duration: const Duration(milliseconds: 300),
+                                  child: _PlanCard(plan: plan, isSelected: isSelected),
+                                );
+                              });
+                            },
+                          ),
                     ),
-
                     const SizedBox(height: 24),
-
-                    // Continue Button
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Obx(() {
+                        if (controller.plans.isEmpty) return const SizedBox();
                         final planName = controller.plans[controller.selectedPlanIndex.value]['name'];
                         return AppButton(
                           text: 'CONTINUE WITH ${planName.toUpperCase()}',
-                          color: AppColors.primaryColor,
-                          height: 56,
-                          borderRadius: 28,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
                           onPressed: () => controller.continueWithPlan(),
+                          borderRadius: 24,
                         );
                       }),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    const AppText(
-                      'Cancel Anytime',
-                      color: AppColors.textColorSecondary,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Footer Links
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _FooterLink(text: 'Privacy Policy', onTap: () {}),
-                        const SizedBox(width: 20),
-                        _FooterLink(text: 'Terms of Service', onTap: () {}),
-                      ],
                     ),
                     const SizedBox(height: 40),
                   ],
                 ),
-              ),
-            ),
-          ],
+              );
+            }),
+          ),
         ),
-      ),
+        Obx(() => controller.isLoading.value 
+          ? const LoadingWidget(type: LoadingType.overlay) 
+          : const SizedBox()),
+      ],
     );
   }
 }
@@ -216,13 +171,26 @@ class _PlanCard extends StatelessWidget {
 
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 children: [
-                  AppText(
-                    plan['name'],
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(width: 24), // Balance the icon on the other side
+                      Expanded(
+                        child: AppText(
+                          plan['name'],
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          align: TextAlign.center,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Get.find<MembershipController>().showPlanDetails(plan),
+                        child: const Icon(Icons.info_outline, size: 20, color: AppColors.primaryColor),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   
@@ -284,27 +252,6 @@ class _PlanCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _FooterLink extends StatelessWidget {
-  final String text;
-  final VoidCallback onTap;
-
-  const _FooterLink({required this.text, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AppText(
-        text,
-        fontSize: 12,
-        color: AppColors.textColorHint,
-        fontWeight: FontWeight.w500,
-        style: AppTextStyle.caption,
       ),
     );
   }

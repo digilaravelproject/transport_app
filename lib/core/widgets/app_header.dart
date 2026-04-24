@@ -32,24 +32,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       centerTitle: false,
       toolbarHeight: preferredSize.height,
-      leadingWidth: showLead ? 56 : 16,
+      leadingWidth: showLead ? 48 : 16,
       leading: showLead
-          ? Center(
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: onBack ?? () => Navigator.of(context).pop(),
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: const Icon(Iconsax.arrow_left, size: 20, color: AppColors.textColorPrimary),
-                  ),
-                ),
-              ),
+          ? IconButton(
+              onPressed: onBack ?? () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textColorPrimary),
+              splashRadius: 24,
             )
           : const SizedBox(),
+      titleSpacing: 0,
       title: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,20 +48,20 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
               color: AppColors.textColorPrimary,
               letterSpacing: -0.5,
             ),
           ),
           if (subtitle != null) ...[
-            const SizedBox(height: 2),
+            const SizedBox(height: 1),
             Text(
               subtitle!,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 11,
                 color: AppColors.textColorSecondary,
-                fontWeight: FontWeight.normal,
+                fontWeight: FontWeight.w400,
               ),
             ),
           ],
@@ -87,7 +78,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(
-        72.0 + (subtitle != null ? 22.0 : 0) + (bottom != null ? bottom!.preferredSize.height : 0),
-      );
+  Size get preferredSize {
+    return Size.fromHeight(
+      56.0 + (subtitle != null ? 14.0 : 0) + (bottom != null ? bottom!.preferredSize.height : 0)
+    );
+  }
 }

@@ -4,6 +4,7 @@ class ResponseModel {
   final dynamic body;
   final int? statusCode;
   final List<ErrorDetail>? errors;
+  final Map<String, dynamic>? json;
 
   const ResponseModel({
     required this.isSuccess,
@@ -11,6 +12,7 @@ class ResponseModel {
     this.body,
     this.statusCode,
     this.errors,
+    this.json,
   });
 
   /// Factory method to create ResponseModel from JSON
@@ -88,6 +90,7 @@ class ResponseModel {
       body: bodyData,
       statusCode: statusCode,
       errors: errors,
+      json: json,
     );
   }
 

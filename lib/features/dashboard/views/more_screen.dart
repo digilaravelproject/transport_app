@@ -7,6 +7,9 @@ import 'package:credit_debit/core/widgets/app_card.dart';
 import 'package:credit_debit/core/widgets/app_text.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../settings/views/profile_screen.dart';
+import '../../membership/controllers/membership_controller.dart';
+import '../../membership/views/membership_screen.dart';
+import '../../membership/views/active_subscription_screen.dart';
 import '../../../routes/route_helper.dart';
 
 class MoreScreen extends StatelessWidget {
@@ -52,6 +55,16 @@ class MoreScreen extends StatelessWidget {
           return AppCard(
             padding: EdgeInsets.zero,
             onTap: () {
+              if (module.title == 'Membership') {
+                final membershipController = Get.put(MembershipController());
+                if (membershipController.activeSubscription.value != null || membershipController.subscriptionHistory.isNotEmpty) {
+                  Get.to(() => const ActiveSubscriptionScreen());
+                } else {
+                  Get.to(() => const MembershipScreen());
+                }
+                return;
+              }
+              
               if (module.route != null) {
                 Get.toNamed(module.route!);
               } else {

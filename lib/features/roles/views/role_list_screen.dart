@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -10,6 +11,9 @@ import '../../../core/widgets/app_search_bar.dart';
 import '../controllers/role_controller.dart';
 import '../domain/models/role_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_filter_chip.dart';
+import '../../../core/widgets/app_status_chip.dart';
+import 'package:flutter/cupertino.dart';
 
 class RoleListScreen extends GetView<RoleController> {
   const RoleListScreen({Key? key}) : super(key: key);
@@ -40,9 +44,41 @@ class RoleListScreen extends GetView<RoleController> {
               onChanged: (val) => controller.searchQuery.value = val,
             ),
           ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 40,
+            child: Obx(() => ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                AppFilterChip(
+                  label: 'All',
+                  isSelected: controller.selectedFilter.value == 'All',
+                  onTap: () => controller.selectedFilter.value = 'All',
+                ),
+                AppFilterChip(
+                  label: 'Active',
+                  isSelected: controller.selectedFilter.value == 'Active',
+                  onTap: () => controller.selectedFilter.value = 'Active',
+                ),
+                AppFilterChip(
+                  label: 'Inactive',
+                  isSelected: controller.selectedFilter.value == 'Inactive',
+                  onTap: () => controller.selectedFilter.value = 'Inactive',
+                ),
+              ],
+            )),
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
+              if (controller.isLoading.value) {
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 5,
+                  itemBuilder: (context, index) => const _RoleShimmer(),
+                );
+              }
               if (controller.filteredRoles.isEmpty) {
                 return const Center(child: AppText('No roles found', style: AppTextStyle.body));
               }
@@ -68,8 +104,11 @@ class _RoleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAdmin = role.roleName.toLowerCase().contains('admin');
-    final Color iconColor = isAdmin ? AppColors.errorColor : AppColors.primaryColor;
+    final Color iconColor = role.isActive 
+        ? (role.roleName.toLowerCase().contains('admin') ? AppColors.errorColor : AppColors.primaryColor)
+        : AppColors.textColorHint;
+    
+    final RoleController controller = Get.find<RoleController>();
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -97,13 +136,19 @@ class _RoleCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(role.roleName, style: AppTextStyle.subheading, fontSize: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.textColorHint.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: AppText('${role.assignedUsersCount} Users', style: AppTextStyle.caption, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.textColorHint.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: AppText('${role.assignedUsersCount} Users', style: AppTextStyle.caption, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -114,7 +159,7 @@ class _RoleCard extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 24),
+          const Divider(height: 24, thickness: 0.5, color: AppColors.borderColor),
           Row(
             children: [
               const AppText('Access: ', style: AppTextStyle.caption, color: AppColors.textColorHint),
@@ -140,9 +185,85 @@ class _RoleCard extends StatelessWidget {
                 constraints: const BoxConstraints(),
                 padding: EdgeInsets.zero,
               ),
+              const SizedBox(width: 12),
+              Obx(() => controller.isLoading.value 
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                : CupertinoSwitch(
+                    value: role.isActive,
+                    activeColor: AppColors.primaryColor,
+                    onChanged: (val) => controller.toggleRoleStatus(role),
+                  ),
+              ),
             ],
           )
         ],
+      ),
+    );
+  }
+}
+class _RoleShimmer extends StatelessWidget {
+  const _RoleShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: AppColors.slate100,
+      highlightColor: AppColors.white,
+      child: AppCard(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 16,
+                        width: 150,
+                        color: AppColors.white,
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 12,
+                        width: 200,
+                        color: AppColors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24, thickness: 0.5),
+            Row(
+              children: [
+                Container(
+                  height: 20,
+                  width: 100,
+                  color: AppColors.white,
+                ),
+                const Spacer(),
+                Container(
+                  height: 24,
+                  width: 24,
+                  color: AppColors.white,
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

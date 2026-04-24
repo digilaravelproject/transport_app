@@ -22,12 +22,15 @@ class ShiftController extends GetxController {
   final RxString driverSearchQuery = ''.obs;
   final RxBool isDriversLoading = false.obs;
   final RxList<String> selectedDriverIds = <String>[].obs;
+  final RxInt currentShiftIdForDrivers = 0.obs;
 
   late ShiftRepository _shiftRepository;
   late ShiftListRepository _shiftListRepository;
   late ShiftDetailsRepository _shiftDetailsRepository;
   late DriverRepository _driverRepository;
   late GetAvailableDriversUseCase _getAvailableDriversUseCase;
+  late AssignDriversToShiftUseCase _assignDriversToShiftUseCase;
+  late RemoveDriverFromShiftUseCase _removeDriverFromShiftUseCase;
 
   List<ShiftModel> get shifts => _shifts;
   List<DriverModel> get availableDrivers => _availableDrivers;
@@ -74,7 +77,7 @@ class ShiftController extends GetxController {
     super.onInit();
     _initializeRepository();
     _loadShifts();
-    _loadAvailableDrivers();
+    // Don't load drivers on init, load them when needed for specific shift
   }
 
   void _initializeRepository() {
@@ -83,6 +86,8 @@ class ShiftController extends GetxController {
     _shiftDetailsRepository = ShiftDetailsRepositoryImpl(ApiClient());
     _driverRepository = DriverRepositoryImpl(ApiClient());
     _getAvailableDriversUseCase = GetAvailableDriversUseCase(_driverRepository);
+    _assignDriversToShiftUseCase = AssignDriversToShiftUseCase(_driverRepository);
+    _removeDriverFromShiftUseCase = RemoveDriverFromShiftUseCase(_driverRepository);
   }
 
   Future<void> _loadShifts() async {
@@ -264,30 +269,51 @@ class ShiftController extends GetxController {
   }
 
   // Driver-related methods
-  Future<void> _loadAvailableDrivers() async {
+  Future<void> loadAvailableDriversForShift(int shiftId) async {
     try {
+      print('=== Loading drivers for shift ID: $shiftId ===');
       isDriversLoading.value = true;
+      currentShiftIdForDrivers.value = shiftId;
 
-      final response = await _getAvailableDriversUseCase.call();
+      final response = await _getAvailableDriversUseCase.call(shiftId: shiftId);
+
+      print('Driver API response - Success: ${response.isSuccess}');
+      print('Driver API response - Message: ${response.message}');
+      print('Driver API response - Body type: ${response.body.runtimeType}');
 
       if (response.isSuccess && response.body != null) {
         final drivers = response.body as List<DriverModel>;
         _availableDrivers.assignAll(drivers);
-        print('Loaded ${drivers.length} available drivers');
+        print('Successfully loaded ${drivers.length} available drivers for shift $shiftId');
+        
+        // Print driver names for debugging
+        for (var driver in drivers) {
+          print('Driver: ${driver.name} (ID: ${driver.id})');
+        }
       } else {
         _availableDrivers.clear();
-        print('Failed to load drivers: ${response.message}');
+        print('Failed to load drivers for shift $shiftId: ${response.message}');
       }
     } catch (e) {
-      print('Error loading available drivers: $e');
+      print('ERROR loading available drivers for shift $shiftId: $e');
       _availableDrivers.clear();
     } finally {
       isDriversLoading.value = false;
+      print('=== Finished loading drivers for shift ID: $shiftId ===');
+    }
+  }
+
+  Future<void> _loadAvailableDrivers() async {
+    // This method is deprecated, use loadAvailableDriversForShift instead
+    if (currentShiftIdForDrivers.value > 0) {
+      await loadAvailableDriversForShift(currentShiftIdForDrivers.value);
     }
   }
 
   Future<void> refreshDrivers() async {
-    await _loadAvailableDrivers();
+    if (currentShiftIdForDrivers.value > 0) {
+      await loadAvailableDriversForShift(currentShiftIdForDrivers.value);
+    }
   }
 
   void toggleDriverSelection(String driverId) {
@@ -306,20 +332,57 @@ class ShiftController extends GetxController {
     try {
       isLoading.value = true;
       
-      // TODO: Implement assign drivers API call when available
-      // For now, just show success message
+      // Convert selected driver IDs from String to int
+      final List<int> driverIds = selectedDriverIds.map((id) => int.parse(id)).toList();
       
-      await Future.delayed(const Duration(seconds: 1)); // Simulate API call
+      print('Assigning ${driverIds.length} drivers to shift $shiftId: $driverIds');
       
-      CustomSnackbar.showSuccess('${selectedDriverIds.length} drivers assigned to shift successfully');
-      clearDriverSelection();
+      final response = await _assignDriversToShiftUseCase.call(
+        shiftId: shiftId,
+        driverIds: driverIds,
+      );
       
-      // Refresh shift details to show updated drivers
-      await getShiftDetails(shiftId);
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? '${selectedDriverIds.length} drivers assigned to shift successfully');
+        clearDriverSelection();
+        
+        // Refresh shift details to show updated drivers
+        await getShiftDetails(shiftId);
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to assign drivers');
+      }
       
     } catch (e) {
       print('Error assigning drivers: $e');
       CustomSnackbar.showError('Error assigning drivers: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> removeDriverFromShift(int shiftId, int driverId) async {
+    try {
+      isLoading.value = true;
+      
+      print('Removing driver $driverId from shift $shiftId');
+      
+      final response = await _removeDriverFromShiftUseCase.call(
+        shiftId: shiftId,
+        driverId: driverId,
+      );
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Driver removed from shift successfully');
+        
+        // Refresh shift details to show updated drivers
+        await getShiftDetails(shiftId);
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to remove driver from shift');
+      }
+      
+    } catch (e) {
+      print('Error removing driver: $e');
+      CustomSnackbar.showError('Error removing driver: $e');
     } finally {
       isLoading.value = false;
     }

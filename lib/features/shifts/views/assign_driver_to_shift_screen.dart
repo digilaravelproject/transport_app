@@ -12,20 +12,47 @@ import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/shift_controller.dart';
 import '../domain/models/shift_model.dart';
 
-class AssignDriverToShiftScreen extends GetView<ShiftController> {
+class AssignDriverToShiftScreen extends StatefulWidget {
   const AssignDriverToShiftScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  State<AssignDriverToShiftScreen> createState() => _AssignDriverToShiftScreenState();
+}
+
+class _AssignDriverToShiftScreenState extends State<AssignDriverToShiftScreen> {
+  final ShiftController controller = Get.find<ShiftController>();
+  int? shiftId;
+
+  @override
+  void initState() {
+    super.initState();
     // Get shift ID from arguments
-    final int? shiftId = Get.arguments as int?;
+    shiftId = Get.arguments as int?;
+    
+    // Load drivers for this specific shift
+    if (shiftId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        print('Loading drivers for shift ID: $shiftId');
+        controller.loadAvailableDriversForShift(shiftId!);
+      });
+    } else {
+      print('ERROR: No shift ID provided to AssignDriverToShiftScreen');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     
     return AppScaffold(
       appBar: AppHeader(
         title: 'Assign Drivers',
         rightWidget: IconButton(
           icon: const Icon(Icons.refresh, color: AppColors.textColorPrimary),
-          onPressed: () => controller.refreshDrivers(),
+          onPressed: () {
+            if (shiftId != null) {
+              controller.loadAvailableDriversForShift(shiftId!);
+            }
+          },
         ),
       ),
       floatingActionButton: Obx(() => controller.selectedDriverIds.isNotEmpty
@@ -33,7 +60,7 @@ class AssignDriverToShiftScreen extends GetView<ShiftController> {
               heroTag: null,
               onPressed: () async {
                 if (shiftId != null) {
-                  await controller.assignDriversToShift(shiftId);
+                  await controller.assignDriversToShift(shiftId!);
                   Get.back();
                 } else {
                   CustomSnackbar.showError('Shift ID not found');
@@ -90,17 +117,26 @@ class AssignDriverToShiftScreen extends GetView<ShiftController> {
                         color: AppColors.textColorSecondary,
                       ),
                       const SizedBox(height: 16),
-                      // AppButton(
-                      //   text: 'Refresh',
-                      //   onPressed: () => controller.refreshDrivers(),
-                      // ),
+                      AppButton(
+                        text: 'Refresh',
+                        onPressed: () {
+                          if (shiftId != null) {
+                            controller.loadAvailableDriversForShift(shiftId!);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 );
               }
 
               return RefreshIndicator(
-                onRefresh: () => controller.refreshDrivers(),
+                onRefresh: () {
+                  if (shiftId != null) {
+                    return controller.loadAvailableDriversForShift(shiftId!);
+                  }
+                  return Future.value();
+                },
                 color: AppColors.primaryColor,
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),

@@ -8,97 +8,168 @@ import '../../../core/widgets/app_search_bar.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/shift_controller.dart';
 import '../domain/models/shift_model.dart';
 
-class AssignDriverToShiftScreen extends StatefulWidget {
+class AssignDriverToShiftScreen extends GetView<ShiftController> {
   const AssignDriverToShiftScreen({Key? key}) : super(key: key);
 
   @override
-  State<AssignDriverToShiftScreen> createState() => _AssignDriverToShiftScreenState();
-}
-
-class _AssignDriverToShiftScreenState extends State<AssignDriverToShiftScreen> {
-  final ShiftController controller = Get.find<ShiftController>();
-  final List<String> _selectedDrivers = [];
-
-  // Mock list of active drivers available for assignment
-  final List<Map<String, String>> _availableDrivers = [
-    {'id': 'D001', 'name': 'Ravi Kumar', 'phone': '9876543210'},
-    {'id': 'D002', 'name': 'Amit Singh', 'phone': '9123456780'},
-    {'id': 'D003', 'name': 'John Doe', 'phone': '9988776655'},
-    {'id': 'D004', 'name': 'Jane Smith', 'phone': '9812345670'},
-    {'id': 'D005', 'name': 'Mike Johnson', 'phone': '9911223344'},
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    // Get shift ID from arguments
+    final int? shiftId = Get.arguments as int?;
+    
     return AppScaffold(
       appBar: AppHeader(
         title: 'Assign Drivers',
         rightWidget: IconButton(
-          icon: const Icon(Icons.filter_list_rounded, color: AppColors.textColorPrimary),
-          onPressed: () {},
+          icon: const Icon(Icons.refresh, color: AppColors.textColorPrimary),
+          onPressed: () => controller.refreshDrivers(),
         ),
       ),
-      floatingActionButton: _selectedDrivers.isNotEmpty
-          ? FloatingActionButton.extended(heroTag: null,
-              onPressed: () {
-                Get.snackbar('Success', '${_selectedDrivers.length} drivers assigned to shift.', snackPosition: SnackPosition.BOTTOM);
-                Get.back();
+      floatingActionButton: Obx(() => controller.selectedDriverIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              heroTag: null,
+              onPressed: () async {
+                if (shiftId != null) {
+                  await controller.assignDriversToShift(shiftId);
+                  Get.back();
+                } else {
+                  CustomSnackbar.showError('Shift ID not found');
+                }
               },
               backgroundColor: AppColors.primaryColor,
-              label: AppText('Assign ${_selectedDrivers.length} Drivers', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+              label: AppText(
+                'Assign ${controller.selectedDriverIds.length} Drivers',
+                style: AppTextStyle.body,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
               icon: const Icon(Iconsax.tick_circle, color: Colors.white),
             )
-          : null,
+          : const SizedBox.shrink()),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: AppSearchBar(
-              hint: 'Search driver name...',
-              onChanged: (v) {},
+              hint: 'Search driver name or phone...',
+              onChanged: (value) => controller.updateDriverSearch(value),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _availableDrivers.length,
-              itemBuilder: (context, index) {
-                final driver = _availableDrivers[index];
-                final isSelected = _selectedDrivers.contains(driver['id']);
-                return AppCard(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(8),
-                  child: CheckboxListTile(
-                    value: isSelected,
-                    activeColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    title: AppText(driver['name']!, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                    subtitle: AppText(driver['phone']!, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                    secondary: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.slate50,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Iconsax.user, color: AppColors.primaryColor, size: 20),
-                    ),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedDrivers.add(driver['id']!);
-                        } else {
-                          _selectedDrivers.remove(driver['id']);
-                        }
-                      });
-                    },
+            child: Obx(() {
+              if (controller.isDriversLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
                   ),
                 );
-              },
-            ),
+              }
+
+              final drivers = controller.filteredDrivers;
+
+              if (drivers.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Iconsax.user_remove,
+                        size: 64,
+                        color: AppColors.textColorSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      AppText(
+                        controller.driverSearchQuery.value.isNotEmpty
+                            ? 'No drivers found for "${controller.driverSearchQuery.value}"'
+                            : 'No drivers available',
+                        style: AppTextStyle.body,
+                        color: AppColors.textColorSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      // AppButton(
+                      //   text: 'Refresh',
+                      //   onPressed: () => controller.refreshDrivers(),
+                      // ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => controller.refreshDrivers(),
+                color: AppColors.primaryColor,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: drivers.length,
+                  itemBuilder: (context, index) {
+                    final driver = drivers[index];
+                    return Obx(() {
+                      final isSelected = controller.selectedDriverIds.contains(driver.id.toString());
+                      return AppCard(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(8),
+                        child: CheckboxListTile(
+                          value: isSelected,
+                          activeColor: AppColors.primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          title: AppText(
+                            driver.name,
+                            style: AppTextStyle.body,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AppText(
+                                driver.phone ?? 'No phone',
+                                style: AppTextStyle.caption,
+                                color: AppColors.textColorSecondary,
+                              ),
+                              if (driver.licenseNumber != null)
+                                AppText(
+                                  'License: ${driver.licenseNumber}',
+                                  style: AppTextStyle.caption,
+                                  color: AppColors.textColorSecondary,
+                                ),
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: (driver.isAvailable ?? false) ? AppColors.successColor.withOpacity(0.1) : AppColors.errorColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: AppText(
+                                  (driver.isAvailable ?? false) ? 'Available' : 'Not Available',
+                                  style: AppTextStyle.caption,
+                                  color: (driver.isAvailable ?? false) ? AppColors.successColor : AppColors.errorColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          secondary: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.slate50,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Iconsax.user, color: AppColors.primaryColor, size: 20),
+                          ),
+                          onChanged: (bool? value) {
+                            controller.toggleDriverSelection(driver.id.toString());
+                          },
+                        ),
+                      );
+                    });
+                  },
+                ),
+              );
+            }),
           ),
           const SizedBox(height: 80), // Prevent FAB overlap
         ],

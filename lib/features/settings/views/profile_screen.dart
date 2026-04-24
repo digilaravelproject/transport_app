@@ -42,10 +42,24 @@ class ProfileScreen extends StatelessWidget {
               AppCard(
                 child: Row(
                   children: [
-                    CircleAvatar(
+                   /* CircleAvatar(
                       radius: 35,
                       backgroundColor: AppColors.primaryLight,
                       child: const Icon(Iconsax.building, color: AppColors.primaryColor, size: 35),
+                    ),*/
+                    CircleAvatar(
+                      radius: 35,
+                      backgroundColor: AppColors.primaryLight,
+                      child: Text(
+                        (profile?.companyName != null && profile!.companyName!.isNotEmpty)
+                            ? profile.companyName![0].toUpperCase()
+                            : '?',
+                        style: const TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 20),
                     Expanded(
@@ -81,7 +95,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               AppCard(
-                padding: EdgeInsets.symmetric(horizontal: 10),
+                padding: EdgeInsets.symmetric(horizontal: 16,vertical: 12),
                 child: Column(
                   children: [
                     InfoTile(
@@ -89,25 +103,37 @@ class ProfileScreen extends StatelessWidget {
                       value: profile?.ownerName ?? '-',
                       icon: Iconsax.user,
                     ),
-                    const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
+                    ),
                     InfoTile(
                       label: 'Email Address',
                       value: profile?.email ?? '-',
                       icon: Iconsax.sms,
                     ),
-                    const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
+                    ),
                     InfoTile(
                       label: 'Phone Number',
                       value: profile?.phone ?? 'Not provided',
                       icon: Iconsax.call,
                     ),
-                    const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
+                    ),
                     InfoTile(
                       label: 'GST Number',
                       value: profile?.gstin ?? 'Not provided',
                       icon: Icons.assignment_outlined,
                     ),
-                    const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
+                    ),
                     InfoTile(
                       label: 'Address',
                       value: profile?.address ?? 'Not provided',

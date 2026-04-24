@@ -10,6 +10,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/shift_controller.dart';
+import '../domain/models/shift_model.dart';
 
 class CreateShiftScreen extends StatefulWidget {
   const CreateShiftScreen({Key? key}) : super(key: key);
@@ -28,15 +29,87 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
   final TextEditingController _notesController = TextEditingController();
   
   String _shiftType = 'Regular';
+  bool _isEditMode = false;
+  ShiftModel? _editingShift;
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _startTimeController.dispose();
-    _endTimeController.dispose();
-    _dateController.dispose();
-    _notesController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _initializeFromArguments();
+  }
+
+  void _initializeFromArguments() {
+    final arguments = Get.arguments;
+    if (arguments != null && arguments is Map<String, dynamic>) {
+      _isEditMode = arguments['isEdit'] ?? false;
+      _editingShift = arguments['shift'] as ShiftModel?;
+      
+      if (_isEditMode && _editingShift != null) {
+        _populateFieldsFromShift(_editingShift!);
+      }
+    }
+  }
+
+  void _populateFieldsFromShift(ShiftModel shift) {
+    _nameController.text = shift.name;
+    _notesController.text = shift.notes ?? '';
+    
+    // Set date field - convert from API format (YYYY-MM-DD) to display format (DD/MM/YYYY)
+    if (shift.date != null && shift.date!.isNotEmpty) {
+      _dateController.text = _convertApiDateToDisplayFormat(shift.date!);
+    }
+    
+    // Set shift type with proper capitalization
+    _shiftType = shift.type.replaceFirst(shift.type[0], shift.type[0].toUpperCase());
+    
+    // Use formatted time range if available, otherwise convert from API format
+    if (shift.formattedTimeRange != null) {
+      final times = shift.formattedTimeRange!.split(' - ');
+      if (times.length == 2) {
+        _startTimeController.text = times[0];
+        _endTimeController.text = times[1];
+      }
+    } else {
+      // Convert from 24-hour format to 12-hour format for display
+      _startTimeController.text = _convertTo12HourFormat(shift.startTime);
+      _endTimeController.text = _convertTo12HourFormat(shift.endTime);
+    }
+  }
+
+  String _convertApiDateToDisplayFormat(String apiDate) {
+    try {
+      // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
+      final parts = apiDate.split('-');
+      if (parts.length == 3) {
+        final year = parts[0];
+        final month = parts[1];
+        final day = parts[2];
+        return '$day/$month/$year';
+      }
+    } catch (e) {
+      print('Error converting API date format: $e');
+    }
+    return apiDate;
+  }
+
+  String _convertTo12HourFormat(String time24) {
+    try {
+      // Parse time like "06:00:00" or "06:00"
+      final parts = time24.split(':');
+      if (parts.length >= 2) {
+        int hour = int.parse(parts[0]);
+        int minute = int.parse(parts[1]);
+        
+        String period = hour >= 12 ? 'PM' : 'AM';
+        if (hour > 12) hour -= 12;
+        if (hour == 0) hour = 12;
+        
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      }
+    } catch (e) {
+      print('Error converting time format: $e');
+    }
+    return time24;
   }
 
   Future<void> _selectStartTime() async {
@@ -141,16 +214,30 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
       date = _convertDateFormat(_dateController.text);
     }
 
-    await controller.createShift(
-      name: _nameController.text,
-      startTime: startTime,
-      endTime: endTime,
-      type: _shiftType,
-      date: date,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-    );
+    if (_isEditMode && _editingShift?.id != null) {
+      // Update existing shift
+      await controller.updateShift(
+        shiftId: _editingShift!.id!,
+        name: _nameController.text,
+        startTime: startTime,
+        endTime: endTime,
+        type: _shiftType,
+        date: date,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      );
+    } else {
+      // Create new shift
+      await controller.createShift(
+        name: _nameController.text,
+        startTime: startTime,
+        endTime: endTime,
+        type: _shiftType,
+        date: date,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      );
+    }
 
-    // Check if creation was successful
+    // Check if operation was successful
     if (controller.isSuccess.value) {
       // Wait a bit for the snackbar to show, then navigate back
       Future.delayed(const Duration(milliseconds: 500), () {
@@ -191,8 +278,8 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Create Shift',
+      appBar: AppHeader(
+        title: _isEditMode ? 'Edit Shift' : 'Create Shift',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -266,7 +353,9 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
             ),
             const SizedBox(height: 32),
             Obx(() => AppButton(
-              text: controller.isLoading.value ? 'Creating...' : 'Save Shift Segment',
+              text: controller.isLoading.value 
+                  ? (_isEditMode ? 'Updating...' : 'Creating...') 
+                  : (_isEditMode ? 'Update Shift' : 'Save Shift Segment'),
               onPressed: controller.isLoading.value ? null : _createShift,
             )),
             const SizedBox(height: 12),

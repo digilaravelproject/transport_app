@@ -1,37 +1,41 @@
 class ShiftModel {
   final int? id;
   final String name;
-  final String? description;
+ // final String? description;
   final String startTime;
   final String endTime;
   final String? formattedTimeRange;
   final String type;
-  final int? durationHours;
-  final List<dynamic>? days;
-  final List<String>? dayNames;
+  final String? date;
+  //final int? durationHours;
+ // final List<dynamic>? days;
+ // final List<String>? dayNames;
   final bool? isActive;
-  final int? maxDrivers;
-  final double? hourlyRate;
+ // final int? maxDrivers;
+  //final double? hourlyRate;
   final String? notes;
   final int? driversCount;
   final List<DriverModel>? drivers;
   final String? createdAt;
   final String? updatedAt;
 
+
+
   ShiftModel({
     this.id,
     required this.name,
-    this.description,
+  //  this.description,
     required this.startTime,
     required this.endTime,
     this.formattedTimeRange,
     required this.type,
-    this.durationHours,
-    this.days,
-    this.dayNames,
+    this.date,
+   // this.durationHours,
+  //  this.days,
+ //   this.dayNames,
     this.isActive,
-    this.maxDrivers,
-    this.hourlyRate,
+ //   this.maxDrivers,
+ //   this.hourlyRate,
     this.notes,
     this.driversCount,
     this.drivers,
@@ -43,17 +47,18 @@ class ShiftModel {
     return ShiftModel(
       id: json['id'],
       name: json['name'] ?? '',
-      description: json['description'],
+      //description: json['description'],
       startTime: json['start_time'] ?? '',
       endTime: json['end_time'] ?? '',
       formattedTimeRange: json['formatted_time_range'],
       type: json['type'] ?? '',
-      durationHours: json['duration_hours'],
-      days: json['days'],
-      dayNames: json['day_names'] != null ? List<String>.from(json['day_names']) : null,
+      date: json['date'],
+    //  durationHours: json['duration_hours'],
+    //  days: json['days'],
+   //   dayNames: json['day_names'] != null ? List<String>.from(json['day_names']) : null,
       isActive: json['is_active'],
-      maxDrivers: json['max_drivers'],
-      hourlyRate: json['hourly_rate'] != null ? double.tryParse(json['hourly_rate'].toString()) : null,
+ //     maxDrivers: json['max_drivers'],
+  //    hourlyRate: json['hourly_rate'] != null ? double.tryParse(json['hourly_rate'].toString()) : null,
       notes: json['notes'],
       driversCount: json['drivers_count'],
       drivers: json['drivers'] != null

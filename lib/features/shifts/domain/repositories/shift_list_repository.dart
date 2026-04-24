@@ -24,22 +24,26 @@ class ShiftListRepositoryImpl implements ShiftListRepository {
     int page = 1,
   }) async {
     try {
-      Map<String, dynamic> queryParams = {
-        'page': page,
-      };
+      String endpoint;
+      Map<String, dynamic> queryParams = {};
 
-      if (type != null && type.isNotEmpty && type != 'All') {
-        queryParams['type'] = type.toLowerCase();
-      }
-
+      // Use search endpoint if search query is provided
       if (search != null && search.isNotEmpty) {
-        queryParams['search'] = search;
+        endpoint = '/api/v1/shifts/search';
+        queryParams['query'] = search;
+      } else {
+        endpoint = AppConstants.getShift;
+        queryParams['page'] = page;
+        
+        if (type != null && type.isNotEmpty && type != 'All') {
+          queryParams['type'] = type.toLowerCase();
+        }
       }
 
-      print('Fetching shifts with params: $queryParams');
+      print('Fetching shifts from: $endpoint with params: $queryParams');
 
       final response = await _apiClient.get(
-        AppConstants.getShift,
+        endpoint,
         queryParameters: queryParams,
         handleError: false,
         showToaster: false,

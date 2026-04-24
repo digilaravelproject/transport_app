@@ -72,6 +72,10 @@ class ShiftController extends GetxController {
     }
   }
 
+  Future<void> refreshShifts() async {
+    await _loadShifts();
+  }
+
   Future<void> createShift({
     required String name,
     required String startTime,
@@ -113,6 +117,55 @@ class ShiftController extends GetxController {
     }
   }
 
+  Future<void> updateShift({
+    required int shiftId,
+    required String name,
+    required String startTime,
+    required String endTime,
+    required String type,
+    String? date,
+    String? notes,
+  }) async {
+    try {
+      isLoading.value = true;
+      isSuccess.value = false;
+
+      final response = await _shiftRepository.updateShift(
+        shiftId: shiftId,
+        name: name,
+        startTime: startTime,
+        endTime: endTime,
+        type: type,
+        date: date,
+        notes: notes,
+      );
+
+      if (response.isSuccess) {
+        isSuccess.value = true;
+        print("shift updated: successful ${response.message}");
+        CustomSnackbar.showSuccess(response.message ?? 'Shift updated successfully');
+        
+        // Refresh shift details if we have the updated shift
+        if (response.body != null) {
+          currentShift.value = response.body as ShiftModel;
+        } else {
+          // Refresh shift details from API
+          await getShiftDetails(shiftId);
+        }
+      } else {
+        isSuccess.value = false;
+        print("shift updated: failed ${response.message}");
+        CustomSnackbar.showError(response.message ?? 'Failed to update shift');
+      }
+    } catch (e) {
+      isSuccess.value = false;
+      print('Error updating shift: $e');
+      CustomSnackbar.showError('Error updating shift: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> getShiftDetails(int shiftId) async {
     try {
       isLoading.value = true;
@@ -129,6 +182,39 @@ class ShiftController extends GetxController {
     } catch (e) {
       print('Error loading shift details: $e');
       CustomSnackbar.showError('Error loading shift details: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> deleteShift(int shiftId) async {
+    try {
+      isLoading.value = true;
+      isSuccess.value = false;
+
+      final response = await _shiftRepository.deleteShift(shiftId);
+
+      if (response.isSuccess) {
+        isSuccess.value = true;
+        print("shift deleted: successful ${response.message}");
+        CustomSnackbar.showSuccess(response.message ?? 'Shift deleted successfully');
+        
+        // Remove shift from local list if it exists
+        _shifts.removeWhere((shift) => shift.id == shiftId);
+        
+        // Clear current shift if it's the deleted one
+        if (currentShift.value?.id == shiftId) {
+          currentShift.value = null;
+        }
+      } else {
+        isSuccess.value = false;
+        print("shift deleted: failed ${response.message}");
+        CustomSnackbar.showError(response.message ?? 'Failed to delete shift');
+      }
+    } catch (e) {
+      isSuccess.value = false;
+      print('Error deleting shift: $e');
+      CustomSnackbar.showError('Error deleting shift: $e');
     } finally {
       isLoading.value = false;
     }

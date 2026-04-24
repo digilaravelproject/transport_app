@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -23,7 +24,7 @@ class AppScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.backgroundColor,
-    this.safeArea = true,
+    this.safeArea = false,
     this.resizeToAvoidBottomInset = true,
     this.useScaffold = true,
     this.extendBody = false,
@@ -31,6 +32,14 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final systemOverlay = SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: AppColors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    );
+
     if (!useScaffold) {
       Widget content = body;
       if (appBar != null) {
@@ -55,27 +64,33 @@ class AppScaffold extends StatelessWidget {
         );
       }
 
-      return Material(
-        color: backgroundColor ?? AppColors.scaffoldBackgroundColor,
-        child: safeArea ? SafeArea(child: content) : content,
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: systemOverlay,
+        child: Material(
+          color: backgroundColor ?? AppColors.scaffoldBackgroundColor,
+          child: safeArea ? SafeArea(child: content) : content,
+        ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: backgroundColor ?? AppColors.scaffoldBackgroundColor,
-      appBar: appBar != null ? (appBar is PreferredSizeWidget 
-          ? (appBar as PreferredSizeWidget) 
-          : PreferredSize(
-              preferredSize: const Size.fromHeight(kToolbarHeight),
-              child: appBar!,
-            )) : null,
-      body: safeArea ? SafeArea(child: body) : body,
-      bottomNavigationBar: bottomNavigationBar,
-      drawer: drawer,
-      floatingActionButton: floatingActionButton,
-      floatingActionButtonLocation: floatingActionButtonLocation,
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      extendBody: extendBody,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemOverlay,
+      child: Scaffold(
+        backgroundColor: backgroundColor ?? AppColors.scaffoldBackgroundColor,
+        appBar: appBar != null ? (appBar is PreferredSizeWidget 
+            ? (appBar as PreferredSizeWidget) 
+            : PreferredSize(
+                preferredSize: const Size.fromHeight(kToolbarHeight),
+                child: appBar!,
+              )) : null,
+        body: safeArea ? SafeArea(child: body) : body,
+        bottomNavigationBar: bottomNavigationBar,
+        drawer: drawer,
+        floatingActionButton: floatingActionButton,
+        floatingActionButtonLocation: floatingActionButtonLocation,
+        resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+        extendBody: extendBody,
+      ),
     );
   }
 }

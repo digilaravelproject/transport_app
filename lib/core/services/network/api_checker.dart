@@ -15,9 +15,9 @@ class ApiChecker {
   static Response checkResponse(Response response, {bool showToaster = false}) {
     switch (response.statusCode) {
       case 200:
-        if (response.data['res'] == 'success') {
-          return response;
-        } else {
+      case 201:
+      case 204:
+        if (response.data is Map && response.data['res'] == 'error') {
           if (showToaster) _showErrorMessage(response);
           throw DioException(
             requestOptions: response.requestOptions,
@@ -26,6 +26,7 @@ class ApiChecker {
             error: response.data['msg'] ?? 'Something went wrong',
           );
         }
+        return response;
       case 401:
         _showErrorMessage(response, 'Unauthorized');
         _logout();
@@ -283,7 +284,7 @@ class ApiChecker {
       );
     }
 
-    if (statusCode != 200) {
+    if (statusCode != 200 && statusCode != 201) {
       if (response.data != null) {
         try {
           final responseModel = ResponseModel.fromJson(response.data, statusCode: statusCode);

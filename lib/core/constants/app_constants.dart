@@ -20,6 +20,11 @@ class AppConstants {
     static const String resendOtpUrl = '/api/auth/resend-login-otp';
     static const String verifyLoginOtpUrl = '/api/auth/verify-login-otp';
     static const String registerSendOtpUrl = '/api/auth/register/send-otp';
+    static const String plansListUrl = '/api/plans/list';
+    static const String createSubscriptionUrl = '/api/v1/subscriptions';
+    static const String verifyPaymentUrl = '/api/v1/subscriptions/verify-payment';
+    static const String currentSubscriptionUrl = '/api/v1/subscriptions/current';
+    static const String subscriptionsHistoryUrl = '/api/v1/subscriptions';
     static const String logoutUrl = '/api/v1/auth/logout';
     static const String profileUrl = '/api/v1/auth/me';
     static const String updateProfileUrl = '/api/v1/auth/profile/update';
@@ -40,4 +45,7 @@ class AppConstants {
     static const String createShift = '/api/v1/shifts';
     static const String getShift = '/api/v1/shifts';
     static  String getShiftById(int id) => '/api/v1/shifts/$id';
+    
+    // Role Endpoints
+    static const String rolesUrl = '/api/v1/roles';
 }

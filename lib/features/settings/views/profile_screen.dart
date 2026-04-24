@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../../core/widgets/action_tile.dart';
 import '../../../routes/route_helper.dart';
+import '../../membership/views/active_subscription_screen.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../controllers/settings_controller.dart';
 
@@ -132,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Subscription Plan',
                       subtitle: 'Manage your current plan',
                       icon: const Icon(Icons.star_outline_rounded),
-                      onTap: () => Get.toNamed(RouteHelper.getSubscriptionRoute()),
+                      onTap: () => Get.to(() => const ActiveSubscriptionScreen()),
                     ),
                     const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
                     ActionTile(

@@ -28,6 +28,7 @@ class RouteListScreen extends GetView<RouteController> {
         label: const AppText('Create Route', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -64,15 +65,26 @@ class RouteListScreen extends GetView<RouteController> {
           const SizedBox(height: 8),
           Expanded(
             child: Obx(() {
-               if (controller.filteredRoutes.isEmpty) {
-                 return const Center(child: AppText('No routes found.'));
+               if (controller.filteredRoutes.isEmpty && !controller.isLoading.value) {
+                 return RefreshIndicator(
+                   onRefresh: () => controller.fetchRoutes(),
+                   child: ListView(
+                     children: const [
+                       SizedBox(height: 100),
+                       Center(child: AppText('No routes found.')),
+                     ],
+                   ),
+                 );
                }
-               return ListView.builder(
-                 padding: const EdgeInsets.all(16),
-                 itemCount: controller.filteredRoutes.length,
-                 itemBuilder: (context, index) {
-                   return _buildRouteItem(controller.filteredRoutes[index]);
-                 },
+               return RefreshIndicator(
+                 onRefresh: () => controller.fetchRoutes(),
+                 child: ListView.builder(
+                   padding: const EdgeInsets.all(16),
+                   itemCount: controller.filteredRoutes.length,
+                   itemBuilder: (context, index) {
+                     return _buildRouteItem(controller.filteredRoutes[index]);
+                   },
+                 ),
                );
             }),
           ),
@@ -154,9 +166,21 @@ class RouteListScreen extends GetView<RouteController> {
               ),
               Row(
                 children: [
-                  const Icon(Icons.pin_drop_outlined, size: 16, color: AppColors.textColorSecondary),
+                  const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.textColorSecondary),
                   const SizedBox(width: 8),
-                  AppText('${route.viaStops.length} Stops', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  AppText(
+                    route.schedules.isNotEmpty 
+                      ? (() {
+                          final days = route.schedules[0]['days'];
+                          if (days is List) {
+                            return days.contains('Daily') ? 'Daily' : days.join(', ');
+                          }
+                          return days?.toString() ?? 'N/A';
+                        })()
+                      : 'No Schedule',
+                    style: AppTextStyle.caption, 
+                    color: AppColors.textColorSecondary,
+                  ),
                 ],
               ),
             ],

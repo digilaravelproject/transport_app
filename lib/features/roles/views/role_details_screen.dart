@@ -46,11 +46,6 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
                 icon: const Icon(Iconsax.edit),
                 onPressed: () => Get.to(() => AddEditRoleScreen(role: role)),
               ),
-              if (!isAdmin)
-                IconButton(
-                  icon: const Icon(Iconsax.trash, color: AppColors.errorColor),
-                  onPressed: () => _showDeleteDialog(context, role),
-                ),
             ],
           );
         }),
@@ -241,25 +236,4 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
     );
   }
 
-  void _showDeleteDialog(BuildContext context, RoleModel role) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Role'),
-        content: Text('Are you sure you want to delete "${role.roleName}"? Users assigned this role will be affected.'),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () {
-              controller.deleteRole(role.id);
-              Get.back();
-              Get.back();
-              Get.snackbar('Deleted', 'Role deleted successfully', snackPosition: SnackPosition.BOTTOM, backgroundColor: AppColors.errorColor, colorText: AppColors.white);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
 }

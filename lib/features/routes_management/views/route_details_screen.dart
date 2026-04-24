@@ -16,164 +16,380 @@ class RouteDetailsScreen extends GetView<RouteController> {
 
   @override
   Widget build(BuildContext context) {
-    if (Get.arguments == null && controller.routes.isEmpty) {
-        return const AppScaffold(appBar: AppHeader(title: 'Route Details'), body: Center(child: Text("No route selected")));
-    }
-    final RouteModel route = Get.arguments ?? controller.routes.first;
-
+    final String routeId = (Get.arguments as RouteModel?)?.id ?? '';
+    
     return AppScaffold(
       appBar: AppHeader(
         title: 'Route Details',
-        rightWidget: IconButton(
-          icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
-          onPressed: () {},
-        ),
+        rightWidget: Obx(() {
+          final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
+          return IconButton(
+            icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
+            onPressed: () => Get.toNamed(RouteHelper.getCreateRouteRoute(), arguments: route),
+          );
+        }),
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: AppButton(
             text: 'Assign Bus to Route',
-            onPressed: () => Get.toNamed(RouteHelper.getAssignRouteRoute(), arguments: route),
+            onPressed: () {
+              final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
+              Get.toNamed(RouteHelper.getAssignRouteRoute(), arguments: route);
+            },
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      shape: BoxShape.circle,
+      body: Obx(() {
+        if (controller.isLoading.value && controller.routes.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final route = controller.routes.firstWhere(
+          (r) => r.id == routeId, 
+          orElse: () => Get.arguments as RouteModel
+        );
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // --- Header Card ---
+              AppCard(
+                margin: const EdgeInsets.symmetric(horizontal: 0),
+                borderRadius: 0,
+                boxShadow: const [],
+                border: Border.all(color: Colors.transparent, width: 0),
+                padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primaryColor.withOpacity(0.05), width: 6),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Iconsax.routing,
+                          color: AppColors.primaryColor,
+                          size: 40,
+                        ),
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.route_rounded,
-                      color: AppColors.primaryColor,
-                      size: 32,
+                    const SizedBox(height: 24),
+                    AppText(
+                      route.routeName, 
+                      fontSize: 24, 
+                      fontWeight: FontWeight.w800, 
+                      textAlign: TextAlign.center,
+                      color: AppColors.textColorPrimary,
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  AppText(route.routeName, style: AppTextStyle.heading, fontSize: 24, textAlign: TextAlign.center),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: route.isActive ? AppColors.successColor.withOpacity(0.1) : AppColors.errorColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: AppText(
-                      route.isActive ? 'Active Route' : 'Inactive Route',
-                      style: AppTextStyle.caption,
-                      color: route.isActive ? AppColors.successColor : AppColors.errorColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText('Route Summary', style: AppTextStyle.subheading),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 16),
-                  _buildDetailRow('Origin', route.origin),
-                  _buildDetailRow('Destination', route.destination),
-                  _buildDetailRow('Total Distance', '${route.distanceKm} km'),
-                  _buildDetailRow('Est. Duration', route.estimatedTime),
-                ],
-              ),
-            ),
-             const SizedBox(height: 24),
-             AppCard(
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                    AppText('Waypoints (${route.viaStops.length + 2})', style: AppTextStyle.subheading),
                     const SizedBox(height: 16),
-                    _buildTimelineStop(route.origin, true, false),
-                    for (int i = 0; i < route.viaStops.length; i++)
-                       _buildTimelineStop(route.viaStops[i], false, false),
-                    _buildTimelineStop(route.destination, false, true),
-                 ],
-               ),
-             )
-          ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: route.isActive ? AppColors.successColor.withOpacity(0.08) : AppColors.errorColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: route.isActive ? AppColors.successColor.withOpacity(0.1) : AppColors.errorColor.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: route.isActive ? AppColors.successColor : AppColors.errorColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (route.isActive ? AppColors.successColor : AppColors.errorColor).withOpacity(0.4),
+                                  blurRadius: 4,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          AppText(
+                            route.isActive ? 'Active Route' : 'Inactive Route',
+                            fontSize: 12,
+                            color: route.isActive ? AppColors.successColor : AppColors.errorColor,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+
+              // --- Route Summary Card ---
+              AppCard(
+                margin: const EdgeInsets.symmetric(horizontal: 0),
+                borderRadius: 0,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText('Route Summary', fontSize: 16, fontWeight: FontWeight.w700),
+                    const SizedBox(height: 20),
+                    _buildDetailItem(Iconsax.location5, 'Origin', route.origin),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(indent: 32, thickness: 0.5, color: AppColors.slate200),
+                    ),
+                    _buildDetailItem(Iconsax.location, 'Destination', route.destination),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(indent: 32, thickness: 0.5, color: AppColors.slate200),
+                    ),
+                    _buildDetailItem(Iconsax.map, 'Total Distance', '${route.distanceKm} km'),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Divider(indent: 32, thickness: 0.5, color: AppColors.slate200),
+                    ),
+                    _buildDetailItem(Iconsax.clock, 'Est. Duration', route.estimatedTime),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // --- Detailed Waypoints Card ---
+              AppCard(
+                margin: const EdgeInsets.symmetric(horizontal: 0),
+                borderRadius: 0,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText('Detailed Waypoints', fontSize: 16, fontWeight: FontWeight.w700),
+                    const SizedBox(height: 24),
+                    if (route.points.isNotEmpty)
+                      ...List.generate(route.points.length, (index) {
+                        final point = route.points[index];
+                        return _buildTimelineStop(
+                          point['name'] ?? 'Unknown', 
+                          index == 0, 
+                          index == route.points.length - 1,
+                          subtitle: point['type'] == 'start' ? 'Start Point' : (point['type'] == 'end' ? 'Destination' : 'Intermediate Stop'),
+                        );
+                      })
+                    else
+                      Column(
+                        children: [
+                          _buildTimelineStop(route.origin, true, false, subtitle: 'Start Point'),
+                          for (int i = 0; i < route.viaStops.length; i++)
+                              _buildTimelineStop(route.viaStops[i], false, false, subtitle: 'Intermediate Stop'),
+                          _buildTimelineStop(route.destination, false, true, subtitle: 'Destination'),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+
+              // --- Schedules Card ---
+              AppCard(
+                margin: const EdgeInsets.symmetric(horizontal: 0),
+                borderRadius: 0,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText('Schedules & Frequency', fontSize: 16, fontWeight: FontWeight.w700),
+                    const SizedBox(height: 20),
+                    if (route.schedules.isNotEmpty)
+                      ...route.schedules.map((s) => Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.slate50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.slate200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Iconsax.clock, size: 18, color: AppColors.primaryColor),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const AppText('Time Slot', fontSize: 11, color: AppColors.textColorSecondary, fontWeight: FontWeight.w600),
+                                      AppText(
+                                        '${s['departure_time'] ?? s['start_time'] ?? 'N/A'} - ${s['arrival_time'] ?? s['end_time'] ?? 'N/A'}',
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.slate200.withOpacity(0.5),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Iconsax.calendar, size: 18, color: AppColors.textColorSecondary),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const AppText('Frequency', fontSize: 11, color: AppColors.textColorSecondary, fontWeight: FontWeight.w600),
+                                      AppText(
+                                        s['days'] is List ? (s['days'] as List).join(', ') : (s['days']?.toString() ?? 'Daily'),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textColorPrimary.withOpacity(0.8),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      )).toList()
+                    else
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: AppText('No schedules defined for this route.', fontSize: 13, color: AppColors.textColorHint),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildDetailItem(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: AppColors.primaryColor.withOpacity(0.7)),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(label, fontSize: 12, color: AppColors.textColorSecondary, fontWeight: FontWeight.w600),
+              const SizedBox(height: 2),
+              AppText(value, fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.textColorPrimary),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: AppText(label, style: AppTextStyle.body, color: AppColors.textColorSecondary),
-          ),
-          Expanded(
-            flex: 3,
-            child: AppText(value, style: AppTextStyle.body, fontWeight: FontWeight.bold, textAlign: TextAlign.right),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimelineStop(String name, bool isFirst, bool isLast) {
+  Widget _buildTimelineStop(String name, bool isFirst, bool isLast, {String? subtitle}) {
     Color nodeColor = isFirst ? AppColors.primaryColor : (isLast ? AppColors.errorColor : AppColors.textColorSecondary);
-    IconData nodeIcon = isFirst ? Icons.place_rounded : (isLast ? Icons.outlined_flag_rounded : Icons.circle);
-    double iconSize = isFirst || isLast ? 20 : 12;
+    IconData nodeIcon = isFirst ? Icons.place_rounded : (isLast ? Icons.flag_rounded : Icons.circle);
+    double iconSize = isFirst || isLast ? 22 : 12;
 
     return IntrinsicHeight(
       child: Row(
         children: [
           SizedBox(
-            width: 32,
+            width: 30,
             child: Column(
               children: [
                 if (!isFirst)
                   Expanded(
                     child: Container(
                       width: 2,
-                      color: AppColors.slate300,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppColors.slate300, AppColors.slate300.withOpacity(0.1)],
+                        ),
+                      ),
                     ),
                   )
                 else
-                  const Expanded(child: SizedBox()),
+                  const SizedBox(height: 12),
+                
                 Icon(nodeIcon, color: nodeColor, size: iconSize),
+                
                 if (!isLast)
                    Expanded(
                     child: Container(
                       width: 2,
-                      color: AppColors.slate300,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [AppColors.slate300, AppColors.slate300.withOpacity(0.1)],
+                        ),
+                      ),
                     ),
                   )
                 else
-                  const Expanded(child: SizedBox()),
+                  const SizedBox(height: 12),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: AppText(
-                name,
-                style: AppTextStyle.body,
-                fontWeight: isFirst || isLast ? FontWeight.bold : FontWeight.normal,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppText(
+                    name,
+                    fontSize: 15,
+                    fontWeight: isFirst || isLast ? FontWeight.w800 : FontWeight.w700,
+                    color: AppColors.textColorPrimary,
+                  ),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: AppText(
+                        subtitle, 
+                        fontSize: 12, 
+                        color: AppColors.textColorSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

@@ -39,7 +39,7 @@ class RoleController extends GetxController {
     }
 
     final response = await _apiClient.get(
-      AppConstants.rolesUrl, 
+      AppConstants.getRolesUrl, 
       queryParameters: queryParams,
     );
     if (response.isSuccess && response.json != null) {
@@ -79,7 +79,7 @@ class RoleController extends GetxController {
       "features": features,
     };
 
-    final response = await _apiClient.post(AppConstants.rolesUrl, data: payload);
+    final response = await _apiClient.post(AppConstants.createRoleUrl, data: payload);
     
     isLoading.value = false;
     
@@ -107,7 +107,7 @@ class RoleController extends GetxController {
       "features": features,
     };
 
-    final response = await _apiClient.put('${AppConstants.rolesUrl}/${role.id}', data: payload);
+    final response = await _apiClient.put(AppConstants.updateRoleUrl(role.id), data: payload);
     
     isLoading.value = false;
     
@@ -120,9 +120,6 @@ class RoleController extends GetxController {
     }
   }
 
-  void deleteRole(String id) {
-    roles.removeWhere((r) => r.id == id);
-  }
 
   Future<void> toggleRoleStatus(RoleModel role) async {
     isLoading.value = true;
@@ -137,7 +134,7 @@ class RoleController extends GetxController {
       }).toList(),
     };
 
-    final response = await _apiClient.put('${AppConstants.rolesUrl}/${role.id}', data: payload);
+    final response = await _apiClient.put(AppConstants.updateRoleUrl(role.id), data: payload);
     
     if (response.isSuccess) {
       await fetchRoles();
@@ -158,7 +155,7 @@ class RoleController extends GetxController {
 
   Future<void> fetchRoleDetails(String id) async {
     isLoading.value = true;
-    final response = await _apiClient.get('${AppConstants.rolesUrl}/$id');
+    final response = await _apiClient.get(AppConstants.getRoleByIdUrl(id));
     if (response.isSuccess && response.json != null) {
       final json = response.json?['data'];
       selectedRole.value = RoleModel(

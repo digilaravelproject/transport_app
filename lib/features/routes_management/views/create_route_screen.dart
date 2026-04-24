@@ -9,6 +9,9 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../controllers/route_controller.dart';
+import 'location_search_screen.dart';
+import '../domain/models/route_model.dart';
+import '../../../routes/route_helper.dart';
 
 class CreateRouteScreen extends StatefulWidget {
   const CreateRouteScreen({Key? key}) : super(key: key);
@@ -19,13 +22,56 @@ class CreateRouteScreen extends StatefulWidget {
 
 class _CreateRouteScreenState extends State<CreateRouteScreen> {
   final RouteController controller = Get.find<RouteController>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _originController = TextEditingController();
-  final List<TextEditingController> _destinationControllers = [TextEditingController()];
+  List<TextEditingController> _destinationControllers = [TextEditingController()];
   
-  final TextEditingController _distanceController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+  RouteModel? _editingRoute;
+
+  @override
+  void initState() {
+    super.initState();
+    _editingRoute = Get.arguments as RouteModel?;
+
+    if (_editingRoute != null) {
+      _nameController.text = _editingRoute!.routeName;
+      controller.originController.text = _editingRoute!.origin;
+      controller.distanceController.text = _editingRoute!.distanceKm.toString();
+      controller.estimatedTimeController.text = _editingRoute!.estimatedTime;
+
+      // Parse points
+      if (_editingRoute!.points.isNotEmpty) {
+        final startPoint = _editingRoute!.points.firstWhere((p) => p['type'] == 'start', orElse: () => _editingRoute!.points.first);
+        _originPoint = Map<String, dynamic>.from(startPoint);
+
+        final destPoints = _editingRoute!.points.where((p) => p['type'] != 'start').toList();
+        if (destPoints.isNotEmpty) {
+          _destinationControllers = destPoints.map((p) => TextEditingController(text: p['name'])).toList();
+          _destinationPoints = destPoints.map((p) => Map<String, dynamic>.from(p)).toList();
+          controller.destinationController.text = destPoints.last['name'] ?? '';
+        }
+      }
+
+      // Parse schedules
+      if (_editingRoute!.schedules.isNotEmpty) {
+        _schedules.clear();
+        for (var s in _editingRoute!.schedules) {
+          _schedules.add({
+            'departure': TextEditingController(text: s['departure_time'] ?? s['start_time']),
+            'arrival': TextEditingController(text: s['arrival_time'] ?? s['end_time']),
+            'days': List<String>.from(s['days'] is List ? s['days'] : [s['days']?.toString() ?? 'Daily']),
+          });
+        }
+      }
+    } else {
+      // Initialize shared controllers for new route
+      controller.originController.text = '';
+      controller.destinationController.text = '';
+      controller.distanceController.text = '';
+      controller.estimatedTimeController.text = '';
+    }
+  }
 
   final List<Map<String, dynamic>> _schedules = [
     {
@@ -35,17 +81,17 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
     }
   ];
 
+  Map<String, dynamic>? _originPoint;
+  List<Map<String, dynamic>?> _destinationPoints = [null];
+
   final List<String> _allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Daily'];
 
   @override
   void dispose() {
     _nameController.dispose();
-    _originController.dispose();
     for (var c in _destinationControllers) {
       c.dispose();
     }
-    _distanceController.dispose();
-    _timeController.dispose();
     for (var s in _schedules) {
       s['departure'].dispose();
       s['arrival'].dispose();
@@ -56,13 +102,15 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Create Route',
+      appBar: AppHeader(
+        title: _editingRoute != null ? 'Edit Route' : 'Create Route',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-        child: Column(
-          children: [
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          child: Column(
+            children: [
             // --- Route Information Section ---
             AppCard(
               padding: const EdgeInsets.all(20),
@@ -80,6 +128,8 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                     hint: 'e.g. Pune to Mumbai Express',
                     icon: Iconsax.routing,
                     controller: _nameController,
+                    isRequired: true,
+                    validator: (val) => (val == null || val.isEmpty) ? 'Please enter a route name' : null,
                   ),
                   const SizedBox(height: 20),
                   
@@ -88,7 +138,20 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                     label: 'Origin (Start)',
                     hint: 'e.g. Swargate, Pune',
                     icon: Iconsax.location5,
-                    controller: _originController,
+                    controller: controller.originController,
+                    readOnly: true,
+                    isRequired: true,
+                    validator: (val) => (val == null || val.isEmpty) ? 'Please select an origin' : null,
+                    onTap: () async {
+                      final result = await Get.to(() => const LocationSearchScreen(title: 'Search Origin'));
+                      if (result != null) {
+                        setState(() {
+                          _originPoint = result;
+                          controller.originController.text = result['name'];
+                        });
+                        controller.calculateRoute();
+                      }
+                    },
                   ),
                   const SizedBox(height: 20),
 
@@ -105,6 +168,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                         onTap: () {
                           setState(() {
                             _destinationControllers.add(TextEditingController());
+                            _destinationPoints.add(null);
                           });
                         },
                         child: const Row(
@@ -132,6 +196,23 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                               hint: index == 0 ? 'e.g. Dadar, Mumbai' : 'Enter destination...',
                               icon: Iconsax.location,
                               controller: _destinationControllers[index],
+                              readOnly: true,
+                              isRequired: true,
+                              validator: (val) => (val == null || val.isEmpty) ? 'Please select a destination' : null,
+                              onTap: () async {
+                                final result = await Get.to(() => LocationSearchScreen(title: 'Search Destination ${index + 1}'));
+                                if (result != null) {
+                                  setState(() {
+                                    _destinationPoints[index] = result;
+                                    _destinationControllers[index].text = result['name'];
+                                    // If it's the last destination, set it as the primary destination for calculation
+                                    if (index == _destinationControllers.length - 1) {
+                                      controller.destinationController.text = result['name'];
+                                    }
+                                  });
+                                  controller.calculateRoute();
+                                }
+                              },
                             ),
                           ),
                           if (_destinationControllers.length > 1)
@@ -143,6 +224,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                                   setState(() {
                                     _destinationControllers[index].dispose();
                                     _destinationControllers.removeAt(index);
+                                    _destinationPoints.removeAt(index);
                                   });
                                 },
                               ),
@@ -161,7 +243,9 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                           hint: '0',
                           icon: Iconsax.map,
                           keyboardType: TextInputType.number,
-                          controller: _distanceController,
+                          controller: controller.distanceController,
+                          isRequired: true,
+                          validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -170,7 +254,9 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                           label: 'Estimated Time',
                           hint: 'e.g. 3h 30m',
                           icon: Iconsax.clock,
-                          controller: _timeController,
+                          controller: controller.estimatedTimeController,
+                          isRequired: true,
+                          validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
                         ),
                       ),
                     ],
@@ -258,6 +344,8 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                                   hint: '08:00',
                                   icon: Iconsax.clock,
                                   controller: schedule['departure'],
+                                  isRequired: true,
+                                  validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
                                   onTap: () async {
                                     final time = await showTimePicker(
                                       context: context,
@@ -277,6 +365,8 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                                   hint: '11:30',
                                   icon: Iconsax.clock,
                                   controller: schedule['arrival'],
+                                  isRequired: true,
+                                  validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
                                   onTap: () async {
                                     final time = await showTimePicker(
                                       context: context,
@@ -356,33 +446,103 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: AppButton(
-          text: 'Save Route',
-          onPressed: () {
-            Get.snackbar(
-              'Success', 
-              'New route "${_nameController.text}" created successfully.', 
-              snackPosition: SnackPosition.BOTTOM,
-              backgroundColor: AppColors.successColor,
-              colorText: Colors.white,
-              margin: const EdgeInsets.all(16),
-            );
-            Get.back();
-          },
-        ),
+    ),
+    bottomNavigationBar: Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
-    );
-  }
+      child: AppButton(
+        text: 'Save Route',
+        onPressed: () async {
+          if (!_formKey.currentState!.validate()) {
+            return;
+          }
+
+          if (_originPoint == null || _destinationPoints.any((p) => p == null)) {
+            Get.showSnackbar(GetSnackBar(
+              message: 'Please select all locations from the search results',
+              backgroundColor: AppColors.errorColor,
+              duration: const Duration(seconds: 3),
+            ));
+            return;
+          }
+
+          // Check if at least one day is selected for each schedule
+          for (int i = 0; i < _schedules.length; i++) {
+            if ((_schedules[i]['days'] as List).isEmpty) {
+               Get.showSnackbar(GetSnackBar(
+                message: 'Please select frequency for Schedule ${i + 1}',
+                backgroundColor: AppColors.errorColor,
+                duration: const Duration(seconds: 3),
+              ));
+              return;
+            }
+          }
+
+          final List<Map<String, dynamic>> points = [];
+          
+          // Add Start point
+          points.add({
+            "type": "start",
+            "name": _originPoint!['name'],
+            "lat": _originPoint!['lat'],
+            "lng": _originPoint!['lng'],
+            "order": 0
+          });
+
+          // Add intermediate stops and end point
+          for (int i = 0; i < _destinationPoints.length; i++) {
+            final isLast = i == _destinationPoints.length - 1;
+            points.add({
+              "type": isLast ? "end" : "stop",
+              "name": _destinationPoints[i]!['name'],
+              "lat": _destinationPoints[i]!['lat'],
+              "lng": _destinationPoints[i]!['lng'],
+              "order": i + 1
+            });
+          }
+
+          final List<Map<String, dynamic>> schedules = _schedules.map((s) => {
+            "departure_time": s['departure'].text,
+            "arrival_time": s['arrival'].text,
+            "days": s['days'],
+          }).toList();
+
+          final Map<String, dynamic> payload = {
+            "name": _nameController.text,
+            "distance": double.tryParse(controller.distanceController.text) ?? 0.0,
+            "estimated_time": controller.estimatedTimeController.text,
+            "points": points,
+            "schedules": schedules,
+          };
+
+          final success = _editingRoute != null 
+            ? await controller.updateRoute(_editingRoute!.id, payload)
+            : await controller.createRoute(payload);
+
+          if (success) {
+            if (Navigator.canPop(context)) {
+              Navigator.of(context).pop();
+            }
+            Future.delayed(const Duration(milliseconds: 300), () {
+              Get.showSnackbar(GetSnackBar(
+                message: _editingRoute != null ? 'Route updated successfully' : 'Route created successfully',
+                backgroundColor: AppColors.successColor,
+                duration: const Duration(seconds: 3),
+              ));
+            });
+          }
+        },
+      ),
+    ),
+  );
+}
 }

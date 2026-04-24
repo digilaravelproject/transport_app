@@ -1,12 +1,14 @@
 class RouteModel {
   final String id;
-  final String routeName; // e.g., 'Pune to Mumbai (Express)'
+  final String routeName;
   final String origin;
   final String destination;
   final double distanceKm;
-  final String estimatedTime; // e.g., '3h 30m'
-  final List<String> viaStops; // List of major stops
+  final String estimatedTime;
+  final List<String> viaStops;
   final bool isActive;
+  final List<Map<String, dynamic>> schedules;
+  final List<Map<String, dynamic>> points;
 
   RouteModel({
     required this.id,
@@ -17,5 +19,7 @@ class RouteModel {
     required this.estimatedTime,
     required this.viaStops,
     this.isActive = true,
+    this.schedules = const [],
+    this.points = const [],
   });
 }

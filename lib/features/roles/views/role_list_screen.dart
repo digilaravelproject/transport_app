@@ -72,7 +72,7 @@ class RoleListScreen extends GetView<RoleController> {
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
-              if (controller.isLoading.value) {
+              if (controller.isLoading.value && controller.roles.isEmpty) {
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: 5,
@@ -80,15 +80,26 @@ class RoleListScreen extends GetView<RoleController> {
                 );
               }
               if (controller.filteredRoles.isEmpty) {
-                return const Center(child: AppText('No roles found', style: AppTextStyle.body));
+                return RefreshIndicator(
+                  onRefresh: () => controller.fetchRoles(),
+                  child: ListView(
+                    children: const [
+                      SizedBox(height: 100),
+                      Center(child: AppText('No roles found', style: AppTextStyle.body)),
+                    ],
+                  ),
+                );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                itemCount: controller.filteredRoles.length,
-                itemBuilder: (context, index) {
-                  final role = controller.filteredRoles[index];
-                  return _RoleCard(role: role);
-                },
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchRoles(),
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                  itemCount: controller.filteredRoles.length,
+                  itemBuilder: (context, index) {
+                    final role = controller.filteredRoles[index];
+                    return _RoleCard(role: role);
+                  },
+                ),
               );
             }),
           ),

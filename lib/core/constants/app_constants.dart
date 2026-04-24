@@ -4,6 +4,7 @@ class AppConstants {
     static String appName = EnvConfig.appName;
     static String baseUrl = "https://beige-stingray-620454.hostingersite.com";
     static String apiToken = EnvConfig.apiToken;
+    static const String googleMapsKey = 'AIzaSyAH2m4kQwGljzCxdDdy7JrnKTDKCgFZU_A';
     static const String fontFamily = 'Poppins';
     static const String defaultTag = 'PCB_APP'; // default tag for log checking
 
@@ -48,4 +49,16 @@ class AppConstants {
     
     // Role Endpoints
     static const String rolesUrl = '/api/v1/roles';
+    static const String getRolesUrl = '/api/v1/roles';
+    static const String createRoleUrl = '/api/v1/roles';
+    static String updateRoleUrl(dynamic id) => '/api/v1/roles/$id';
+    static String getRoleByIdUrl(dynamic id) => '/api/v1/roles/$id';
+
+    // Route Endpoints
+    static const String routesUrl = '/api/v1/routes';
+    static const String getRoutesUrl = '/api/v1/routes';
+    static const String createRouteUrl = '/api/v1/routes';
+    static String searchRoutesUrl(String query) => '/api/v1/routes/search?query=$query';
+    static String updateRouteUrl(dynamic id) => '/api/v1/routes/$id';
+    static String getRouteByIdUrl(dynamic id) => '/api/v1/routes/$id';
 }

@@ -1,4 +1,9 @@
 import 'package:get/get.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:flutter/material.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/services/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../domain/models/staff_model.dart';
 
 class StaffController extends GetxController {
@@ -12,6 +17,9 @@ class StaffController extends GetxController {
   final advanceHistory = <AdvancePayment>[].obs;
   final staffDocuments = <StaffDocument>[].obs;
   final selectedCountryCode = '+91'.obs;
+  final isLoading = false.obs;
+  
+  final ApiClient _apiClient = Get.find<ApiClient>();
   
   // Salary Filtering
   final selectedSalaryMonth = 'All'.obs;
@@ -24,7 +32,7 @@ class StaffController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadMockStaff();
+    fetchStaff();
     _loadMockRecords();
     _loadAttendanceForDate(selectedDate.value);
     
@@ -187,5 +195,144 @@ class StaffController extends GetxController {
     return selectedDate.value.year == now.year &&
            selectedDate.value.month == now.month &&
            selectedDate.value.day == now.day;
+  }
+
+  Future<void> fetchStaff() async {
+    isLoading.value = true;
+    Map<String, dynamic> queryParams = {};
+    if (searchQuery.value.isNotEmpty) {
+      queryParams['search'] = searchQuery.value;
+    }
+    
+    // Activity filter
+    if (selectedFilter.value == 'Active') {
+      queryParams['is_active'] = 1;
+    } else if (selectedFilter.value == 'Inactive') {
+      queryParams['is_active'] = 0;
+    }
+
+    final response = await _apiClient.get(AppConstants.getStaffUrl, queryParameters: queryParams);
+    if (response.isSuccess && response.json != null) {
+      final List<dynamic> data = response.json?['data'] ?? [];
+      // Data mapping will be handled here
+    }
+    isLoading.value = false;
+  }
+
+  Future<bool> addStaff(Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final formData = dio.FormData.fromMap({
+        'name': data['name'],
+        'phone': data['phone'],
+        'email': data['email'],
+        'staff_type': data['staff_type'],
+        'salary_type': data['salary_type'],
+        'basic_salary': data['basic_salary'],
+        'work_shift': data['work_shift'],
+        'date_of_joining': data['date_of_joining'],
+        'address': data['address'],
+        'aadhar_number': data['aadhar_number'],
+        'pan_number': data['pan_number'],
+        'dl_number': data['dl_number'],
+        'dl_expiry': data['dl_expiry'],
+        'badge_number': data['badge_number'],
+        'badge_expiry': data['badge_expiry'],
+      });
+
+      // Add files
+      if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty) {
+        formData.files.add(MapEntry('aadhar_file', await dio.MultipartFile.fromFile(data['aadhar_file'])));
+      }
+      if (data['pan_file'] != null && data['pan_file'].isNotEmpty) {
+        formData.files.add(MapEntry('pan_file', await dio.MultipartFile.fromFile(data['pan_file'])));
+      }
+      if (data['dl_file'] != null && data['dl_file'].isNotEmpty) {
+        formData.files.add(MapEntry('dl_file', await dio.MultipartFile.fromFile(data['dl_file'])));
+      }
+      if (data['badge_file'] != null && data['badge_file'].isNotEmpty) {
+        formData.files.add(MapEntry('badge_file', await dio.MultipartFile.fromFile(data['badge_file'])));
+      }
+      if (data['passbook_file'] != null && data['passbook_file'].isNotEmpty) {
+        formData.files.add(MapEntry('passbook_file', await dio.MultipartFile.fromFile(data['passbook_file'])));
+      }
+      if (data['photo_file'] != null && data['photo_file'].isNotEmpty) {
+        formData.files.add(MapEntry('photo_file', await dio.MultipartFile.fromFile(data['photo_file'])));
+      }
+
+      final response = await _apiClient.post(AppConstants.createStaffUrl, data: formData);
+
+      if (response.isSuccess) {
+        fetchStaff();
+        return true;
+      } else {
+        Get.snackbar('Error', response.message, backgroundColor: AppColors.errorColor, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to add staff: $e', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateStaff(dynamic id, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final formData = dio.FormData.fromMap({
+        '_method': 'PUT',
+        'name': data['name'],
+        'phone': data['phone'],
+        'email': data['email'],
+        'staff_type': data['staff_type'],
+        'salary_type': data['salary_type'],
+        'basic_salary': data['basic_salary'],
+        'work_shift': data['work_shift'],
+        'date_of_joining': data['date_of_joining'],
+        'address': data['address'],
+        'aadhar_number': data['aadhar_number'],
+        'pan_number': data['pan_number'],
+        'dl_number': data['dl_number'],
+        'dl_expiry': data['dl_expiry'],
+        'badge_number': data['badge_number'],
+        'badge_expiry': data['badge_expiry'],
+      });
+
+      // Add files if new paths are provided
+      if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty && !data['aadhar_file'].startsWith('http')) {
+        formData.files.add(MapEntry('aadhar_file', await dio.MultipartFile.fromFile(data['aadhar_file'])));
+      }
+      if (data['pan_file'] != null && data['pan_file'].isNotEmpty && !data['pan_file'].startsWith('http')) {
+        formData.files.add(MapEntry('pan_file', await dio.MultipartFile.fromFile(data['pan_file'])));
+      }
+      if (data['dl_file'] != null && data['dl_file'].isNotEmpty && !data['dl_file'].startsWith('http')) {
+        formData.files.add(MapEntry('dl_file', await dio.MultipartFile.fromFile(data['dl_file'])));
+      }
+      if (data['badge_file'] != null && data['badge_file'].isNotEmpty && !data['badge_file'].startsWith('http')) {
+        formData.files.add(MapEntry('badge_file', await dio.MultipartFile.fromFile(data['badge_file'])));
+      }
+      if (data['passbook_file'] != null && data['passbook_file'].isNotEmpty && !data['passbook_file'].startsWith('http')) {
+        formData.files.add(MapEntry('passbook_file', await dio.MultipartFile.fromFile(data['passbook_file'])));
+      }
+      if (data['photo_file'] != null && data['photo_file'].isNotEmpty && !data['photo_file'].startsWith('http')) {
+        formData.files.add(MapEntry('photo_file', await dio.MultipartFile.fromFile(data['photo_file'])));
+      }
+
+      final response = await _apiClient.post(AppConstants.updateStaffUrl(id), data: formData);
+
+      if (response.isSuccess) {
+        fetchStaff();
+        return true;
+      } else {
+        Get.snackbar('Error', response.message, backgroundColor: AppColors.errorColor, colorText: Colors.white);
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update staff: $e', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

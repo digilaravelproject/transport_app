@@ -23,6 +23,7 @@ class AddStaffScreen extends StatefulWidget {
 
 class _AddStaffScreenState extends State<AddStaffScreen> {
   final _controller = Get.find<StaffController>();
+  final _formKey = GlobalKey<FormState>();
   StaffRole _selectedRole = StaffRole.driver;
   SalaryType _selectedSalaryType = SalaryType.monthly;
 
@@ -69,12 +70,12 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1950),
       lastDate: DateTime(2101),
     );
     if (picked != null) {
       setState(() {
-        controller.text = "${picked.day}/${picked.month}/${picked.year}";
+        controller.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
@@ -104,20 +105,23 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         title: 'Add Staff',
         subtitle: 'Register new employee',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             _buildSectionTitle('Basic Information'),
             AppCard(
               child: Column(
                 children: [
-                  AppInputField(
+                   AppInputField(
                     label: 'Full Name',
                     hint: 'Enter full name',
                     controller: _nameController,
                     icon: Iconsax.user,
+                    validator: (v) => v!.isEmpty ? 'Name is required' : null,
                   ),
                   const SizedBox(height: 16),
                   Obx(() => AppInputField(
@@ -131,6 +135,11 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                       context: context,
                       selectedCode: _controller.selectedCountryCode,
                     ),
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Phone number is required';
+                      if (v.length < 10) return 'Invalid phone number';
+                      return null;
+                    },
                   )),
                   const SizedBox(height: 16),
                   AppInputField(
@@ -139,6 +148,11 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     controller: _emailController,
                     icon: Icons.alternate_email_rounded,
                     keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v!.isEmpty) return 'Email is required';
+                      if (!GetUtils.isEmail(v)) return 'Invalid email format';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   _buildDropdown(
@@ -162,20 +176,17 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     controller: _addressController,
                     icon: Iconsax.location,
                     maxLines: 2,
+                    validator: (v) => v!.isEmpty ? 'Address is required' : null,
                   ),
                   const SizedBox(height: 16),
                   AppInputField(
                     label: 'Joining Date',
-                    hint: 'DD/MM/YYYY',
+                    hint: 'YYYY-MM-DD',
                     controller: _joiningDateController,
+                    readOnly: true,
+                    onTap: () => _selectDate(context, _joiningDateController),
                     icon: Iconsax.calendar_1,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Joining Date',
-                    hint: 'DD/MM/YYYY',
-                    controller: _joiningDateController,
-                    icon: Iconsax.calendar_1,
+                    validator: (v) => v!.isEmpty ? 'Joining date is required' : null,
                   ),
                 ],
               ),
@@ -194,6 +205,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     controller: _salaryController,
                     icon: Iconsax.card,
                     keyboardType: TextInputType.number,
+                    validator: (v) => v!.isEmpty ? 'Salary is required' : null,
                   ),
                   const SizedBox(height: 16),
                   AppInputField(
@@ -201,6 +213,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     hint: 'e.g. Day Shift, 9am - 6pm',
                     controller: _shiftController,
                     icon: Iconsax.clock,
+                    validator: (v) => v!.isEmpty ? 'Shift is required' : null,
                   ),
                 ],
               ),
@@ -263,10 +276,43 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
               ),
             ],
             const SizedBox(height: 32),
-            AppButton(
+            Obx(() => AppButton(
               text: 'Save Staff',
-              onPressed: () => Get.back(),
-            ),
+              isLoading: _controller.isLoading.value,
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final Map<String, dynamic> data = {
+                    'name': _nameController.text,
+                    'phone': '${_controller.selectedCountryCode.value}${_phoneController.text}',
+                    'email': _emailController.text,
+                    'staff_type': (_selectedRole.index + 1).toString(),
+                    'salary_type': _selectedSalaryType.name,
+                    'basic_salary': _salaryController.text,
+                    'work_shift': _shiftController.text,
+                    'date_of_joining': _joiningDateController.text,
+                    'address': _addressController.text,
+                    'aadhar_number': _aadharNoController.text,
+                    'aadhar_file': aadharFile?.path,
+                    'pan_number': _panNoController.text,
+                    'pan_file': panFile?.path,
+                    'dl_number': _licenseNoController.text,
+                    'dl_expiry': _licenseExpiryController.text,
+                    'dl_file': licenseFile?.path,
+                    'badge_number': _badgeNoController.text,
+                    'badge_expiry': _badgeExpiryController.text,
+                    'badge_file': badgeFile?.path,
+                    'passbook_file': passbookFile?.path,
+                    'photo_file': photoFile?.path,
+                  };
+
+                  final success = await _controller.addStaff(data);
+                  if (success) {
+                    Get.back();
+                    Get.snackbar('Success', 'Staff added successfully', backgroundColor: AppColors.successColor, colorText: Colors.white);
+                  }
+                }
+              },
+            )),
             const SizedBox(height: 12),
             AppButton.outline(
               text: 'Cancel',
@@ -276,8 +322,9 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildSalaryTypeToggle() {
     return Column(

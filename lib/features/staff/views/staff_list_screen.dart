@@ -56,16 +56,30 @@ class StaffListScreen extends GetView<StaffController> {
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
-              if (controller.filteredStaff.isEmpty) {
-                return const Center(child: AppText('No staff members found', style: AppTextStyle.body));
+              if (controller.isLoading.value && controller.staffList.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                itemCount: controller.filteredStaff.length,
-                itemBuilder: (context, index) {
-                  final staff = controller.filteredStaff[index];
-                  return _StaffCard(staff: staff);
-                },
+              if (controller.filteredStaff.isEmpty) {
+                return RefreshIndicator(
+                  onRefresh: () => controller.fetchStaff(),
+                  child: ListView(
+                    children: const [
+                      SizedBox(height: 100),
+                      Center(child: AppText('No staff members found', style: AppTextStyle.body)),
+                    ],
+                  ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchStaff(),
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  itemCount: controller.filteredStaff.length,
+                  itemBuilder: (context, index) {
+                    final staff = controller.filteredStaff[index];
+                    return _StaffCard(staff: staff);
+                  },
+                ),
               );
             }),
           ),

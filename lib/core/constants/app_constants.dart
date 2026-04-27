@@ -61,4 +61,11 @@ class AppConstants {
     static String searchRoutesUrl(String query) => '/api/v1/routes/search?query=$query';
     static String updateRouteUrl(dynamic id) => '/api/v1/routes/$id';
     static String getRouteByIdUrl(dynamic id) => '/api/v1/routes/$id';
+
+    // Staff Endpoints
+    static const String staffUrl = '/api/v1/staff';
+    static const String getStaffUrl = '/api/v1/staff';
+    static const String createStaffUrl = '/api/v1/staff';
+    static String updateStaffUrl(dynamic id) => '/api/v1/staff/$id';
+    static String getStaffDetailsUrl(dynamic id) => '/api/v1/staff/$id';
 }

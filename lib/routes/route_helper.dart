@@ -62,6 +62,7 @@ import '../features/staff/views/staff_documents_screen.dart';
 import '../features/staff/views/driver_license_tracker_screen.dart';
 import '../features/staff/views/staff_performance_screen.dart';
 import '../features/staff/controllers/staff_controller.dart';
+import '../features/staff/bindings/attendance_binding.dart';
 import '../features/corporate/views/company_list_screen.dart';
 import '../features/corporate/views/create_corporate_contract_screen.dart';
 import '../features/corporate/views/contract_details_screen.dart';
@@ -483,6 +484,7 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.attendance,
       page: () => const AttendanceScreen(),
+      binding: AttendanceBinding(),
     ),
     GetPage(
       name: AppRoutes.attendanceHistory,

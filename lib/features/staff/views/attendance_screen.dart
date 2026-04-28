@@ -7,11 +7,11 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
-import '../controllers/staff_controller.dart';
-import '../domain/models/staff_model.dart';
+import '../controllers/attendance_controller.dart';
+import '../domain/models/attendance_model.dart';
 import '../../../routes/route_helper.dart';
 
-class AttendanceScreen extends GetView<StaffController> {
+class AttendanceScreen extends GetView<AttendanceController> {
   const AttendanceScreen({Key? key}) : super(key: key);
 
   @override
@@ -34,31 +34,62 @@ class AttendanceScreen extends GetView<StaffController> {
           Obx(() => _buildDatePicker()),
           Expanded(
             child: Obx(() {
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: controller.staffList.length,
-                itemBuilder: (context, index) {
-                  final staff = controller.staffList[index];
-                  return _StaffAttendanceRow(staff: staff);
-                },
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                );
+              }
+
+              if (controller.attendanceList.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Iconsax.user,
+                        size: 64,
+                        color: AppColors.textColorSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      const AppText(
+                        'No staff found for this date',
+                        style: AppTextStyle.body,
+                        color: AppColors.textColorSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      AppButton(
+                        text: 'Refresh',
+                        onPressed: () => controller.refreshAttendance(),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => controller.refreshAttendance(),
+                color: AppColors.primaryColor,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: controller.attendanceList.length,
+                  itemBuilder: (context, index) {
+                    final staff = controller.attendanceList[index];
+                    return _StaffAttendanceRow(staff: staff);
+                  },
+                ),
               );
             }),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: AppButton(
+            child: Obx(() => AppButton(
               text: 'Save Attendance',
-              onPressed: () {
-                Get.snackbar(
-                  'Success',
-                  'Attendance for ${_getFormattedDate(controller.selectedDate.value)} saved!',
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-                Get.back();
-              },
-            ),
+              isLoading: controller.isLoading.value,
+              onPressed: controller.isLoading.value ? null : () => controller.saveAttendance(),
+            )),
           ),
         ],
       ),
@@ -103,8 +134,8 @@ class AttendanceScreen extends GetView<StaffController> {
   }
 }
 
-class _StaffAttendanceRow extends GetView<StaffController> {
-  final StaffModel staff;
+class _StaffAttendanceRow extends GetView<AttendanceController> {
+  final AttendanceModel staff;
   const _StaffAttendanceRow({required this.staff});
 
   @override
@@ -130,7 +161,23 @@ class _StaffAttendanceRow extends GetView<StaffController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
-                      AppText(staff.role.name.capitalizeFirst!, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                      AppText(staff.displayRole, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                      if (staff.attendance != null && staff.attendance!.inTime != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Row(
+                            children: [
+                              const Icon(Iconsax.clock, size: 12, color: AppColors.textColorSecondary),
+                              const SizedBox(width: 4),
+                              AppText(
+                                'In: ${staff.attendance!.inTime} ${staff.attendance!.outTime != null ? "• Out: ${staff.attendance!.outTime}" : ""}',
+                                style: AppTextStyle.caption,
+                                fontSize: 11,
+                                color: AppColors.textColorSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

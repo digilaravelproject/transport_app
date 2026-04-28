@@ -1,3 +1,4 @@
+import 'package:credit_debit/features/routes_management/views/assign_route_driver_screen.dart';
 import 'package:get/get.dart';
 import '../features/auth/views/login_screen.dart';
 import '../features/auth/views/signup_screen.dart';
@@ -61,6 +62,8 @@ import '../features/staff/views/staff_documents_screen.dart';
 import '../features/staff/views/driver_license_tracker_screen.dart';
 import '../features/staff/views/staff_performance_screen.dart';
 import '../features/staff/controllers/staff_controller.dart';
+import '../features/staff/bindings/attendance_binding.dart';
+import '../features/staff/bindings/attendance_history_binding.dart';
 import '../features/corporate/views/company_list_screen.dart';
 import '../features/corporate/views/create_corporate_contract_screen.dart';
 import '../features/corporate/views/contract_details_screen.dart';
@@ -221,6 +224,7 @@ class RouteHelper {
   static String getCreateRouteRoute() => AppRoutes.createRoute;
   static String getRouteDetailsRoute() => AppRoutes.routeDetails;
   static String getAssignRouteRoute() => AppRoutes.assignRoute;
+  static String getAssignRouteDriver() => AppRoutes.assignRouteDriver;
 
   // Reports
   static String getReportsDashboardRoute() => AppRoutes.reportsDashboard;
@@ -481,10 +485,12 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.attendance,
       page: () => const AttendanceScreen(),
+      binding: AttendanceBinding(),
     ),
     GetPage(
       name: AppRoutes.attendanceHistory,
       page: () => const AttendanceHistoryScreen(),
+      binding: AttendanceHistoryBinding(),
     ),
     GetPage(
       name: AppRoutes.dutyHours,
@@ -667,7 +673,12 @@ class RouteHelper {
       page: () => const AssignRouteScreen(),
       transition: Transition.downToUp,
     ),
-    
+    GetPage(
+      name: AppRoutes.assignRouteDriver,
+      page: () => const AssignRouteDriverScreen(),
+      transition: Transition.downToUp,
+    ),
+
     // Reports
     GetPage(
       name: AppRoutes.reportsDashboard,

@@ -35,9 +35,28 @@ class ShiftListScreen extends GetView<ShiftController> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: AppSearchBar(
-              hint: 'Search shifts...',
-              onChanged: (v) => controller.updateSearch(v),
+            child: Row(
+              children: [
+                Expanded(
+                  child: AppSearchBar(
+                    hint: 'Search shifts...',
+                    onChanged: (v) => controller.updateSearch(v),
+                  ),
+                ),
+                Obx(() => controller.isSearchLoading.value
+                    ? Container(
+                        margin: const EdgeInsets.only(left: 12),
+                        child: const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink()),
+              ],
             ),
           ),
           SingleChildScrollView(

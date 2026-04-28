@@ -7,6 +7,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/shift_controller.dart';
 import '../domain/models/shift_model.dart';
 import '../../../routes/route_helper.dart';
@@ -66,7 +67,17 @@ class ShiftDetailsScreen extends GetView<ShiftController> {
           padding: const EdgeInsets.all(20),
           child: AppButton(
             text: 'Assign Drivers',
-            onPressed: () => Get.toNamed(RouteHelper.getAssignDriverToShiftRoute()),
+            onPressed: () {
+              final shift = controller.currentShift.value;
+              if (shift != null && shift.id != null) {
+                Get.toNamed(
+                  RouteHelper.getAssignDriverToShiftRoute(),
+                  arguments: shift.id,
+                );
+              } else {
+                CustomSnackbar.showError('Shift ID not found');
+              }
+            },
           ),
         ),
       ),
@@ -221,9 +232,7 @@ class ShiftDetailsScreen extends GetView<ShiftController> {
                             ),
                             IconButton(
                               icon: const Icon(Icons.cancel_outlined, color: AppColors.errorColor),
-                              onPressed: () {
-                                // TODO: Implement remove driver functionality
-                              },
+                              onPressed: () => _showRemoveDriverDialog(context, displayShift, driver),
                             ),
                           ],
                         ),
@@ -255,6 +264,103 @@ class ShiftDetailsScreen extends GetView<ShiftController> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showRemoveDriverDialog(BuildContext context, ShiftModel shift, DriverModel driver) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.errorColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_remove,
+                  color: AppColors.errorColor,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: AppText(
+                  'Remove Driver',
+                  style: AppTextStyle.subheading,
+                  fontSize: 18,
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppText(
+                'Are you sure you want to remove this driver from the shift?',
+                style: AppTextStyle.body,
+                color: AppColors.textColorPrimary,
+              ),
+              const SizedBox(height: 8),
+              AppText(
+                '"${driver.name}"',
+                style: AppTextStyle.body,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryColor,
+              ),
+              const SizedBox(height: 12),
+              AppText(
+                'The driver will no longer be assigned to this shift.',
+                style: AppTextStyle.caption,
+                color: AppColors.textColorSecondary,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
+              child: AppText(
+                'Cancel',
+                style: AppTextStyle.body,
+                color: AppColors.textColorSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Get.back(); // Close dialog first
+                
+                if (shift.id != null && driver.id != null) {
+                  await controller.removeDriverFromShift(shift.id!, driver.id!);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorColor,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const AppText(
+                'Remove',
+                style: AppTextStyle.body,
+                color: AppColors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -4,8 +4,12 @@ import 'dart:convert';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import '../domain/models/route_model.dart';
+import '../domain/models/vehicle_model.dart';
+import '../domain/repositories/vehicle_repository.dart';
+import '../domain/services/vehicle_service.dart';
 
 class RouteController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
@@ -18,6 +22,17 @@ class RouteController extends GetxController {
   
   final Rxn<RouteModel> selectedRouteDetails = Rxn<RouteModel>();
 
+  // Vehicle-related observables
+  final RxList<VehicleModel> _vehicles = <VehicleModel>[].obs;
+  final RxString vehicleSearchQuery = ''.obs;
+  final RxBool isVehiclesLoading = false.obs;
+  final Rxn<VehicleModel> selectedVehicle = Rxn<VehicleModel>();
+
+  // Vehicle repository and use case
+  late VehicleRepository _vehicleRepository;
+  late GetVehiclesUseCase _getVehiclesUseCase;
+  late AssignVehicleToRouteUseCase _assignVehicleToRouteUseCase;
+
   // Controllers for Route Creation/Calculation
   final originController = TextEditingController();
   final destinationController = TextEditingController();
@@ -29,6 +44,17 @@ class RouteController extends GetxController {
   final RxList<dynamic> predictions = <dynamic>[].obs;
 
   List<RouteModel> get routes => _routes;
+  List<VehicleModel> get vehicles => _vehicles;
+  List<VehicleModel> get filteredVehicles {
+    if (vehicleSearchQuery.value.isEmpty) {
+      return _vehicles;
+    }
+    return _vehicles.where((vehicle) {
+      return vehicle.registrationNumber.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase()) ||
+             vehicle.make.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase()) ||
+             vehicle.model.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase());
+    }).toList();
+  }
 
   List<RouteModel> get filteredRoutes {
     if (searchQuery.value.isEmpty && selectedFilter.value == 'All') {
@@ -47,6 +73,92 @@ class RouteController extends GetxController {
     }).toList();
   }
 
+  void updateVehicleSearch(String query) {
+    vehicleSearchQuery.value = query;
+  }
+
+  void selectVehicle(VehicleModel vehicle) {
+    selectedVehicle.value = vehicle;
+  }
+
+  void clearVehicleSelection() {
+    selectedVehicle.value = null;
+  }
+
+  Future<void> loadVehicles() async {
+    try {
+      print('=== Loading vehicles ===');
+      isVehiclesLoading.value = true;
+
+      final response = await _getVehiclesUseCase.call();
+
+      print('Vehicle API response - Success: ${response.isSuccess}');
+      print('Vehicle API response - Message: ${response.message}');
+
+      if (response.isSuccess && response.body != null) {
+        final vehicles = response.body as List<VehicleModel>;
+        _vehicles.assignAll(vehicles);
+        print('Successfully loaded ${vehicles.length} vehicles');
+        
+        // Print vehicle details for debugging
+        for (var vehicle in vehicles) {
+          print('Vehicle: ${vehicle.registrationNumber} - ${vehicle.make} ${vehicle.model} (${vehicle.seatingCapacity} seater)');
+        }
+      } else {
+        _vehicles.clear();
+        print('Failed to load vehicles: ${response.message}');
+      }
+    } catch (e) {
+      print('ERROR loading vehicles: $e');
+      _vehicles.clear();
+    } finally {
+      isVehiclesLoading.value = false;
+      print('=== Finished loading vehicles ===');
+    }
+  }
+
+  Future<void> refreshVehicles() async {
+    await loadVehicles();
+  }
+
+  Future<void> assignVehicleToRoute(int routeId, int vehicleId) async {
+    try {
+      isLoading.value = true;
+      
+      print('Assigning vehicle $vehicleId to route $routeId');
+      
+      final response = await _assignVehicleToRouteUseCase.call(
+        routeId: routeId,
+        vehicleId: vehicleId,
+      );
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Vehicle assigned successfully');
+        clearVehicleSelection();
+        
+        // Refresh routes to show updated assignments
+        await fetchRoutes();
+        
+        // Also refresh route details if we have a selected route
+        if (selectedRouteDetails.value != null) {
+          await fetchRouteDetails(routeId);
+        }
+        
+        // Navigate back after showing success message
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Get.back();
+        });
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to assign vehicle');
+      }
+      
+    } catch (e) {
+      print('Error assigning vehicle: $e');
+      CustomSnackbar.showError('Error assigning vehicle: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
   void updateSearch(String query) {
     searchQuery.value = query;
     if (query.isNotEmpty) {
@@ -289,6 +401,10 @@ class RouteController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _vehicleRepository = VehicleRepositoryImpl(ApiClient());
+    _getVehiclesUseCase = GetVehiclesUseCase(_vehicleRepository);
+    _assignVehicleToRouteUseCase = AssignVehicleToRouteUseCase(_vehicleRepository);
     fetchRoutes();
+    loadVehicles();
   }
 }

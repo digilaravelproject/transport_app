@@ -82,9 +82,9 @@ class AttendanceController extends GetxController {
         return 'Present';
       case 'absent':
         return 'Absent';
-      case 'half_day':
-      case 'halfday':
-      case 'half day':
+      case 'half':
+    //  case 'halfday':
+    //  case 'half day':
         return 'Half Day';
       default:
         return '';
@@ -99,7 +99,7 @@ class AttendanceController extends GetxController {
       case 'Absent':
         return 'absent';
       case 'Half Day':
-        return 'half_day';
+        return 'half';
       default:
         return '';
     }
@@ -179,7 +179,7 @@ class AttendanceController extends GetxController {
         
         // Navigate back after showing success message
         Future.delayed(const Duration(milliseconds: 500), () {
-          Get.back();
+         // Get.back();
         });
       } else {
         CustomSnackbar.showError(

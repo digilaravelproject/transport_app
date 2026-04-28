@@ -4,44 +4,93 @@ import 'package:iconsax/iconsax.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
-import '../controllers/staff_controller.dart';
+import '../controllers/attendance_history_controller.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_search_bar.dart';
-import '../domain/models/staff_model.dart';
 
-class AttendanceHistoryScreen extends GetView<StaffController> {
+class AttendanceHistoryScreen extends GetView<AttendanceHistoryController> {
   const AttendanceHistoryScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
+      appBar: AppHeader(
         title: 'Attendance History',
+        trailing: IconButton(
+          icon: const Icon(Iconsax.filter),
+          onPressed: () => controller.showFilterBottomSheet(context),
+        ),
       ),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            child: AppSearchBar(
-              hint: 'Search Staff Name',
-              onChanged: (v) => controller.updateSearch(v),
+            child: Column(
+              children: [
+                AppSearchBar(
+                  hint: 'Search Staff Name',
+                  onChanged: (v) => controller.updateSearch(v),
+                ),
+                // Subtle loading indicator during search
+                Obx(() => controller.isSearching.value
+                    ? const Padding(
+                        padding: EdgeInsets.only(top: 8),
+                        child: LinearProgressIndicator(
+                          minHeight: 2,
+                          color: AppColors.primaryColor,
+                          backgroundColor: AppColors.slate100,
+                        ),
+                      )
+                    : const SizedBox.shrink()),
+              ],
             ),
           ),
           Expanded(
             child: Obx(() {
-              final query = controller.searchQuery.value.toLowerCase();
-              final records = controller.attendanceRecords
-                  .where((r) => r.staffName.toLowerCase().contains(query))
-                  .toList();
+              if (controller.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primaryColor,
+                  ),
+                );
+              }
+
+              final records = controller.flattenedRecords;
 
               if (records.isEmpty) {
-                return const Center(child: AppText('No attendance history found', style: AppTextStyle.body));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Iconsax.calendar_remove,
+                        size: 64,
+                        color: AppColors.textColorSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      AppText(
+                        controller.searchQuery.value.isNotEmpty
+                            ? 'No results found for "${controller.searchQuery.value}"'
+                            : 'No attendance history found',
+                        style: AppTextStyle.body,
+                        color: AppColors.textColorSecondary,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () => controller.refreshAttendanceHistory(),
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh'),
+                      ),
+                    ],
+                  ),
+                );
               }
 
               // Group records by date
-              final Map<String, List<AttendanceRecord>> grouped = {};
+              final Map<String, List<AttendanceRecordWithStaff>> grouped = {};
               for (var record in records) {
                 final dateKey = _getDateLabel(record.date);
                 if (!grouped.containsKey(dateKey)) grouped[dateKey] = [];
@@ -50,24 +99,35 @@ class AttendanceHistoryScreen extends GetView<StaffController> {
 
               final dateKeys = grouped.keys.toList();
 
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                itemCount: dateKeys.length,
-                itemBuilder: (context, dateIndex) {
-                  final dateLabel = dateKeys[dateIndex];
-                  final dailyRecords = grouped[dateLabel]!;
+              return RefreshIndicator(
+                onRefresh: () => controller.refreshAttendanceHistory(),
+                color: AppColors.primaryColor,
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: dateKeys.length,
+                  itemBuilder: (context, dateIndex) {
+                    final dateLabel = dateKeys[dateIndex];
+                    final dailyRecords = grouped[dateLabel]!;
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24, bottom: 12, left: 4),
-                        child: AppText(dateLabel, style: AppTextStyle.subheading, fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-                      ),
-                      ...dailyRecords.map((record) => _HistoryCard(record: record)).toList(),
-                    ],
-                  );
-                },
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 12, left: 4),
+                          child: AppText(
+                            dateLabel,
+                            style: AppTextStyle.subheading,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
+                        ),
+                        ...dailyRecords.map((record) => _HistoryCard(record: record)).toList(),
+                      ],
+                    );
+                  },
+                ),
               );
             }),
           ),
@@ -97,14 +157,18 @@ class AttendanceHistoryScreen extends GetView<StaffController> {
 }
 
 class _HistoryCard extends StatelessWidget {
-  final AttendanceRecord record;
+  final AttendanceRecordWithStaff record;
   const _HistoryCard({required this.record});
 
   @override
   Widget build(BuildContext context) {
-    final bool isAbsent = record.status == 'Absent';
-    final bool isHalfDay = record.status == 'Half Day';
-    final Color statusColor = isAbsent ? AppColors.errorColor : (isHalfDay ? AppColors.warningColor : AppColors.successColor);
+    final bool isAbsent = record.status.toLowerCase() == 'absent';
+    final bool isHalfDay = record.status.toLowerCase() == 'half' ||
+                           record.status.toLowerCase() == 'half' ||
+                           record.status.toLowerCase() == 'half';
+    final Color statusColor = isAbsent 
+        ? AppColors.errorColor 
+        : (isHalfDay ? AppColors.warningColor : AppColors.successColor);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
@@ -128,23 +192,56 @@ class _HistoryCard extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 18,
-                          backgroundColor: AppColors.slate50,
-                          child: Icon(Iconsax.user, size: 18, color: AppColors.primaryColor),
+                          backgroundColor: AppColors.primaryLight,
+                          child: AppText(
+                            record.staffName.isNotEmpty 
+                                ? record.staffName[0].toUpperCase() 
+                                : '?',
+                            style: AppTextStyle.body,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: AppText(record.staffName, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Expanded(
+                              //   child:
+                                AppText(
+                                  record.staffName,
+                                  style: AppTextStyle.body,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              //),
+                              AppText(record.staffType, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                            ],
+                          ),
                         ),
-                        _buildStatusBadge(record.status ?? 'Present', statusColor),
+                        _buildStatusBadge(record.displayStatus, statusColor),
                       ],
                     ),
                     const Divider(height: 28),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildTimeColumn('In', record.checkIn != null ? _formatTime(record.checkIn!) : '--:--', Iconsax.login_1),
-                        _buildTimeColumn('Out', record.checkOut != null ? _formatTime(record.checkOut!) : '--:--', Iconsax.logout),
-                        _buildTimeColumn('Total', '${record.totalHours}h', Iconsax.timer_1),
+                        _buildTimeColumn(
+                          'In',
+                          record.inTime != null ? _formatTime(record.inTime!) : '--:--',
+                          Iconsax.login_1,
+                        ),
+                        _buildTimeColumn(
+                          'Out',
+                          record.outTime != null ? _formatTime(record.outTime!) : '--:--',
+                          Iconsax.logout,
+                        ),
+                        _buildTimeColumn(
+                          'Total',
+                          record.displayTotalHours,
+                          Iconsax.timer_1,
+                        ),
                       ],
                     ),
                   ],
@@ -157,8 +254,17 @@ class _HistoryCard extends StatelessWidget {
     );
   }
 
-  String _formatTime(DateTime time) {
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  String _formatTime(String time) {
+    try {
+      // Time format from API: "08:01:00" or "08:01"
+      final parts = time.split(':');
+      if (parts.length >= 2) {
+        return '${parts[0]}:${parts[1]}';
+      }
+      return time;
+    } catch (e) {
+      return time;
+    }
   }
 
   Widget _buildTimeColumn(String label, String value, IconData icon) {

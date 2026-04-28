@@ -151,10 +151,23 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 24,
+                  radius: 18,
                   backgroundColor: AppColors.primaryLight,
-                  child: const Icon(Iconsax.user, size: 26, color: AppColors.primaryColor),
+                  child: AppText(
+                    staff.name.isNotEmpty
+                        ? staff.name[0].toUpperCase()
+                        : '?',
+                    style: AppTextStyle.body,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryColor,
+                  ),
                 ),
+                // CircleAvatar(
+                //   radius: 24,
+                //   backgroundColor: AppColors.primaryLight,
+                //   child: const Icon(Iconsax.user, size: 26, color: AppColors.primaryColor),
+                // ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

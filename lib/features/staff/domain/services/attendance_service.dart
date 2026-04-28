@@ -26,3 +26,29 @@ class SaveAttendanceUseCase {
     );
   }
 }
+
+class GetAttendanceHistoryUseCase {
+  final AttendanceRepository _repository;
+
+  GetAttendanceHistoryUseCase(this._repository);
+
+  Future<ResponseModel> call({
+    String? startDate,
+    String? endDate,
+  }) async {
+    return await _repository.getAttendanceHistory(
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+}
+
+class SearchAttendanceHistoryUseCase {
+  final AttendanceRepository _repository;
+
+  SearchAttendanceHistoryUseCase(this._repository);
+
+  Future<ResponseModel> call({required String query}) async {
+    return await _repository.searchAttendanceHistory(query: query);
+  }
+}

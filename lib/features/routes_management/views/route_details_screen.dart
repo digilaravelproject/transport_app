@@ -525,7 +525,8 @@ class RouteDetailsScreen extends GetView<RouteController> {
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          // TODO: Navigate to change driver screen
+                          final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
+                          Get.toNamed(RouteHelper.getAssignRouteDriver(), arguments: route);
                         },
                         icon: const Icon(Iconsax.user_edit, size: 18),
                         label: const AppText(

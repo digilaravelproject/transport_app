@@ -92,6 +92,7 @@ class AppRoutes {
   static const String routeList = '/route-list';
   static const String createRoute = '/create-route';
   static const String routeDetails = '/route-details';
+  static const String assignRouteDriver = '/assign-route-driver';
   static const String assignRoute = '/assign-route';
 
   // Reports

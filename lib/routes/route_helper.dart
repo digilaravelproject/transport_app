@@ -1,3 +1,4 @@
+import 'package:credit_debit/features/routes_management/views/assign_route_driver_screen.dart';
 import 'package:get/get.dart';
 import '../features/auth/views/login_screen.dart';
 import '../features/auth/views/signup_screen.dart';
@@ -221,6 +222,7 @@ class RouteHelper {
   static String getCreateRouteRoute() => AppRoutes.createRoute;
   static String getRouteDetailsRoute() => AppRoutes.routeDetails;
   static String getAssignRouteRoute() => AppRoutes.assignRoute;
+  static String getAssignRouteDriver() => AppRoutes.assignRouteDriver;
 
   // Reports
   static String getReportsDashboardRoute() => AppRoutes.reportsDashboard;
@@ -667,7 +669,12 @@ class RouteHelper {
       page: () => const AssignRouteScreen(),
       transition: Transition.downToUp,
     ),
-    
+    GetPage(
+      name: AppRoutes.assignRouteDriver,
+      page: () => const AssignRouteDriverScreen(),
+      transition: Transition.downToUp,
+    ),
+
     // Reports
     GetPage(
       name: AppRoutes.reportsDashboard,

@@ -160,16 +160,39 @@ class VehicleModel {
 
 class VehicleDocument {
   final int? id;
-  final String name;
-  final DateTime uploadDate;
-  final DateTime expiryDate;
+  final String type;
+  final String number;
+  final DateTime? expiryDate;
   final String fileUrl;
 
   VehicleDocument({
     this.id,
-    required this.name,
-    required this.uploadDate,
-    required this.expiryDate,
+    required this.type,
+    required this.number,
+    this.expiryDate,
     required this.fileUrl,
   });
+
+  factory VehicleDocument.fromJson(Map<String, dynamic> json) {
+    return VehicleDocument(
+      id: json['id'],
+      type: json['type'] ?? '',
+      number: json['number'] ?? '',
+      expiryDate: _parseDate(json['expiry_date']),
+      fileUrl: json['file_url'] ?? '',
+    );
+  }
+
+  static DateTime? _parseDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3 && parts[2].length == 4) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return null;
+    }
+  }
 }

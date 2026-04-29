@@ -31,8 +31,9 @@ class VehicleController extends GetxController {
   final serviceStartDate = Rxn<DateTime>();
   final serviceEndDate = Rxn<DateTime>();
 
-  final serviceHistory = <ServiceRecord>[].obs;
-  final repairHistory = <ServiceRecord>[].obs;
+  var serviceHistory = <ServiceRecord>[].obs;
+  var repairHistory = <ServiceRecord>[].obs;
+  var vehicleDocuments = <VehicleDocument>[].obs;
   final documents = <VehicleDocument>[].obs;
 
   @override
@@ -513,8 +514,23 @@ class VehicleController extends GetxController {
         final List<dynamic> data = response.body;
         repairHistory.value = data.map((e) => ServiceRecord.fromJson(e)).toList();
       }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleDocuments(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleDocumentsUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        vehicleDocuments.value = data.map((e) => VehicleDocument.fromJson(e)).toList();
+        // Also update 'documents' if it's used elsewhere
+        documents.value = vehicleDocuments;
+      }
     } catch (e) {
-      Logger.e('Error fetching repair history: $e');
+      Logger.e('Error fetching vehicle documents: $e');
     } finally {
       isLoading.value = false;
     }

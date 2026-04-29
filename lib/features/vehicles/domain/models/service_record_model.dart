@@ -20,6 +20,7 @@ class ServiceRecord {
   final double paidAmount;
   final String workshop;
   final String? billUrl;
+  final String? kmReading;
   final List<PaymentLog> payments;
 
   ServiceRecord({
@@ -30,6 +31,7 @@ class ServiceRecord {
     required this.paidAmount,
     required this.workshop,
     this.billUrl,
+    this.kmReading,
     this.payments = const [],
   });
 
@@ -41,8 +43,9 @@ class ServiceRecord {
       totalBill: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
       paidAmount: double.tryParse(json['amount_paid']?.toString() ?? '0') ?? 
                  double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-      workshop: json['workshop_name'] ?? 'Unknown Workshop',
+      workshop: json['workshop_name'] ?? json['garage_name'] ?? 'Unknown Workshop',
       billUrl: json['receipt_path'],
+      kmReading: json['km_reading']?.toString(),
     );
   }
 
@@ -52,6 +55,7 @@ class ServiceRecord {
 
   ServiceRecord copyWith({
     double? paidAmount,
+    String? kmReading,
     List<PaymentLog>? payments,
   }) {
     return ServiceRecord(
@@ -62,6 +66,7 @@ class ServiceRecord {
       paidAmount: paidAmount ?? this.paidAmount,
       workshop: workshop,
       billUrl: billUrl,
+      kmReading: kmReading ?? this.kmReading,
       payments: payments ?? this.payments,
     );
   }

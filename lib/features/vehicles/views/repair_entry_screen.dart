@@ -30,6 +30,7 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
   final TextEditingController totalBillController = TextEditingController();
   final TextEditingController paidAmountController = TextEditingController();
   final TextEditingController garageController = TextEditingController();
+  final TextEditingController kmController = TextEditingController();
   
   FilePickerResult? receiptFile;
   
@@ -118,7 +119,8 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
       'title': typeController.text,
       'amount': totalBillController.text,
       'amount_paid': paidAmountController.text,
-      'workshop_name': garageController.text,
+      'garage_name': garageController.text,
+      'km_reading': kmController.text,
     };
 
     final bool success = await controller.addRepairEntryMultipart(vehicle.id, body, receiptFile);
@@ -180,8 +182,11 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      if (mode != 'payment')
+                      if (mode != 'payment') ...[
                         _buildTextField('Garage Name', 'e.g. City Motors', garageController, errorText: garageError),
+                        const SizedBox(height: 16),
+                        _buildTextField('Kilometer Reading (Optional)', 'e.g. 45000', kmController, keyboardType: TextInputType.number),
+                      ],
                     ],
                   ),
                 ),

@@ -333,7 +333,7 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController textController, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, TextEditingController textController, {TextInputType? keyboardType, String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -345,15 +345,20 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
+            errorText: errorText,
             filled: true,
             fillColor: AppColors.slate50,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.slate200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.primaryColor),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

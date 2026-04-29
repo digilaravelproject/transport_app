@@ -10,6 +10,7 @@ class UploadBox extends StatelessWidget {
   final String label;
   final String? fileName;
   final String? previewUrl;
+  final String? remoteUrl;
   final String? localPath;
   final VoidCallback onTap;
   final bool isUploaded;
@@ -19,6 +20,7 @@ class UploadBox extends StatelessWidget {
     required this.label,
     this.fileName,
     this.previewUrl,
+    this.remoteUrl,
     this.localPath,
     required this.onTap,
     this.isUploaded = false,
@@ -32,15 +34,16 @@ class UploadBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isImageFile = _isImage(localPath ?? previewUrl);
+    final String? effectiveUrl = remoteUrl ?? previewUrl;
+    final bool isImageFile = _isImage(localPath ?? effectiveUrl);
     
     return InkWell(
-      onTap: isUploaded && (previewUrl != null || localPath != null)
+      onTap: isUploaded && (effectiveUrl != null || localPath != null)
           ? () {
               if (isImageFile) {
                 AppImagePreview.show(
                   context,
-                  imageUrl: previewUrl,
+                  imageUrl: effectiveUrl,
                   imagePath: localPath,
                   title: label,
                 );
@@ -62,7 +65,7 @@ class UploadBox extends StatelessWidget {
             style: BorderStyle.solid,
           ),
         ),
-        child: isUploaded && (previewUrl != null || localPath != null)
+        child: isUploaded && (effectiveUrl != null || localPath != null)
             ? Row(
                 children: [
                    Container(
@@ -76,7 +79,7 @@ class UploadBox extends StatelessWidget {
                           ? DecorationImage(
                               image: localPath != null
                                   ? FileImage(File(localPath!)) as ImageProvider
-                                  : NetworkImage(previewUrl!),
+                                  : NetworkImage(effectiveUrl!),
                               fit: BoxFit.cover,
                             )
                           : null,

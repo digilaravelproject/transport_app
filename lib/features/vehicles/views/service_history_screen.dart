@@ -9,14 +9,33 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/service_record_model.dart';
 
-class ServiceHistoryScreen extends GetView<VehicleController> {
+class ServiceHistoryScreen extends StatefulWidget {
   const ServiceHistoryScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  State<ServiceHistoryScreen> createState() => _ServiceHistoryScreenState();
+}
+
+class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+
+  @override
+  void initState() {
+    super.initState();
     final dynamic args = Get.arguments;
-    final VehicleModel vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+    vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+    
+    // Fetch fresh data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchServiceHistory(vehicle.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
 
     return AppScaffold(
       appBar: AppHeader(

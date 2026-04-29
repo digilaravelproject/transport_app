@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/service_record_model.dart';
 import '../domain/models/fuel_entry_model.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/constants/app_constants.dart';
@@ -434,8 +435,86 @@ class VehicleController extends GetxController {
         final List<dynamic> data = response.body;
         fuelHistory.value = data.map((e) => FuelEntryModel.fromJson(e)).toList();
       }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Service Methods
+  Future<bool> addServiceEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? billFile) async {
+    isLoading.value = true;
+    try {
+      final List<MultipartDocument> otherFile = [];
+      if (billFile != null && billFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt', billFile.files.first));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleServiceUrl(vehicleId),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchServiceHistory(vehicleId);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchServiceHistory(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleServiceUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        serviceHistory.value = data.map((e) => ServiceRecord.fromJson(e)).toList();
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Repair Methods
+  Future<bool> addRepairEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? billFile) async {
+    isLoading.value = true;
+    try {
+      final List<MultipartDocument> otherFile = [];
+      if (billFile != null && billFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt', billFile.files.first));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleRepairUrl(vehicleId),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchRepairHistory(vehicleId);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchRepairHistory(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleRepairUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        repairHistory.value = data.map((e) => ServiceRecord.fromJson(e)).toList();
+      }
     } catch (e) {
-      Logger.e('Error fetching fuel history: $e');
+      Logger.e('Error fetching repair history: $e');
     } finally {
       isLoading.value = false;
     }

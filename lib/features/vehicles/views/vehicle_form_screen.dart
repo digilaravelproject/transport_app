@@ -60,7 +60,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     
     if (isEdit) {
       _fillForm(vehicle!);
-      _loadVehicleDetails();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _loadVehicleDetails();
+      });
     }
   }
 

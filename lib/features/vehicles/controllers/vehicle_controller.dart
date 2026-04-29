@@ -178,8 +178,8 @@ class VehicleController extends GetxController {
 
   void _loadMockMaintenance() {
     fuelHistory.value = [
-      FuelEntry(date: DateTime.now().subtract(const Duration(days: 2)), amount: 4500, quantity: 45.5, station: 'Reliance Petrol Pump'),
-      FuelEntry(date: DateTime.now().subtract(const Duration(days: 10)), amount: 5200, quantity: 50.2, station: 'HP Fuel Station'),
+      FuelEntryModel(vehicleId: 0, date: DateTime.now().subtract(const Duration(days: 2)), amount: 4500, quantity: 45.5, station: 'Reliance Petrol Pump', pricePerUnit: 98.9),
+      FuelEntryModel(vehicleId: 0, date: DateTime.now().subtract(const Duration(days: 10)), amount: 5200, quantity: 50.2, station: 'HP Fuel Station', pricePerUnit: 103.5),
     ];
 
     serviceHistory.value = [

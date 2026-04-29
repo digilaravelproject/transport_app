@@ -9,7 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
 class FuelEntryScreen extends StatefulWidget {
@@ -26,7 +26,7 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
   final TextEditingController _stationController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   late VehicleModel vehicle;
-  XFile? receiptImage;
+  FilePickerResult? receiptFile;
 
   @override
   void initState() {
@@ -34,23 +34,40 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     vehicle = Get.arguments as VehicleModel;
   }
 
-  Future<void> _pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() => receiptImage = image);
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+    );
+    if (result != null) {
+      setState(() => receiptFile = result);
     }
   }
 
   Future<void> _saveFuelEntry() async {
-    if (_amountController.text.isEmpty || _quantityController.text.isEmpty) {
-      Get.snackbar('Error', 'Please fill required fields', snackPosition: SnackPosition.BOTTOM);
+    // Validation
+    if (_amountController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter fuel amount', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    if (_quantityController.text.isEmpty) {
+      Get.snackbar('Error', 'Please enter fuel quantity', snackPosition: SnackPosition.BOTTOM);
       return;
     }
 
-    final double amount = double.tryParse(_amountController.text) ?? 0;
-    final double quantity = double.tryParse(_quantityController.text) ?? 0;
-    final double pricePerUnit = quantity > 0 ? amount / quantity : 0;
+    final double? amount = double.tryParse(_amountController.text);
+    if (amount == null || amount <= 0) {
+      Get.snackbar('Error', 'Invalid amount', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    final double? quantity = double.tryParse(_quantityController.text);
+    if (quantity == null || quantity <= 0) {
+      Get.snackbar('Error', 'Invalid quantity', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    final double pricePerUnit = amount / quantity;
 
     final Map<String, String> body = {
       'activity_date': '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
@@ -60,7 +77,7 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
       'station_name': _stationController.text,
     };
 
-    final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptImage);
+    final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptFile);
     if (success) {
       Get.back();
       Get.snackbar('Success', 'Fuel entry saved successfully', 
@@ -86,9 +103,9 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                     children: [
                       _buildDateField(),
                       const SizedBox(height: 16),
-                      _buildTextField('Fuel Amount (₹)', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number),
+                      _buildTextField('Fuel Amount (₹) *', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number),
                       const SizedBox(height: 16),
-                      _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number),
+                      _buildTextField('Quantity (Ltrs) *', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number),
                       const SizedBox(height: 16),
                       _buildTextField('Station Name', 'e.g. HP Petrol Pump', controller: _stationController),
                     ],
@@ -96,9 +113,9 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                 ),
                 const SizedBox(height: 24),
                 
-                // Image Upload & Preview
+                // File Upload & Preview
                 InkWell(
-                  onTap: _pickImage,
+                  onTap: _pickFile,
                   child: Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -106,29 +123,26 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.slate200),
                     ),
-                    child: receiptImage != null 
+                    child: receiptFile != null 
                       ? Column(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(File(receiptImage!.path), height: 150, width: double.infinity, fit: BoxFit.cover),
-                            ),
+                            _buildFilePreview(),
                             const SizedBox(height: 12),
                             const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Iconsax.edit, size: 16, color: AppColors.primaryColor),
                                 SizedBox(width: 8),
-                                AppText('Change Photo', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                                AppText('Change Document', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
                               ],
                             ),
                           ],
                         )
                       : const Row(
                           children: [
-                            Icon(Iconsax.camera, color: AppColors.primaryColor),
+                            Icon(Iconsax.document_upload, color: AppColors.primaryColor),
                             SizedBox(width: 12),
-                            AppText('Upload Receipt Photo', style: AppTextStyle.body),
+                            AppText('Upload Receipt (Optional)', style: AppTextStyle.body),
                           ],
                         ),
                   ),
@@ -150,6 +164,47 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
         ],
       )),
     );
+  }
+
+  Widget _buildFilePreview() {
+    final file = receiptFile!.files.first;
+    final isImage = ['jpg', 'jpeg', 'png'].contains(file.extension?.toLowerCase());
+
+    if (isImage && file.path != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(File(file.path!), height: 150, width: double.infinity, fit: BoxFit.cover),
+      );
+    } else {
+      return Container(
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.slate200),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              file.extension?.toLowerCase() == 'pdf' ? Iconsax.document_text5 : Iconsax.document_code5,
+              color: AppColors.primaryColor,
+              size: 32,
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: AppText(
+                file.name,
+                style: AppTextStyle.body,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   Widget _buildDateField() {

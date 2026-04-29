@@ -7,7 +7,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../core/services/network/multipart.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:file_picker/file_picker.dart';
 
 class VehicleController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
@@ -394,19 +394,19 @@ class VehicleController extends GetxController {
     }
   }
 
-  Future<bool> addFuelEntryMultipart(dynamic vehicleId, Map<String, String> body, XFile? receiptFile) async {
+  Future<bool> addFuelEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? receiptFile) async {
     isLoading.value = true;
     try {
-      final List<MultipartBody> multipartBody = [];
+      final List<MultipartDocument> otherFile = [];
       if (receiptFile != null) {
-        multipartBody.add(MultipartBody('receipt_path', receiptFile));
+        otherFile.add(MultipartDocument('receipt_path', receiptFile));
       }
 
       final response = await _apiClient.postMultipartData(
         AppConstants.vehicleFuelUrl(vehicleId),
         body,
-        multipartBody,
         [],
+        otherFile,
       );
       
       if (response.isSuccess) {

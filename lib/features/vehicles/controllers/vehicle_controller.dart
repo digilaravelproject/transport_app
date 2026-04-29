@@ -4,6 +4,7 @@ import '../domain/models/vehicle_model.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 class VehicleController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
@@ -99,6 +100,77 @@ class VehicleController extends GetxController {
       }
     } catch (e) {
       Logger.e('Error fetching vehicle stats: $e');
+    }
+  }
+
+  Future<bool> addVehicle(Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(
+        AppConstants.vehiclesUrl,
+        data: data,
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Vehicle added successfully');
+        fetchVehicles();
+        fetchVehicleStats();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      Logger.e('Error adding vehicle: $e');
+      CustomSnackbar.showError('Something went wrong');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateVehicle(dynamic id, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.put(
+        AppConstants.updateVehicleUrl(id),
+        data: data,
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Vehicle updated successfully');
+        fetchVehicles();
+        fetchVehicleStats();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      Logger.e('Error updating vehicle: $e');
+      CustomSnackbar.showError('Something went wrong');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<VehicleModel?> fetchVehicleDetails(dynamic id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.updateVehicleUrl(id));
+      if (response.isSuccess && response.body != null) {
+        final data = response.body;
+        if (data['vehicle'] != null) {
+          return VehicleModel.fromJson(data['vehicle']);
+        }
+      }
+      return null;
+    } catch (e) {
+      Logger.e('Error fetching vehicle details: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
     }
   }
 

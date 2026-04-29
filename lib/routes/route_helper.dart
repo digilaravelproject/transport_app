@@ -33,9 +33,8 @@ import '../features/trips/views/trip_status_update_screen.dart';
 import '../features/trips/views/trip_summary_screen.dart';
 import '../features/trips/controllers/trip_controller.dart';
 import '../features/vehicles/views/vehicle_list_screen.dart';
-import '../features/vehicles/views/add_vehicle_screen.dart';
+import '../features/vehicles/views/vehicle_form_screen.dart';
 import '../features/vehicles/views/vehicle_details_screen.dart';
-import '../features/vehicles/views/edit_vehicle_screen.dart';
 import '../features/vehicles/views/vehicle_documents_screen.dart';
 import '../features/vehicles/views/fuel_entry_screen.dart';
 import '../features/vehicles/views/fuel_history_screen.dart';
@@ -414,7 +413,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.addVehicle,
-      page: () => const AddVehicleScreen(),
+      page: () => const VehicleFormScreen(),
     ),
     GetPage(
       name: AppRoutes.vehicleDetails,
@@ -422,7 +421,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.editVehicle,
-      page: () => const EditVehicleScreen(),
+      page: () => const VehicleFormScreen(),
     ),
     GetPage(
       name: AppRoutes.vehicleDocuments,

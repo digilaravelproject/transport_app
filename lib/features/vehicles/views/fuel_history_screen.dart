@@ -66,42 +66,53 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
   }
 
   Widget _buildSummaryCard() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppColors.primaryColor, AppColors.primaryColor.withOpacity(0.8)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return Obx(() {
+      final total = controller.fuelHistory.fold(0.0, (sum, item) => sum + item.amount);
+      final avg = controller.fuelHistory.isEmpty ? 0.0 : total / controller.fuelHistory.fold(0.0, (sum, item) => sum + item.quantity);
+      
+      // Calculate monthly cost (current month)
+      final now = DateTime.now();
+      final monthly = controller.fuelHistory
+          .where((e) => e.date.month == now.month && e.date.year == now.year)
+          .fold(0.0, (sum, item) => sum + item.amount);
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppColors.primaryColor, AppColors.primaryColor.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryColor.withOpacity(0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryColor.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const AppText('Total Fuel Expense', style: AppTextStyle.caption, color: Colors.white70),
-          const SizedBox(height: 4),
-          const AppText('₹ 45,850.00', style: AppTextStyle.heading, fontSize: 24, color: AppColors.white),
-          const Divider(height: 32, color: Colors.white24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSummaryStat('Monthly Cost', '₹ 12,400'),
-              _buildSummaryStat('Avg / Ltr', '₹ 94.5'),
-            ],
-          ),
-        ],
-      ),
-    );
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const AppText('Total Fuel Expense', style: AppTextStyle.caption, color: Colors.white70),
+            const SizedBox(height: 4),
+            AppText('₹ ${total.toStringAsFixed(2)}', style: AppTextStyle.heading, fontSize: 24, color: AppColors.white),
+            const Divider(height: 32, color: Colors.white24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSummaryStat('Monthly Cost', '₹ ${monthly.toStringAsFixed(0)}'),
+                _buildSummaryStat('Avg / Ltr', '₹ ${avg.toStringAsFixed(1)}'),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildSummaryStat(String label, String value) {

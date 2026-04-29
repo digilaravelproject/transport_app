@@ -58,30 +58,33 @@ class VehicleModel {
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
+    // Some APIs wrap the object in a 'data' or 'vehicle' key
+    final Map<String, dynamic> data = json.containsKey('data') ? json['data'] : (json.containsKey('vehicle') ? json['vehicle'] : json);
+    
     return VehicleModel(
-      id: json['id'],
-      vehicleNumber: json['registration_number'] ?? '',
-      type: json['type'] ?? '',
-      capacity: json['seating_capacity'] ?? 0,
-      modelYear: json['model_year'],
-      year: (json['model_year'] ?? '').toString(),
-      model: (json['model'] ?? '').toString(),
-      perKmPrice: double.tryParse(json['per_km_price']?.toString() ?? '0') ?? 0.0,
-      acPricePerKm: double.tryParse(json['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
-      rcNumber: json['rc_number'],
-      rcExpiry: _parseDate(json['rc_expiry']),
-      rcFileUrl: json['rc_file_url'],
-      insuranceNumber: json['insurance_number'],
-      insuranceExpiry: _parseDate(json['insurance_expiry']),
-      insuranceFileUrl: json['insurance_file_url'],
-      permitNumber: json['permit_number'],
-      permitExpiry: _parseDate(json['permit_expiry']),
-      permitFileUrl: json['permit_file_url'],
-      isAvailable: json['is_available'] ?? true,
-      isActive: json['is_active'] ?? true,
-      tripsCount: json['trips_count'] ?? 0,
-      createdAt: _parseDate(json['created_at']),
-      status: json['is_active'] == true ? VehicleStatus.active : VehicleStatus.inactive,
+      id: data['id'] ?? data['vehicle_id'],
+      vehicleNumber: data['registration_number'] ?? '',
+      type: data['type'] ?? '',
+      capacity: data['seating_capacity'] ?? 0,
+      modelYear: data['model_year'],
+      year: (data['model_year'] ?? '').toString(),
+      model: (data['model'] ?? '').toString(),
+      perKmPrice: double.tryParse(data['per_km_price']?.toString() ?? '0') ?? 0.0,
+      acPricePerKm: double.tryParse(data['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
+      rcNumber: data['rc_number'],
+      rcExpiry: _parseDate(data['rc_expiry']),
+      rcFileUrl: data['rc_file_url'],
+      insuranceNumber: data['insurance_number'],
+      insuranceExpiry: _parseDate(data['insurance_expiry']),
+      insuranceFileUrl: data['insurance_file_url'],
+      permitNumber: data['permit_number'],
+      permitExpiry: _parseDate(data['permit_expiry']),
+      permitFileUrl: data['permit_file_url'],
+      isAvailable: data['is_available'] ?? true,
+      isActive: data['is_active'] ?? true,
+      tripsCount: data['trips_count'] ?? 0,
+      createdAt: _parseDate(data['created_at']),
+      status: data['is_active'] == true ? VehicleStatus.active : VehicleStatus.inactive,
     );
   }
 

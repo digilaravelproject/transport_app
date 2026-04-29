@@ -45,7 +45,10 @@ class UploadBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String? effectiveUrl = remoteUrl ?? previewUrl;
-    final bool isImageFile = _isImage(localPath ?? effectiveUrl);
+    final String? pathToCheck = localPath ?? effectiveUrl;
+    final bool isImageFile = _isImage(pathToCheck);
+    
+    debugPrint('[UploadBox] label: $label, path: $pathToCheck, isImage: $isImageFile');
     
     return InkWell(
       onTap: isUploaded && (effectiveUrl != null || localPath != null)

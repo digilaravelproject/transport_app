@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
 import '../domain/models/service_record_model.dart';
 import '../domain/models/fuel_entry_model.dart';
+import '../domain/models/timeline_record_model.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
@@ -34,6 +35,7 @@ class VehicleController extends GetxController {
   var serviceHistory = <ServiceRecord>[].obs;
   var repairHistory = <ServiceRecord>[].obs;
   var vehicleDocuments = <VehicleDocument>[].obs;
+  var timelineHistory = <TimelineRecord>[].obs;
   final documents = <VehicleDocument>[].obs;
 
   @override
@@ -529,8 +531,21 @@ class VehicleController extends GetxController {
         // Also update 'documents' if it's used elsewhere
         documents.value = vehicleDocuments;
       }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleTimeline(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleTimelineUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        timelineHistory.value = data.map((e) => TimelineRecord.fromJson(e)).toList();
+      }
     } catch (e) {
-      Logger.e('Error fetching vehicle documents: $e');
+      Logger.e('Error fetching vehicle timeline: $e');
     } finally {
       isLoading.value = false;
     }

@@ -81,4 +81,5 @@ class AppConstants {
     static String vehicleServiceUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/service';
     static String vehicleRepairUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/repair';
     static String vehicleDocumentsUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/documents';
+    static String vehicleTimelineUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/timeline';
 }

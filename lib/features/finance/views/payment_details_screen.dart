@@ -11,19 +11,45 @@ import '../controllers/finance_controller.dart';
 import '../domain/models/transaction_model.dart';
 import '../../../routes/route_helper.dart';
 
-class PaymentDetailsScreen extends GetView<FinanceController> {
+class PaymentDetailsScreen extends StatefulWidget {
   const PaymentDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    if (Get.arguments == null && controller.transactions.isEmpty) {
-        return const AppScaffold(appBar: AppHeader(title: 'Payment Details'), body: Center(child: Text("No transaction selected")));
-    }
-    final TransactionModel transaction = Get.arguments ?? controller.transactions.first;
-    bool isIncome = transaction.type == 'income';
-    Color amountColor = isIncome ? AppColors.successColor : AppColors.errorColor;
-    String prefix = isIncome ? '+' : '-';
+  State<PaymentDetailsScreen> createState() => _PaymentDetailsScreenState();
+}
 
+class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> {
+  final FinanceController controller = Get.find<FinanceController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  void _loadData() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.arguments != null) {
+        if (Get.arguments is int) {
+          controller.fetchTransactionDetails(Get.arguments as int);
+        } else if (Get.arguments is String) {
+           controller.fetchTransactionDetails(int.tryParse(Get.arguments.toString()) ?? 0);
+        } else if (Get.arguments is TransactionModel) {
+           controller.fetchTransactionDetails((Get.arguments as TransactionModel).id);
+        } else {
+           // Fallback to first if somehow arguments are passed differently
+           if (controller.transactions.isNotEmpty) {
+             controller.fetchTransactionDetails(controller.transactions.first.id);
+           }
+        }
+      } else if (controller.transactions.isNotEmpty) {
+        controller.fetchTransactionDetails(controller.transactions.first.id);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Payment Details',
@@ -43,66 +69,90 @@ class PaymentDetailsScreen extends GetView<FinanceController> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: amountColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: amountColor.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
+      body: Obx(() {
+        if (controller.isDetailsLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final TransactionModel? transaction = controller.currentTransaction.value;
+        if (transaction == null) {
+          return const Center(child: AppText("No transaction found"));
+        }
+
+        bool isIncome = transaction.type == 'income';
+        Color amountColor = isIncome ? AppColors.successColor : AppColors.errorColor;
+        String prefix = isIncome ? '+' : '-';
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: amountColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                     Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: amountColor.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isIncome ? Iconsax.document_download : Iconsax.document_upload,
+                        color: amountColor,
+                        size: 32,
+                      ),
                     ),
-                    child: Icon(
-                      isIncome ? Iconsax.document_download : Iconsax.document_upload,
-                      color: amountColor,
-                      size: 32,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  AppText('Transaction Successful', style: AppTextStyle.caption, color: amountColor, fontWeight: FontWeight.bold),
-                  const SizedBox(height: 8),
-                  AppText('$prefix\u20B9 ${transaction.amount.toStringAsFixed(2)}', style: AppTextStyle.heading, fontSize: 32, color: amountColor),
-                  const SizedBox(height: 8),
-                  AppText(transaction.date.toIso8601String().substring(0, 10), style: AppTextStyle.body, color: AppColors.textColorSecondary),
-                ],
+                    const SizedBox(height: 16),
+                    AppText('Transaction Successful', style: AppTextStyle.caption, color: amountColor, fontWeight: FontWeight.bold),
+                    const SizedBox(height: 8),
+                    AppText('$prefix\u20B9 ${transaction.amount.toStringAsFixed(2)}', style: AppTextStyle.heading, fontSize: 32, color: amountColor),
+                    const SizedBox(height: 8),
+                    AppText(transaction.date.toIso8601String().substring(0, 10), style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText('Transaction Details', style: AppTextStyle.subheading),
-                  const SizedBox(height: 16),
-                  const Divider(height: 1),
-                  const SizedBox(height: 16),
-                  _buildDetailRow('Transaction ID', transaction.id),
-                  _buildDetailRow('Category', transaction.category),
-                  _buildDetailRow('Payment Method', transaction.paymentMethod),
-                  if (transaction.referenceNo != null) _buildDetailRow('Reference', transaction.referenceNo!),
-                  _buildDetailRow('Description', transaction.description),
-                ],
+              const SizedBox(height: 24),
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText('Transaction Details', style: AppTextStyle.subheading),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
+                    _buildDetailRow('Category', transaction.category),
+                    _buildDetailRow('Payment Method', transaction.paymentMethod),
+                    if (transaction.referenceNo != null) _buildDetailRow('Reference', transaction.referenceNo!),
+                    _buildDetailRow('Description', transaction.description),
+                    if (transaction.creator != null) ...[
+                      const SizedBox(height: 16),
+                      const Divider(height: 1),
+                      const SizedBox(height: 16),
+                      AppText('Created By', style: AppTextStyle.subheading),
+                      const SizedBox(height: 16),
+                      _buildDetailRow('Name', transaction.creator!.name),
+                      _buildDetailRow('Email', transaction.creator!.email),
+                      _buildDetailRow('Role', transaction.creator!.role),
+                    ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 

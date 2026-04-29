@@ -1,0 +1,23 @@
+@@ -115,5 +115,22 @@
+       );
+     }
+   }
++
++  @override
++  Future<ResponseModel> getTransactionById(int id) async {
++    try {
++      final response = await _apiClient.get(
++        '/api/v1/finance/$id',
++      );
++      return response;
++    } catch (e) {
++      print('Error fetching transaction by ID: $e');
++      return ResponseModel(
++        isSuccess: false,
++        statusCode: 500,
++        message: 'Error fetching transaction details: $e',
++      );
++    }
++  }
+ }
+ 

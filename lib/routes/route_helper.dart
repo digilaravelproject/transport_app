@@ -77,6 +77,7 @@ import '../features/finance/views/cash_out_entry_screen.dart';
 import '../features/finance/views/payment_history_screen.dart';
 import '../features/finance/views/payment_details_screen.dart';
 import '../features/finance/controllers/finance_controller.dart';
+import '../features/finance/bindings/finance_binding.dart';
 import '../features/inventory/views/inventory_list_screen.dart';
 import '../features/inventory/views/add_inventory_item_screen.dart';
 import '../features/inventory/views/inventory_details_screen.dart';
@@ -570,9 +571,7 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.cashbookDashboard,
       page: () => const CashbookDashboardScreen(),
-      binding: BindingsBuilder(() {
-        Get.put(FinanceController());
-      }),
+      binding: FinanceBinding(),
     ),
     GetPage(
       name: AppRoutes.cashInEntry,
@@ -717,7 +716,7 @@ class RouteHelper {
       page: () => const ProfitLossReportScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => ReportsController());
-        Get.lazyPut(() => FinanceController());
+        FinanceBinding().dependencies();
       }),
       transition: Transition.rightToLeft,
     ),

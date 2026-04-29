@@ -64,6 +64,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   String? insExpiryError;
   String? permitNoError;
   String? permitExpiryError;
+  String? rcFileError;
+  String? insuranceFileError;
+  String? permitFileError;
 
   @override
   void initState() {
@@ -123,9 +126,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     );
     if (result != null) {
       setState(() {
-        if (type == 'RC') rcFile = result.files.first;
-        if (type == 'Insurance') insuranceFile = result.files.first;
-        if (type == 'Permit') permitFile = result.files.first;
+        if (type == 'RC') {
+          rcFile = result.files.first;
+          rcFileError = null;
+        }
+        if (type == 'Insurance') {
+          insuranceFile = result.files.first;
+          insuranceFileError = null;
+        }
+        if (type == 'Permit') {
+          permitFile = result.files.first;
+          permitFileError = null;
+        }
       });
     }
   }
@@ -169,6 +181,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       insExpiryError = null;
       permitNoError = null;
       permitExpiryError = null;
+      rcFileError = null;
+      insuranceFileError = null;
+      permitFileError = null;
     });
 
     bool hasError = false;
@@ -215,6 +230,20 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     }
     if (permitExpiry == null) {
       setState(() => permitExpiryError = 'Permit expiry is required');
+      hasError = true;
+    }
+
+    // Document File Validation
+    if (rcFile == null && vehicle?.rcFileUrl == null) {
+      setState(() => rcFileError = 'RC document is required');
+      hasError = true;
+    }
+    if (insuranceFile == null && vehicle?.insuranceFileUrl == null) {
+      setState(() => insuranceFileError = 'Insurance policy document is required');
+      hasError = true;
+    }
+    if (permitFile == null && vehicle?.permitFileUrl == null) {
+      setState(() => permitFileError = 'Permit document is required');
       hasError = true;
     }
 
@@ -369,6 +398,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   remoteUrl: vehicle?.rcFileUrl,
                   noError: rcNoError,
                   expiryError: rcExpiryError,
+                  fileError: rcFileError,
                 ),
                 _buildDocumentSection(
                   'Insurance Policy',
@@ -381,6 +411,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   remoteUrl: vehicle?.insuranceFileUrl,
                   noError: insNoError,
                   expiryError: insExpiryError,
+                  fileError: insuranceFileError,
                 ),
                 _buildDocumentSection(
                   'Permit Details',
@@ -393,6 +424,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   remoteUrl: vehicle?.permitFileUrl,
                   noError: permitNoError,
                   expiryError: permitExpiryError,
+                  fileError: permitFileError,
                 ),
                 const SizedBox(height: 40),
                 AppButton(
@@ -426,7 +458,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     VoidCallback onUpload,
     String noLabel,
     String type,
-    {String? remoteUrl, String? noError, String? expiryError}
+    {String? remoteUrl, String? noError, String? expiryError, String? fileError}
   ) {
     return AppCard(
       padding: const EdgeInsets.all(16),
@@ -457,6 +489,11 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             fileName: file?.name,
             onTap: onUpload,
           ),
+          if (fileError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8, left: 4),
+              child: AppText(fileError, color: Colors.red, fontSize: 12),
+            ),
           const SizedBox(height: 16),
           AppInputField(
             label: noLabel,

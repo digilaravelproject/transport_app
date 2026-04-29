@@ -91,6 +91,9 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
     await _roleController.fetchRoles();
     if (_isEdit && staff!.roleId != null) {
       _selectedRole = _roleController.roles.firstWhereOrNull((r) => r.id == staff!.roleId || r.roleName.toLowerCase() == staff!.roleId!.toLowerCase());
+    } else if (!_isEdit && _roleController.roles.isNotEmpty) {
+      // Default to Driver for new staff if available
+      _selectedRole = _roleController.roles.firstWhereOrNull((r) => r.roleName.toLowerCase() == 'driver') ?? _roleController.roles.first;
     }
 
     await _shiftController.refreshShifts();

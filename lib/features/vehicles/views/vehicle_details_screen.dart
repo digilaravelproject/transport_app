@@ -12,47 +12,80 @@ import '../../../routes/route_helper.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 
-class VehicleDetailsScreen extends GetView<VehicleController> {
+class VehicleDetailsScreen extends StatefulWidget {
   const VehicleDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final dynamic args = Get.arguments;
-    final VehicleModel vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+  State<VehicleDetailsScreen> createState() => _VehicleDetailsScreenState();
+}
 
+class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final dynamic args = Get.arguments;
+    vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+    _loadDetails();
+  }
+
+  Future<void> _loadDetails() async {
+    setState(() => _isLoading = true);
+    final updated = await controller.fetchVehicleDetails(vehicle.id);
+    if (updated != null) {
+      setState(() {
+        vehicle = updated;
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Vehicle Details',
         subtitle: vehicle.vehicleNumber,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(vehicle),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Maintenance Summary'),
-            _buildMaintenanceGrid(vehicle),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Payment Ledger (Khata)'),
-            _buildPaymentLedger(vehicle),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Compliance Documents'),
-            _buildDocumentsPreview(vehicle),
-            const SizedBox(height: 32),
-            AppButton(
-              text: 'Edit Vehicle',
-              onPressed: () => Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle),
+      body: _isLoading 
+        ? const Center(child: CircularProgressIndicator())
+        : RefreshIndicator(
+            onRefresh: _loadDetails,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderCard(vehicle),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Maintenance Summary'),
+                  _buildMaintenanceGrid(vehicle),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Payment Ledger (Khata)'),
+                  _buildPaymentLedger(vehicle),
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('Compliance Documents'),
+                  _buildDocumentsPreview(vehicle),
+                  const SizedBox(height: 32),
+                  AppButton(
+                    text: 'Edit Vehicle',
+                    onPressed: () => Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle),
+                  ),
+                  const SizedBox(height: 12),
+                  AppButton.outline(
+                    text: 'Maintenance History',
+                    onPressed: () => Get.toNamed(RouteHelper.getMaintenanceHistoryRoute(), arguments: vehicle),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            AppButton.outline(
-              text: 'Maintenance History',
-              onPressed: () => Get.toNamed(RouteHelper.getMaintenanceHistoryRoute(), arguments: vehicle),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 

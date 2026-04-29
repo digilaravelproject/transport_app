@@ -39,7 +39,7 @@ class VehicleController extends GetxController {
     super.onInit();
     fetchVehicles();
     fetchVehicleStats();
-    _loadMockMaintenance();
+    // _loadMockMaintenance();
     
     debounce(searchQuery, (_) => fetchVehicles(), time: const Duration(milliseconds: 500));
     ever(selectedFilter, (_) => fetchVehicles());
@@ -171,9 +171,9 @@ class VehicleController extends GetxController {
       final response = await _apiClient.get(AppConstants.updateVehicleUrl(id));
       if (response.isSuccess && response.body != null) {
         final body = response.body;
-        final vehicleData = body['data'] ?? body['vehicle'];
-        if (vehicleData != null) {
-          return VehicleModel.fromJson(vehicleData);
+        // The body is already the data object (vehicle map)
+        if (body is Map<String, dynamic>) {
+          return VehicleModel.fromJson(body);
         }
       }
       return null;
@@ -430,10 +430,12 @@ class VehicleController extends GetxController {
     isLoading.value = true;
     try {
       final response = await _apiClient.get(AppConstants.vehicleFuelUrl(vehicleId));
-      if (response.isSuccess && response.body['data'] != null) {
-        final List<dynamic> data = response.body['data'];
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
         fuelHistory.value = data.map((e) => FuelEntryModel.fromJson(e)).toList();
       }
+    } catch (e) {
+      Logger.e('Error fetching fuel history: $e');
     } finally {
       isLoading.value = false;
     }

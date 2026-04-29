@@ -8,6 +8,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../domain/models/vehicle_model.dart';
+import '../controllers/vehicle_controller.dart';
 
 class FuelEntryScreen extends StatefulWidget {
   const FuelEntryScreen({Key? key}) : super(key: key);

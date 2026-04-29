@@ -123,10 +123,10 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppText(entry.date, 
+              AppText('${entry.date.day}/${entry.date.month}/${entry.date.year}', 
                 style: AppTextStyle.body, fontWeight: FontWeight.bold),
               const SizedBox(height: 4),
-              AppText(entry.stationName, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+              AppText(entry.station, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
             ],
           ),
           Column(

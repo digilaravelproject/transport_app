@@ -28,7 +28,6 @@ class VehicleController extends GetxController {
   final serviceStartDate = Rxn<DateTime>();
   final serviceEndDate = Rxn<DateTime>();
 
-  final fuelHistory = <FuelEntry>[].obs;
   final serviceHistory = <ServiceRecord>[].obs;
   final repairHistory = <ServiceRecord>[].obs;
   final documents = <VehicleDocument>[].obs;
@@ -372,6 +371,37 @@ class VehicleController extends GetxController {
         payments: newPayments,
       );
       Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  // Fuel Methods
+  Future<bool> addFuelEntry(dynamic vehicleId, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(
+        AppConstants.vehicleFuelUrl(vehicleId),
+        data: data,
+      );
+      if (response.isSuccess) {
+        fetchFuelHistory(vehicleId); // Refresh history
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchFuelHistory(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleFuelUrl(vehicleId));
+      if (response.isSuccess && response.body['data'] != null) {
+        final List<dynamic> data = response.body['data'];
+        fuelHistory.value = data.map((e) => FuelEntryModel.fromJson(e)).toList();
+      }
+    } finally {
+      isLoading.value = false;
     }
   }
 }

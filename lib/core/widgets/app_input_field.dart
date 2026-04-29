@@ -90,10 +90,9 @@ class _AppInputFieldState extends State<AppInputField> {
         if (widget.label != null) ...[
           AppText(
             widget.label!,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textColorPrimary,
-            ),
+            style: AppTextStyle.body,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textColorPrimary,
           ),
           const SizedBox(height: 8),
         ],

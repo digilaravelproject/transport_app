@@ -27,6 +27,9 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
   DateTime selectedDate = DateTime.now();
   late VehicleModel vehicle;
   FilePickerResult? receiptFile;
+  
+  String? amountError;
+  String? quantityError;
 
   @override
   void initState() {
@@ -45,25 +48,34 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
   }
 
   Future<void> _saveFuelEntry() async {
+    setState(() {
+      amountError = null;
+      quantityError = null;
+    });
+
+    bool hasError = false;
+
     // Validation
     if (_amountController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter fuel amount', snackPosition: SnackPosition.BOTTOM);
-      return;
+      setState(() => amountError = 'Please enter fuel amount');
+      hasError = true;
     }
     if (_quantityController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter fuel quantity', snackPosition: SnackPosition.BOTTOM);
-      return;
+      setState(() => quantityError = 'Please enter fuel quantity');
+      hasError = true;
     }
+
+    if (hasError) return;
 
     final double? amount = double.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
-      Get.snackbar('Error', 'Invalid amount', snackPosition: SnackPosition.BOTTOM);
+      setState(() => amountError = 'Invalid amount');
       return;
     }
 
     final double? quantity = double.tryParse(_quantityController.text);
     if (quantity == null || quantity <= 0) {
-      Get.snackbar('Error', 'Invalid quantity', snackPosition: SnackPosition.BOTTOM);
+      setState(() => quantityError = 'Invalid quantity');
       return;
     }
 
@@ -80,6 +92,7 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptFile);
     if (success) {
       Get.back();
+      // Only use snackbar for success as the screen is being closed
       Get.snackbar('Success', 'Fuel entry saved successfully', 
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: AppColors.successColor.withOpacity(0.1),
@@ -103,9 +116,9 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                     children: [
                       _buildDateField(),
                       const SizedBox(height: 16),
-                      _buildTextField('Fuel Amount (₹) *', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number),
+                      _buildTextField('Fuel Amount (₹)', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number, errorText: amountError),
                       const SizedBox(height: 16),
-                      _buildTextField('Quantity (Ltrs) *', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number),
+                      _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number, errorText: quantityError),
                       const SizedBox(height: 16),
                       _buildTextField('Station Name', 'e.g. HP Petrol Pump', controller: _stationController),
                     ],
@@ -243,7 +256,7 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType, String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -252,18 +265,32 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          onChanged: (_) {
+            if (errorText != null) {
+              setState(() {
+                if (label.contains('Amount')) amountError = null;
+                if (label.contains('Quantity')) quantityError = null;
+              });
+            }
+          },
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
             filled: true,
             fillColor: AppColors.slate50,
+            errorText: errorText,
+            errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.primaryColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

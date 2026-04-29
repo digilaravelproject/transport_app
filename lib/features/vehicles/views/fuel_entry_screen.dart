@@ -9,6 +9,8 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class FuelEntryScreen extends StatefulWidget {
   const FuelEntryScreen({Key? key}) : super(key: key);
@@ -24,11 +26,20 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
   final TextEditingController _stationController = TextEditingController();
   DateTime selectedDate = DateTime.now();
   late VehicleModel vehicle;
+  XFile? receiptImage;
 
   @override
   void initState() {
     super.initState();
     vehicle = Get.arguments as VehicleModel;
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() => receiptImage = image);
+    }
   }
 
   Future<void> _saveFuelEntry() async {
@@ -41,15 +52,15 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     final double quantity = double.tryParse(_quantityController.text) ?? 0;
     final double pricePerUnit = quantity > 0 ? amount / quantity : 0;
 
-    final data = {
+    final Map<String, String> body = {
       'activity_date': '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-      'amount': amount,
-      'quantity': quantity,
+      'amount': amount.toString(),
+      'quantity': quantity.toString(),
       'price_per_unit': pricePerUnit.toStringAsFixed(2),
       'station_name': _stationController.text,
     };
 
-    final success = await controller.addFuelEntry(vehicle.id, data);
+    final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptImage);
     if (success) {
       Get.back();
       Get.snackbar('Success', 'Fuel entry saved successfully', 
@@ -84,21 +95,45 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.slate50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.slate200),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Iconsax.camera, color: AppColors.primaryColor),
-                      const SizedBox(width: 12),
-                      AppText('Upload Receipt Photo', style: AppTextStyle.body),
-                    ],
+                
+                // Image Upload & Preview
+                InkWell(
+                  onTap: _pickImage,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.slate200),
+                    ),
+                    child: receiptImage != null 
+                      ? Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(File(receiptImage!.path), height: 150, width: double.infinity, fit: BoxFit.cover),
+                            ),
+                            const SizedBox(height: 12),
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Iconsax.edit, size: 16, color: AppColors.primaryColor),
+                                SizedBox(width: 8),
+                                AppText('Change Photo', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                              ],
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          children: [
+                            Icon(Iconsax.camera, color: AppColors.primaryColor),
+                            SizedBox(width: 12),
+                            AppText('Upload Receipt Photo', style: AppTextStyle.body),
+                          ],
+                        ),
                   ),
                 ),
+                
                 const SizedBox(height: 40),
                 AppButton(
                   text: 'Save Fuel Entry',
@@ -114,6 +149,71 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
             ),
         ],
       )),
+    );
+  }
+
+  Widget _buildDateField() {
+    return InkWell(
+      onTap: () async {
+        final date = await showDatePicker(
+          context: context,
+          initialDate: selectedDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime.now(),
+        );
+        if (date != null) setState(() => selectedDate = date);
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const AppText('Date', style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: AppColors.slate50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.slate200),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                AppText('${selectedDate.day}/${selectedDate.month}/${selectedDate.year}', style: AppTextStyle.body),
+                const Icon(Iconsax.calendar_1, size: 18, color: AppColors.primaryColor),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
+            filled: true,
+            fillColor: AppColors.slate50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.slate200),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.slate200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 

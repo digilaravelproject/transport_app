@@ -236,15 +236,15 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
               noController: _aadharNoController,
               noLabel: 'Aadhar Number',
             ),
+            const SizedBox(height: 12),
+            _buildStaffDocumentSection(
+              'PAN Card',
+              panFile,
+              () => _pickDocument('pan'),
+              noController: _panNoController,
+              noLabel: 'PAN Number',
+            ),
             if (_isDriver) ...[
-              const SizedBox(height: 12),
-              _buildStaffDocumentSection(
-                'PAN Card',
-                panFile,
-                () => _pickDocument('pan'),
-                noController: _panNoController,
-                noLabel: 'PAN Number',
-              ),
               const SizedBox(height: 12),
               _buildStaffDocumentSection(
                 'Driving License',
@@ -263,26 +263,19 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                 noController: _badgeNoController,
                 noLabel: 'Badge Number',
               ),
-              const SizedBox(height: 12),
-              _buildStaffDocumentSection(
-                'Bank Passbook',
-                passbookFile,
-                () => _pickDocument('passbook'),
-              ),
-              const SizedBox(height: 12),
-              _buildStaffDocumentSection(
-                'Passport Size Photo',
-                photoFile,
-                () => _pickDocument('photo'),
-              ),
-            ] else ...[
-              const SizedBox(height: 12),
-              _buildStaffDocumentSection(
-                'Profile Photo',
-                photoFile,
-                () => _pickDocument('photo'),
-              ),
             ],
+            const SizedBox(height: 12),
+            _buildStaffDocumentSection(
+              'Bank Passbook',
+              passbookFile,
+              () => _pickDocument('passbook'),
+            ),
+            const SizedBox(height: 12),
+            _buildStaffDocumentSection(
+              'Profile Photo',
+              photoFile,
+              () => _pickDocument('photo'),
+            ),
             const SizedBox(height: 32),
             Obx(() => AppButton(
               text: 'Save Staff',

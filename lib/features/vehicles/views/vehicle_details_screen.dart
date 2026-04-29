@@ -29,7 +29,9 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
     super.initState();
     final dynamic args = Get.arguments;
     vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
-    _loadDetails();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadDetails();
+    });
   }
 
   Future<void> _loadDetails() async {

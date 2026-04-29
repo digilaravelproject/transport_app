@@ -7,8 +7,9 @@ class VehicleModel {
   final String vehicleNumber;
   final String type;
   final int capacity;
+  final String model;
   final int? modelYear;
-  final String year; // Kept for backward compatibility if needed, but modelYear is preferred
+  final String year; 
   final String? driverName;
   final double perKmPrice;
   final double acPricePerKm;
@@ -33,6 +34,7 @@ class VehicleModel {
     required this.vehicleNumber,
     required this.type,
     required this.capacity,
+    this.model = '',
     this.modelYear,
     required this.year,
     this.driverName,
@@ -63,6 +65,7 @@ class VehicleModel {
       capacity: json['seating_capacity'] ?? 0,
       modelYear: json['model_year'],
       year: (json['model_year'] ?? '').toString(),
+      model: (json['model'] ?? '').toString(),
       perKmPrice: double.tryParse(json['per_km_price']?.toString() ?? '0') ?? 0.0,
       acPricePerKm: double.tryParse(json['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
       rcNumber: json['rc_number'],
@@ -79,14 +82,12 @@ class VehicleModel {
       tripsCount: json['trips_count'] ?? 0,
       createdAt: _parseDate(json['created_at']),
       status: json['is_active'] == true ? VehicleStatus.active : VehicleStatus.inactive,
-      // lastServiceDate and driverName are not in the primary list JSON provided, but might be in details or other endpoints
     );
   }
 
   static DateTime? _parseDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return null;
     try {
-      // Handle DD-MM-YYYY format from API
       final parts = dateStr.split('-');
       if (parts.length == 3) {
         return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
@@ -102,6 +103,7 @@ class VehicleModel {
     String? vehicleNumber,
     String? type,
     int? capacity,
+    String? model,
     int? modelYear,
     String? year,
     String? driverName,
@@ -128,6 +130,7 @@ class VehicleModel {
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       type: type ?? this.type,
       capacity: capacity ?? this.capacity,
+      model: model ?? this.model,
       modelYear: modelYear ?? this.modelYear,
       year: year ?? this.year,
       driverName: driverName ?? this.driverName,
@@ -185,7 +188,7 @@ class PaymentLog {
 }
 
 class ServiceRecord {
-  final int id; // Added ID for referencing
+  final int id; 
   final DateTime date;
   final String type;
   final double totalBill;

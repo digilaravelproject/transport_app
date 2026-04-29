@@ -71,8 +71,8 @@ class VehicleController extends GetxController {
       );
 
       if (response.isSuccess) {
-        final List<dynamic> data = response.data;
-        vehicles.value = data.map((json) => VehicleModel.fromJson(json)).toList();
+        final List<dynamic> bodyData = response.body;
+        vehicles.value = bodyData.map((json) => VehicleModel.fromJson(json)).toList();
         filteredVehicles.assignAll(vehicles);
       } else {
         Logger.e('Failed to fetch vehicles: ${response.message}');
@@ -222,7 +222,6 @@ class VehicleController extends GetxController {
   }
 
   void updateVehicleStatus(VehicleModel vehicle, VehicleStatus newStatus) {
-    // This would likely be an API call in a real app
     final index = vehicles.indexWhere((v) => v.id == vehicle.id);
     if (index != -1) {
       vehicles[index] = vehicle.copyWith(status: newStatus);
@@ -232,6 +231,46 @@ class VehicleController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.white.withOpacity(0.9),
       );
+    }
+  }
+
+  void addRepairEntry(ServiceRecord record) {
+    repairHistory.insert(0, record);
+    Get.snackbar('Success', 'Repair entry added successfully', snackPosition: SnackPosition.BOTTOM);
+  }
+
+  void addPaymentToRepair(int id, double amount, DateTime date, {String? receiptUrl}) {
+    final index = repairHistory.indexWhere((r) => r.id == id);
+    if (index != -1) {
+      final old = repairHistory[index];
+      final newPayments = List<PaymentLog>.from(old.payments);
+      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
+      
+      repairHistory[index] = old.copyWith(
+        paidAmount: old.paidAmount + amount,
+        payments: newPayments,
+      );
+      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void addServiceEntry(ServiceRecord record) {
+    serviceHistory.insert(0, record);
+    Get.snackbar('Success', 'Service entry added successfully', snackPosition: SnackPosition.BOTTOM);
+  }
+
+  void addPaymentToService(int id, double amount, DateTime date, {String? receiptUrl}) {
+    final index = serviceHistory.indexWhere((s) => s.id == id);
+    if (index != -1) {
+      final old = serviceHistory[index];
+      final newPayments = List<PaymentLog>.from(old.payments);
+      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
+      
+      serviceHistory[index] = old.copyWith(
+        paidAmount: old.paidAmount + amount,
+        payments: newPayments,
+      );
+      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
     }
   }
 }

@@ -144,10 +144,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   }
 
   Future<void> _selectDate(BuildContext context, String type) async {
+    final DateTime now = DateTime.now();
+    DateTime initial = now;
+    
+    // Set initial date based on existing selection if valid
+    if (type == 'RC' && rcExpiry != null && rcExpiry!.isAfter(now)) initial = rcExpiry!;
+    if (type == 'Insurance' && insExpiry != null && insExpiry!.isAfter(now)) initial = insExpiry!;
+    if (type == 'Permit' && permitExpiry != null && permitExpiry!.isAfter(now)) initial = permitExpiry!;
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      initialDate: initial,
+      firstDate: now,
       lastDate: DateTime(2101),
     );
     if (picked != null) {

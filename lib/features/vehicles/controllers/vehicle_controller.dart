@@ -153,6 +153,14 @@ class VehicleController extends GetxController {
 
   double get totalMaintenanceDue => totalMaintenanceSpent - totalMaintenancePaid;
 
+  int get activeFiltersCount {
+    int count = 0;
+    if (selectedFilter.value != 'All') count++;
+    if (selectedTypeFilter.value != 'All') count++;
+    if (selectedCapacityFilter.value != 'All') count++;
+    return count;
+  }
+
   List<ServiceRecord> get filteredRepairHistory {
     List<ServiceRecord> list = List.from(repairHistory);
     if (selectedRepairFilter.value == 'Pending') {

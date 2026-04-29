@@ -221,8 +221,8 @@ class VehicleController extends GetxController {
 
     documents.value = [
       VehicleDocument(
-          name: 'Registration Certificate (RC)',
-          uploadDate: DateTime.now().subtract(const Duration(days: 365)),
+          type: 'Registration Certificate (RC)',
+          number: 'MOCK-123',
           expiryDate: DateTime.now().add(const Duration(days: 365 * 10)),
           fileUrl: 'rc.pdf'),
     ];

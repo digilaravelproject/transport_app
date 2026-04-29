@@ -28,8 +28,18 @@ class UploadBox extends StatelessWidget {
 
   bool _isImage(String? path) {
     if (path == null) return false;
-    final ext = path.toLowerCase();
-    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.png') || ext.endsWith('.webp');
+    final p = path.toLowerCase();
+    // Common extensions
+    if (p.endsWith('.jpg') || p.endsWith('.jpeg') || p.endsWith('.png') || p.endsWith('.webp') || p.endsWith('.gif') || p.endsWith('.bmp')) {
+      return true;
+    }
+    // Check if it's a common image URI pattern or has image in the path
+    if (p.contains('image') || p.contains('photo') || p.contains('graph')) {
+       // Avoid matching .pdf even if it has 'image' in name
+       if (p.endsWith('.pdf')) return false;
+       return true;
+    }
+    return false;
   }
 
   @override
@@ -47,8 +57,12 @@ class UploadBox extends StatelessWidget {
                   imagePath: localPath,
                   title: label,
                 );
-              } else if (localPath != null) {
-                OpenFilex.open(localPath!);
+              } else {
+                if (localPath != null) {
+                  OpenFilex.open(localPath!);
+                } else if (effectiveUrl != null) {
+                  OpenFilex.open(effectiveUrl);
+                }
               }
             }
           : onTap,

@@ -41,21 +41,13 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _joiningDateController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
   final TextEditingController _aadharNoController = TextEditingController();
   final TextEditingController _panNoController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
   final TextEditingController _licenseNoController = TextEditingController();
   final TextEditingController _licenseExpiryController = TextEditingController();
-  final TextEditingController _licenseTypeController = TextEditingController();
   final TextEditingController _badgeNoController = TextEditingController();
   final TextEditingController _badgeExpiryController = TextEditingController();
-  
-  final TextEditingController _emergencyContactNameController = TextEditingController();
-  final TextEditingController _emergencyContactPhoneController = TextEditingController();
-  final TextEditingController _bankNameController = TextEditingController();
-  final TextEditingController _bankAccountController = TextEditingController();
-  final TextEditingController _bankIfscController = TextEditingController();
 
   PlatformFile? aadharFile;
   PlatformFile? panFile;
@@ -79,22 +71,14 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       _emailController.text = staff!.email;
       _addressController.text = staff!.address;
       _joiningDateController.text = staff!.joiningDate != null ? '${staff!.joiningDate!.year}-${staff!.joiningDate!.month.toString().padLeft(2, '0')}-${staff!.joiningDate!.day.toString().padLeft(2, '0')}' : '';
-      _dobController.text = staff!.dob != null ? '${staff!.dob!.year}-${staff!.dob!.month.toString().padLeft(2, '0')}-${staff!.dob!.day.toString().padLeft(2, '0')}' : '';
       _aadharNoController.text = staff!.aadharNumber ?? '';
       _panNoController.text = staff!.panNumber ?? '';
       _salaryController.text = staff!.salary.toString();
       _selectedSalaryType = staff!.salaryType;
       _licenseNoController.text = staff!.licenseNumber ?? '';
       _licenseExpiryController.text = staff!.licenseExpiry != null ? '${staff!.licenseExpiry!.year}-${staff!.licenseExpiry!.month.toString().padLeft(2, '0')}-${staff!.licenseExpiry!.day.toString().padLeft(2, '0')}' : '';
-      _licenseTypeController.text = staff!.licenseType ?? '';
       _badgeNoController.text = staff!.badgeNumber ?? '';
       _badgeExpiryController.text = staff!.badgeExpiry != null ? '${staff!.badgeExpiry!.year}-${staff!.badgeExpiry!.month.toString().padLeft(2, '0')}-${staff!.badgeExpiry!.day.toString().padLeft(2, '0')}' : '';
-      
-      _emergencyContactNameController.text = staff!.emergencyContactName ?? '';
-      _emergencyContactPhoneController.text = staff!.emergencyContact ?? '';
-      _bankNameController.text = staff!.bankName ?? '';
-      _bankAccountController.text = staff!.bankAccount ?? '';
-      _bankIfscController.text = staff!.bankIfsc ?? '';
 
       if (staff!.phone.startsWith('+91')) {
         _staffController.selectedCountryCode.value = '+91';
@@ -128,20 +112,13 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
     _emailController.dispose();
     _addressController.dispose();
     _joiningDateController.dispose();
-    _dobController.dispose();
     _aadharNoController.dispose();
     _panNoController.dispose();
     _salaryController.dispose();
     _licenseNoController.dispose();
     _licenseExpiryController.dispose();
-    _licenseTypeController.dispose();
     _badgeNoController.dispose();
     _badgeExpiryController.dispose();
-    _emergencyContactNameController.dispose();
-    _emergencyContactPhoneController.dispose();
-    _bankNameController.dispose();
-    _bankAccountController.dispose();
-    _bankIfscController.dispose();
     super.dispose();
   }
 
@@ -221,30 +198,13 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                     maxLines: 2,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppInputField(
-                          label: 'Joining Date',
-                          hint: 'YYYY-MM-DD',
-                          controller: _joiningDateController,
-                          icon: Iconsax.calendar_1,
-                          onTap: () => _selectDate(context, _joiningDateController),
-                          readOnly: true,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppInputField(
-                          label: 'Date of Birth',
-                          hint: 'YYYY-MM-DD',
-                          controller: _dobController,
-                          icon: Iconsax.cake,
-                          onTap: () => _selectDate(context, _dobController),
-                          readOnly: true,
-                        ),
-                      ),
-                    ],
+                  AppInputField(
+                    label: 'Joining Date',
+                    hint: 'YYYY-MM-DD',
+                    controller: _joiningDateController,
+                    icon: Iconsax.calendar_1,
+                    onTap: () => _selectDate(context, _joiningDateController),
+                    readOnly: true,
                   ),
                 ],
               ),
@@ -266,58 +226,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildShiftDropdown(),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            _buildSectionTitle('Emergency Contact'),
-            AppCard(
-              child: Column(
-                children: [
-                  AppInputField(
-                    label: 'Contact Person Name',
-                    hint: 'Full Name',
-                    controller: _emergencyContactNameController,
-                    icon: Iconsax.user_tag,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Contact Number',
-                    hint: 'Mobile Number',
-                    controller: _emergencyContactPhoneController,
-                    icon: Iconsax.call,
-                    keyboardType: TextInputType.phone,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            _buildSectionTitle('Bank Details'),
-            AppCard(
-              child: Column(
-                children: [
-                  AppInputField(
-                    label: 'Bank Name',
-                    hint: 'e.g. HDFC Bank',
-                    controller: _bankNameController,
-                    icon: Iconsax.bank,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Account Number',
-                    hint: 'Enter account no.',
-                    controller: _bankAccountController,
-                    icon: Iconsax.hashtag,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'IFSC Code',
-                    hint: 'Enter IFSC code',
-                    controller: _bankIfscController,
-                    icon: Iconsax.code,
-                  ),
                 ],
               ),
             ),
@@ -426,7 +334,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'basic_salary': _salaryController.text,
       'work_shift': _selectedShift!.id,
       'date_of_joining': _joiningDateController.text,
-      'date_of_birth': _dobController.text,
       'address': _addressController.text,
       'aadhar_number': _aadharNoController.text,
       'pan_number': _panNoController.text,
@@ -434,12 +341,6 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'dl_expiry': _licenseExpiryController.text,
       'badge_number': _badgeNoController.text,
       'badge_expiry': _badgeExpiryController.text,
-      'emergency_contact': _emergencyContactPhoneController.text,
-      'emergency_contact_name': _emergencyContactNameController.text,
-      'bank_name': _bankNameController.text,
-      'bank_account': _bankAccountController.text,
-      'bank_ifsc': _bankIfscController.text,
-      'license_type': _licenseTypeController.text,
       'aadhar_file': aadharFile?.path,
       'pan_file': panFile?.path,
       'dl_file': licenseFile?.path,

@@ -14,6 +14,7 @@ import '../widgets/upload_box.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
 import '../../../core/utils/file_converter.dart';
+import '../../../core/services/network/multipart.dart';
 
 class VehicleFormScreen extends StatefulWidget {
   const VehicleFormScreen({Key? key}) : super(key: key);
@@ -249,37 +250,38 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
     if (hasError) return;
 
-    final Map<String, dynamic> data = {
+    final Map<String, String> data = {
       'registration_number': _regNoController.text,
-      'type': selectedType,
-      'seating_capacity': int.tryParse(_capacityController.text) ?? 0,
-      'model_year': int.tryParse(_yearController.text) ?? DateTime.now().year,
-      'per_km_price': double.tryParse(_perKmPriceController.text) ?? 0.0,
-      'ac_price_per_km': double.tryParse(_acPriceController.text) ?? 0.0,
+      'type': selectedType ?? '',
+      'seating_capacity': _capacityController.text,
+      'model_year': _yearController.text,
+      'per_km_price': _perKmPriceController.text,
+      'ac_price_per_km': _acPriceController.text,
       'rc_number': _rcNoController.text,
-      'rc_expiry': rcExpiry != null ? DateFormat('yyyy-MM-dd').format(rcExpiry!) : null,
+      'rc_expiry': rcExpiry != null ? DateFormat('yyyy-MM-dd').format(rcExpiry!) : '',
       'insurance_number': _insNoController.text,
-      'insurance_expiry': insExpiry != null ? DateFormat('yyyy-MM-dd').format(insExpiry!) : null,
+      'insurance_expiry': insExpiry != null ? DateFormat('yyyy-MM-dd').format(insExpiry!) : '',
       'permit_number': _permitNoController.text,
-      'permit_expiry': permitExpiry != null ? DateFormat('yyyy-MM-dd').format(permitExpiry!) : null,
+      'permit_expiry': permitExpiry != null ? DateFormat('yyyy-MM-dd').format(permitExpiry!) : '',
     };
 
-    // Convert files to base64
-    if (rcFile?.path != null) {
-      data['registration_certificate'] = await FileConverter.toBase64(rcFile!.path!);
+    final List<MultipartDocument> files = [];
+
+    if (rcFile != null) {
+      files.add(MultipartDocument('registration_certificate', rcFile!));
     }
-    if (insuranceFile?.path != null) {
-      data['insurance_certificate'] = await FileConverter.toBase64(insuranceFile!.path!);
+    if (insuranceFile != null) {
+      files.add(MultipartDocument('insurance_certificate', insuranceFile!));
     }
-    if (permitFile?.path != null) {
-      data['permit_certificate'] = await FileConverter.toBase64(permitFile!.path!);
+    if (permitFile != null) {
+      files.add(MultipartDocument('permit_certificate', permitFile!));
     }
 
     bool success;
     if (isEdit) {
-      success = await controller.updateVehicle(vehicle!.id, data);
+      success = await controller.updateVehicle(vehicle!.id, data, files);
     } else {
-      success = await controller.addVehicle(data);
+      success = await controller.addVehicle(data, files);
     }
 
     if (success) {

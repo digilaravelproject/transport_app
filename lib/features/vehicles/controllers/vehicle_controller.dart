@@ -106,12 +106,14 @@ class VehicleController extends GetxController {
     }
   }
 
-  Future<bool> addVehicle(Map<String, dynamic> data) async {
+  Future<bool> addVehicle(Map<String, String> data, List<MultipartDocument> files) async {
     isLoading.value = true;
     try {
-      final response = await _apiClient.post(
+      final response = await _apiClient.postMultipartData(
         AppConstants.vehiclesUrl,
-        data: data,
+        data,
+        [],
+        files,
       );
 
       if (response.isSuccess) {
@@ -132,12 +134,17 @@ class VehicleController extends GetxController {
     }
   }
 
-  Future<bool> updateVehicle(dynamic id, Map<String, dynamic> data) async {
+  Future<bool> updateVehicle(dynamic id, Map<String, String> data, List<MultipartDocument> files) async {
     isLoading.value = true;
     try {
-      final response = await _apiClient.put(
+      // For multipart update, we use POST with _method="PUT"
+      data['_method'] = 'PUT';
+      
+      final response = await _apiClient.postMultipartData(
         AppConstants.updateVehicleUrl(id),
-        data: data,
+        data,
+        [],
+        files,
       );
 
       if (response.isSuccess) {

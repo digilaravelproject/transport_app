@@ -12,6 +12,10 @@ import '../../vehicles/widgets/upload_box.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
+import '../../roles/controllers/role_controller.dart';
+import '../../roles/domain/models/role_model.dart';
+import '../../shifts/controllers/shift_controller.dart';
+import '../../shifts/domain/models/shift_model.dart';
 
 class EditStaffScreen extends StatefulWidget {
   const EditStaffScreen({Key? key}) : super(key: key);
@@ -22,7 +26,15 @@ class EditStaffScreen extends StatefulWidget {
 
 class _EditStaffScreenState extends State<EditStaffScreen> {
   final StaffModel staff = Get.arguments ?? Get.find<StaffController>().staffList.first;
-  late StaffRole _selectedRole;
+  final _roleController = Get.isRegistered<RoleController>() 
+      ? Get.find<RoleController>() 
+      : Get.put(RoleController());
+  final _shiftController = Get.isRegistered<ShiftController>()
+      ? Get.find<ShiftController>()
+      : Get.put(ShiftController());
+      
+  RoleModel? _selectedRole;
+  ShiftModel? _selectedShift;
   late SalaryType _selectedSalaryType;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -32,7 +44,6 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
   final TextEditingController _aadharNoController = TextEditingController();
   final TextEditingController _panNoController = TextEditingController();
   final TextEditingController _salaryController = TextEditingController();
-  final TextEditingController _shiftController = TextEditingController();
   final TextEditingController _licenseNoController = TextEditingController();
   final TextEditingController _licenseExpiryController = TextEditingController();
   final TextEditingController _badgeNoController = TextEditingController();
@@ -42,36 +53,46 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedRole = staff.role;
+    _initData();
+  }
+
+  void _initData() async {
     _selectedSalaryType = staff.salaryType;
     _nameController.text = staff.name;
     _emailController.text = staff.email;
     _addressController.text = staff.address;
-    _joiningDateController.text = staff.joiningDate != null ? '${staff.joiningDate!.day}/${staff.joiningDate!.month}/${staff.joiningDate!.year}' : '';
+    _joiningDateController.text = staff.joiningDate != null ? '${staff.joiningDate!.year}-${staff.joiningDate!.month.toString().padLeft(2, '0')}-${staff.joiningDate!.day.toString().padLeft(2, '0')}' : '';
     _aadharNoController.text = staff.aadharNumber ?? '';
     _panNoController.text = staff.panNumber ?? '';
     _salaryController.text = staff.salary.toString();
-    _shiftController.text = staff.shift ?? '';
     _licenseNoController.text = staff.licenseNumber ?? '';
-    _licenseExpiryController.text = staff.licenseExpiry != null ? '${staff.licenseExpiry!.day}/${staff.licenseExpiry!.month}/${staff.licenseExpiry!.year}' : '';
+    _licenseExpiryController.text = staff.licenseExpiry != null ? '${staff.licenseExpiry!.year}-${staff.licenseExpiry!.month.toString().padLeft(2, '0')}-${staff.licenseExpiry!.day.toString().padLeft(2, '0')}' : '';
     _badgeNoController.text = staff.badgeNumber ?? '';
-    _badgeExpiryController.text = staff.badgeExpiry != null ? '${staff.badgeExpiry!.day}/${staff.badgeExpiry!.month}/${staff.badgeExpiry!.year}' : '';
+    _badgeExpiryController.text = staff.badgeExpiry != null ? '${staff.badgeExpiry!.year}-${staff.badgeExpiry!.month.toString().padLeft(2, '0')}-${staff.badgeExpiry!.day.toString().padLeft(2, '0')}' : '';
 
     // Parse phone number
-    if (staff.phone.contains(' ')) {
-      final parts = staff.phone.split(' ');
-      _staffController.selectedCountryCode.value = parts[0];
-      _phoneController.text = parts.sublist(1).join(' ');
-    } else if (staff.phone.startsWith('+')) {
-      if (staff.phone.startsWith('+91')) {
-        _staffController.selectedCountryCode.value = '+91';
-        _phoneController.text = staff.phone.substring(3).trim();
-      } else {
-        _phoneController.text = staff.phone;
-      }
+    if (staff.phone.startsWith('+91')) {
+      _staffController.selectedCountryCode.value = '+91';
+      _phoneController.text = staff.phone.substring(3).trim();
     } else {
       _phoneController.text = staff.phone;
     }
+
+    // Fetch roles and select the current one
+    await _roleController.fetchRoles();
+    if (staff.roleId != null) {
+      _selectedRole = _roleController.roles.firstWhereOrNull((r) => r.id == staff.roleId || r.roleName.toLowerCase() == staff.roleId!.toLowerCase());
+    }
+
+    // Fetch shifts and select the current one
+    await _shiftController.refreshShifts();
+    if (staff.shiftId != null) {
+      _selectedShift = _shiftController.shifts.firstWhereOrNull((s) => s.id.toString() == staff.shiftId);
+    } else if (staff.shiftName != null) {
+      _selectedShift = _shiftController.shifts.firstWhereOrNull((s) => s.name.toLowerCase() == staff.shiftName!.toLowerCase());
+    }
+
+    setState(() {});
   }
 
   @override
@@ -84,13 +105,14 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
     _aadharNoController.dispose();
     _panNoController.dispose();
     _salaryController.dispose();
-    _shiftController.dispose();
     _licenseNoController.dispose();
     _licenseExpiryController.dispose();
     _badgeNoController.dispose();
     _badgeExpiryController.dispose();
     super.dispose();
   }
+
+  bool get _isDriver => _selectedRole?.roleName.toLowerCase() == 'driver';
 
   @override
   Widget build(BuildContext context) {
@@ -136,12 +158,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdown(
-                    'Select Role',
-                    _selectedRole,
-                    StaffRole.values,
-                    (val) => setState(() => _selectedRole = val!),
-                  ),
+                  Obx(() => _buildRoleDropdown()),
                 ],
               ),
             ),
@@ -161,7 +178,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                   const SizedBox(height: 16),
                   AppInputField(
                     label: 'Joining Date',
-                    hint: 'DD/MM/YYYY',
+                    hint: 'YYYY-MM-DD',
                     controller: _joiningDateController,
                     icon: Iconsax.calendar_1,
                     onTap: () => _selectDate(context, _joiningDateController),
@@ -186,12 +203,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Work Shift',
-                    hint: 'e.g. Day Shift, 9am - 6pm',
-                    controller: _shiftController,
-                    icon: Iconsax.clock,
-                  ),
+                  Obx(() => _buildShiftDropdown()),
                 ],
               ),
             ),
@@ -204,10 +216,10 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
               () {},
               noController: _aadharNoController,
               noLabel: 'Aadhar Number',
-              previewUrl: 'https://images.unsplash.com/photo-1579389083395-4507e9f4a171?q=80&w=200',
+              previewUrl: staff.photoUrl, // Using photoUrl as placeholder if aadhar not available
               fileName: 'aadhar_${staff.name.toLowerCase().replaceAll(' ', '_')}.pdf',
             ),
-            if (_selectedRole == StaffRole.driver) ...[
+            if (_isDriver) ...[
               const SizedBox(height: 12),
               _buildStaffDocumentSection(
                 'PAN Card',
@@ -215,7 +227,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                 () {},
                 noController: _panNoController,
                 noLabel: 'PAN Number',
-                previewUrl: staff.panNumber != null ? 'https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?q=80&w=200' : null,
+                previewUrl: null,
                 fileName: staff.panNumber != null ? 'pan_${staff.name.toLowerCase().replaceAll(' ', '_')}.pdf' : null,
               ),
               const SizedBox(height: 12),
@@ -226,7 +238,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                 noController: _licenseNoController,
                 noLabel: 'License Number',
                 expiryController: _licenseExpiryController,
-                previewUrl: staff.licenseNumber != null ? 'https://images.unsplash.com/photo-1590218126027-3934f8285517?q=80&w=200' : null,
+                previewUrl: null,
                 fileName: staff.licenseNumber != null ? 'license_${staff.name.toLowerCase().replaceAll(' ', '_')}.pdf' : null,
               ),
               const SizedBox(height: 12),
@@ -237,7 +249,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                 noController: _badgeNoController,
                 noLabel: 'Badge Number',
                 expiryController: _badgeExpiryController,
-                previewUrl: staff.badgeNumber != null ? 'https://images.unsplash.com/photo-1594819047050-99defca82545?q=80&w=200' : null,
+                previewUrl: null,
                 fileName: staff.badgeNumber != null ? 'badge_${staff.name.toLowerCase().replaceAll(' ', '_')}.pdf' : null,
               ),
               const SizedBox(height: 12),
@@ -245,14 +257,14 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                 'Bank Passbook',
                 null,
                 () {},
-                previewUrl: staff.bankPassbookUrl ?? 'https://images.unsplash.com/photo-1501167786227-4cba60f6d58f?q=80&w=200',
+                previewUrl: staff.bankPassbookUrl,
               ),
               const SizedBox(height: 12),
               _buildStaffDocumentSection(
                 'Passport Size Photo',
                 null,
                 () {},
-                previewUrl: staff.photoUrl ?? 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200',
+                previewUrl: staff.photoUrl,
               ),
             ] else ...[
               const SizedBox(height: 12),
@@ -260,14 +272,47 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
                 'Profile Photo',
                 null,
                 () {},
-                previewUrl: staff.photoUrl ?? 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=200',
+                previewUrl: staff.photoUrl,
               ),
             ],
             const SizedBox(height: 32),
-            AppButton(
+            Obx(() => AppButton(
               text: 'Update Staff',
-              onPressed: () => Get.back(),
-            ),
+              isLoading: _staffController.isLoading.value,
+              onPressed: () async {
+                if (_selectedRole == null) {
+                  Get.snackbar('Error', 'Please select a role', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+                  return;
+                }
+                if (_selectedShift == null) {
+                  Get.snackbar('Error', 'Please select a work shift', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+                  return;
+                }
+                final Map<String, dynamic> data = {
+                  'name': _nameController.text,
+                  'phone': '${_staffController.selectedCountryCode.value}${_phoneController.text}',
+                  'email': _emailController.text,
+                  'staff_type': _selectedRole!.id,
+                  'salary_type': _selectedSalaryType.name,
+                  'basic_salary': _salaryController.text,
+                  'work_shift': _selectedShift!.id,
+                  'date_of_joining': _joiningDateController.text,
+                  'address': _addressController.text,
+                  'aadhar_number': _aadharNoController.text,
+                  'pan_number': _panNoController.text,
+                  'dl_number': _licenseNoController.text,
+                  'dl_expiry': _licenseExpiryController.text,
+                  'badge_number': _badgeNoController.text,
+                  'badge_expiry': _badgeExpiryController.text,
+                };
+
+                final success = await _staffController.updateStaff(staff.id, data);
+                if (success) {
+                  Get.back();
+                  Get.snackbar('Success', 'Staff updated successfully', backgroundColor: AppColors.successColor, colorText: Colors.white);
+                }
+              },
+            )),
             const SizedBox(height: 12),
             AppButton.outline(
               text: 'Delete Staff',
@@ -278,6 +323,67 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppText('Select Role', style: AppTextStyle.label),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<RoleModel>(
+          value: _selectedRole,
+          hint: const Text('Select Role'),
+          items: _roleController.roles.map((role) {
+            return DropdownMenuItem(
+              value: role,
+              child: Text(role.roleName),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedRole = val),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.slate50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.slate200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShiftDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppText('Work Shift', style: AppTextStyle.label),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<ShiftModel>(
+          value: _selectedShift,
+          hint: const Text('Select Work Shift'),
+          items: _shiftController.shifts.map((shift) {
+            return DropdownMenuItem(
+              value: shift,
+              child: Text(shift.name),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedShift = val),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.slate50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.slate200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            prefixIcon: const Icon(Iconsax.clock, size: 20),
+          ),
+        ),
+      ],
     );
   }
 
@@ -362,7 +468,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
     );
     if (picked != null) {
       setState(() {
-        controller.text = "${picked.day}/${picked.month}/${picked.year}";
+        controller.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
@@ -400,7 +506,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
           const SizedBox(height: 16),
           UploadBox(
             label: 'Photo Copy',
-            isUploaded: file != null || previewUrl != null,
+            isUploaded: file != null || (previewUrl != null && previewUrl.isNotEmpty),
             previewUrl: previewUrl,
             fileName: fileName,
             onTap: onUpload,
@@ -418,7 +524,7 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
             const SizedBox(height: 16),
             AppInputField(
               label: 'Expiry Date',
-              hint: 'DD/MM/YYYY',
+              hint: 'YYYY-MM-DD',
               controller: expiryController,
               readOnly: true,
               icon: Iconsax.calendar_1,
@@ -427,40 +533,6 @@ class _EditStaffScreenState extends State<EditStaffScreen> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildDropdown<T extends Enum>(
-    String label,
-    T value,
-    List<T> items,
-    Function(T?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<T>(
-          value: value,
-          items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item.name.capitalizeFirst!),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.slate50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-        ),
-      ],
     );
   }
 

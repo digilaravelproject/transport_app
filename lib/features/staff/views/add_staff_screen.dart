@@ -13,6 +13,10 @@ import '../../vehicles/widgets/upload_box.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
+import '../../roles/controllers/role_controller.dart';
+import '../../roles/domain/models/role_model.dart';
+import '../../shifts/controllers/shift_controller.dart';
+import '../../shifts/domain/models/shift_model.dart';
 
 class AddStaffScreen extends StatefulWidget {
   const AddStaffScreen({Key? key}) : super(key: key);
@@ -23,8 +27,16 @@ class AddStaffScreen extends StatefulWidget {
 
 class _AddStaffScreenState extends State<AddStaffScreen> {
   final _controller = Get.find<StaffController>();
+  final _roleController = Get.isRegistered<RoleController>() 
+      ? Get.find<RoleController>() 
+      : Get.put(RoleController());
+  final _shiftController = Get.isRegistered<ShiftController>()
+      ? Get.find<ShiftController>()
+      : Get.put(ShiftController());
+      
   final _formKey = GlobalKey<FormState>();
-  StaffRole _selectedRole = StaffRole.driver;
+  RoleModel? _selectedRole;
+  ShiftModel? _selectedShift;
   SalaryType _selectedSalaryType = SalaryType.monthly;
 
   PlatformFile? aadharFile;
@@ -43,11 +55,17 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
   final _aadharNoController = TextEditingController();
   final _panNoController = TextEditingController();
   final _salaryController = TextEditingController();
-  final _shiftController = TextEditingController();
   final _licenseNoController = TextEditingController();
   final _licenseExpiryController = TextEditingController();
   final _badgeNoController = TextEditingController();
   final _badgeExpiryController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _roleController.fetchRoles();
+    _shiftController.refreshShifts();
+  }
 
   Future<void> _pickDocument(String type) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -90,13 +108,14 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     _aadharNoController.dispose();
     _panNoController.dispose();
     _salaryController.dispose();
-    _shiftController.dispose();
     _licenseNoController.dispose();
     _licenseExpiryController.dispose();
     _badgeNoController.dispose();
     _badgeExpiryController.dispose();
     super.dispose();
   }
+
+  bool get _isDriver => _selectedRole?.roleName.toLowerCase() == 'driver';
 
   @override
   Widget build(BuildContext context) {
@@ -155,12 +174,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildDropdown(
-                    'Select Role',
-                    _selectedRole,
-                    StaffRole.values,
-                    (val) => setState(() => _selectedRole = val!),
-                  ),
+                  Obx(() => _buildRoleDropdown()),
                 ],
               ),
             ),
@@ -208,13 +222,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
                     validator: (v) => v!.isEmpty ? 'Salary is required' : null,
                   ),
                   const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Work Shift',
-                    hint: 'e.g. Day Shift, 9am - 6pm',
-                    controller: _shiftController,
-                    icon: Iconsax.clock,
-                    validator: (v) => v!.isEmpty ? 'Shift is required' : null,
-                  ),
+                  Obx(() => _buildShiftDropdown()),
                 ],
               ),
             ),
@@ -228,7 +236,7 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
               noController: _aadharNoController,
               noLabel: 'Aadhar Number',
             ),
-            if (_selectedRole == StaffRole.driver) ...[
+            if (_isDriver) ...[
               const SizedBox(height: 12),
               _buildStaffDocumentSection(
                 'PAN Card',
@@ -281,14 +289,22 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
               isLoading: _controller.isLoading.value,
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
+                  if (_selectedRole == null) {
+                    Get.snackbar('Error', 'Please select a role', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+                    return;
+                  }
+                  if (_selectedShift == null) {
+                    Get.snackbar('Error', 'Please select a work shift', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+                    return;
+                  }
                   final Map<String, dynamic> data = {
                     'name': _nameController.text,
                     'phone': '${_controller.selectedCountryCode.value}${_phoneController.text}',
                     'email': _emailController.text,
-                    'staff_type': (_selectedRole.index + 1).toString(),
+                    'staff_type': _selectedRole!.id,
                     'salary_type': _selectedSalaryType.name,
                     'basic_salary': _salaryController.text,
-                    'work_shift': _shiftController.text,
+                    'work_shift': _selectedShift!.id,
                     'date_of_joining': _joiningDateController.text,
                     'address': _addressController.text,
                     'aadhar_number': _aadharNoController.text,
@@ -325,6 +341,69 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     ),
   );
 }
+
+  Widget _buildRoleDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppText('Select Role', style: AppTextStyle.label),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<RoleModel>(
+          value: _selectedRole,
+          hint: const Text('Select Role'),
+          items: _roleController.roles.map((role) {
+            return DropdownMenuItem(
+              value: role,
+              child: Text(role.roleName),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedRole = val),
+          validator: (v) => v == null ? 'Role is required' : null,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.slate50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.slate200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShiftDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AppText('Work Shift', style: AppTextStyle.label),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<ShiftModel>(
+          value: _selectedShift,
+          hint: const Text('Select Work Shift'),
+          items: _shiftController.shifts.map((shift) {
+            return DropdownMenuItem(
+              value: shift,
+              child: Text(shift.name),
+            );
+          }).toList(),
+          onChanged: (val) => setState(() => _selectedShift = val),
+          validator: (v) => v == null ? 'Shift is required' : null,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.slate50,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.slate200),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            prefixIcon: const Icon(Iconsax.clock, size: 20),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildSalaryTypeToggle() {
     return Column(
@@ -445,40 +524,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     );
   }
 
-  Widget _buildDropdown<T extends Enum>(
-    String label,
-    T value,
-    List<T> items,
-    Function(T?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<T>(
-          value: value,
-          items: items.map((item) {
-            return DropdownMenuItem(
-              value: item,
-              child: Text(item.name.capitalizeFirst!),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.slate50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 8),
@@ -492,4 +537,3 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     );
   }
 }
-

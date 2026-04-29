@@ -75,4 +75,9 @@ class AppConstants {
     static const String getVehicleStatsUrl = '/api/v1/vehicles/stats';
     static String updateVehicleUrl(dynamic id) => '/api/v1/vehicles/$id';
     static String deleteVehicleUrl(dynamic id) => '/api/v1/vehicles/$id';
+    
+    // Vehicle Activity Endpoints (Fuel, Service, Repair)
+    static String vehicleFuelUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/fuel';
+    static String vehicleServiceUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/service';
+    static String vehicleRepairUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/repair';
 }

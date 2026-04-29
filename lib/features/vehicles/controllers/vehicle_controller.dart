@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/fuel_entry_model.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/logger.dart';
@@ -10,6 +11,7 @@ class VehicleController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
   
   final vehicles = <VehicleModel>[].obs;
+  final fuelHistory = <FuelEntryModel>[].obs;
   final filteredVehicles = <VehicleModel>[].obs;
   final isLoading = false.obs;
   final totalVehicles = 0.obs;

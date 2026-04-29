@@ -17,53 +17,102 @@ class FuelEntryScreen extends StatefulWidget {
 }
 
 class _FuelEntryScreenState extends State<FuelEntryScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _stationController = TextEditingController();
   DateTime selectedDate = DateTime.now();
+  late VehicleModel vehicle;
+
+  @override
+  void initState() {
+    super.initState();
+    vehicle = Get.arguments as VehicleModel;
+  }
+
+  Future<void> _saveFuelEntry() async {
+    if (_amountController.text.isEmpty || _quantityController.text.isEmpty) {
+      Get.snackbar('Error', 'Please fill required fields', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    final double amount = double.tryParse(_amountController.text) ?? 0;
+    final double quantity = double.tryParse(_quantityController.text) ?? 0;
+    final double pricePerUnit = quantity > 0 ? amount / quantity : 0;
+
+    final data = {
+      'activity_date': '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+      'amount': amount,
+      'quantity': quantity,
+      'price_per_unit': pricePerUnit.toStringAsFixed(2),
+      'station_name': _stationController.text,
+    };
+
+    final success = await controller.addFuelEntry(vehicle.id, data);
+    if (success) {
+      Get.back();
+      Get.snackbar('Success', 'Fuel entry saved successfully', 
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.successColor.withOpacity(0.1),
+        colorText: AppColors.successColor,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(title: 'Add Fuel Entry'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              child: Column(
-                children: [
-                  _buildDateField(),
-                  const SizedBox(height: 16),
-                  _buildTextField('Fuel Amount (₹)', 'e.g. 5000', keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Station Name', 'e.g. HP Petrol Pump'),
-                ],
-              ),
+      appBar: AppHeader(title: 'Add Fuel Entry', subtitle: vehicle.vehicleNumber),
+      body: Obx(() => Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                AppCard(
+                  child: Column(
+                    children: [
+                      _buildDateField(),
+                      const SizedBox(height: 16),
+                      _buildTextField('Fuel Amount (₹)', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number),
+                      const SizedBox(height: 16),
+                      _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number),
+                      const SizedBox(height: 16),
+                      _buildTextField('Station Name', 'e.g. HP Petrol Pump', controller: _stationController),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.slate50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.slate200),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Iconsax.camera, color: AppColors.primaryColor),
+                      const SizedBox(width: 12),
+                      AppText('Upload Receipt Photo', style: AppTextStyle.body),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 40),
+                AppButton(
+                  text: 'Save Fuel Entry',
+                  onPressed: _saveFuelEntry,
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+          ),
+          if (controller.isLoading.value)
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.slate50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.slate200),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Iconsax.camera, color: AppColors.primaryColor),
-                  const SizedBox(width: 12),
-                  AppText('Upload Receipt Photo', style: AppTextStyle.body),
-                ],
-              ),
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-            const SizedBox(height: 40),
-            AppButton(
-              text: 'Save Fuel Entry',
-              onPressed: () => Get.back(),
-            ),
-          ],
-        ),
-      ),
+        ],
+      )),
     );
   }
 
@@ -103,13 +152,14 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,

@@ -7,38 +7,60 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/fuel_entry_model.dart';
 
-class FuelHistoryScreen extends GetView<VehicleController> {
+class FuelHistoryScreen extends StatefulWidget {
   const FuelHistoryScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final VehicleModel vehicle = Get.arguments ?? controller.vehicles.first;
+  State<FuelHistoryScreen> createState() => _FuelHistoryScreenState();
+}
 
+class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+
+  @override
+  void initState() {
+    super.initState();
+    vehicle = Get.arguments as VehicleModel;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchFuelHistory(vehicle.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Fuel History',
         subtitle: vehicle.vehicleNumber,
       ),
-      body: Column(
-        children: [
-          _buildSummaryCard(),
-          Expanded(
-            child: Obx(() {
-              if (controller.fuelHistory.isEmpty) {
-                return const Center(child: AppText('No fuel records found', style: AppTextStyle.body));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.all(20),
-                itemCount: controller.fuelHistory.length,
-                itemBuilder: (context, index) {
-                  final entry = controller.fuelHistory[index];
-                  return _buildFuelCard(entry);
-                },
-              );
-            }),
-          ),
-        ],
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchFuelHistory(vehicle.id),
+        child: Column(
+          children: [
+            _buildSummaryCard(),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value && controller.fuelHistory.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (controller.fuelHistory.isEmpty) {
+                  return const Center(child: AppText('No fuel records found', style: AppTextStyle.body));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: controller.fuelHistory.length,
+                  itemBuilder: (context, index) {
+                    final entry = controller.fuelHistory[index];
+                    return _buildFuelCard(entry);
+                  },
+                );
+              }),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -92,7 +114,7 @@ class FuelHistoryScreen extends GetView<VehicleController> {
     );
   }
 
-  Widget _buildFuelCard(FuelEntry entry) {
+  Widget _buildFuelCard(FuelEntryModel entry) {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -101,17 +123,17 @@ class FuelHistoryScreen extends GetView<VehicleController> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppText('${entry.date.day}/${entry.date.month}/${entry.date.year}', 
+              AppText(entry.date, 
                 style: AppTextStyle.body, fontWeight: FontWeight.bold),
               const SizedBox(height: 4),
-              AppText(entry.station, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+              AppText(entry.stationName, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
             ],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              AppText('₹ ${entry.amount}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
-              AppText('${entry.quantity} Ltr', style: AppTextStyle.caption),
+              AppText('₹ ${entry.amount.toStringAsFixed(1)}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
+              AppText('${entry.quantity.toStringAsFixed(1)} Ltr', style: AppTextStyle.caption),
             ],
           ),
         ],

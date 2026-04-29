@@ -77,7 +77,10 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                   const SizedBox(height: 32),
                   AppButton(
                     text: 'Edit Vehicle',
-                    onPressed: () => Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle),
+                    onPressed: () async {
+                      await Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle);
+                      _loadDetails();
+                    },
                   ),
                   const SizedBox(height: 12),
                   AppButton.outline(

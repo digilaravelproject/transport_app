@@ -160,9 +160,10 @@ class VehicleController extends GetxController {
     try {
       final response = await _apiClient.get(AppConstants.updateVehicleUrl(id));
       if (response.isSuccess && response.body != null) {
-        final data = response.body;
-        if (data['vehicle'] != null) {
-          return VehicleModel.fromJson(data['vehicle']);
+        final body = response.body;
+        final vehicleData = body['data'] ?? body['vehicle'];
+        if (vehicleData != null) {
+          return VehicleModel.fromJson(vehicleData);
         }
       }
       return null;

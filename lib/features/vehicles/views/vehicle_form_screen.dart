@@ -59,30 +59,45 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     isEdit = vehicle != null;
     
     if (isEdit) {
-      _regNoController.text = vehicle!.vehicleNumber;
-      selectedType = vehicleTypes.contains(vehicle!.type) ? vehicle!.type : vehicle!.type;
-      _capacityController.text = vehicle!.capacity.toString();
-      _yearController.text = vehicle!.year;
-      _perKmPriceController.text = vehicle!.perKmPrice.toString();
-      _acPriceController.text = vehicle!.acPricePerKm.toString();
-      
-      _rcNoController.text = vehicle!.rcNumber ?? '';
-      if (vehicle!.rcExpiry != null) {
-        rcExpiry = vehicle!.rcExpiry;
-        _rcExpiryController.text = DateFormat('dd-MM-yyyy').format(rcExpiry!);
-      }
-      
-      _insNoController.text = vehicle!.insuranceNumber ?? '';
-      if (vehicle!.insuranceExpiry != null) {
-        insExpiry = vehicle!.insuranceExpiry;
-        _insExpiryController.text = DateFormat('dd-MM-yyyy').format(insExpiry!);
-      }
-      
-      _permitNoController.text = vehicle!.permitNumber ?? '';
-      if (vehicle!.permitExpiry != null) {
-        permitExpiry = vehicle!.permitExpiry;
-        _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(permitExpiry!);
-      }
+      _fillForm(vehicle!);
+      _loadVehicleDetails();
+    }
+  }
+
+  void _fillForm(VehicleModel v) {
+    _regNoController.text = v.vehicleNumber;
+    selectedType = vehicleTypes.contains(v.type) ? v.type : v.type;
+    _capacityController.text = v.capacity.toString();
+    _yearController.text = v.year;
+    _perKmPriceController.text = v.perKmPrice.toString();
+    _acPriceController.text = v.acPricePerKm.toString();
+    
+    _rcNoController.text = v.rcNumber ?? '';
+    if (v.rcExpiry != null) {
+      rcExpiry = v.rcExpiry;
+      _rcExpiryController.text = DateFormat('dd-MM-yyyy').format(rcExpiry!);
+    }
+    
+    _insNoController.text = v.insuranceNumber ?? '';
+    if (v.insuranceExpiry != null) {
+      insExpiry = v.insuranceExpiry;
+      _insExpiryController.text = DateFormat('dd-MM-yyyy').format(insExpiry!);
+    }
+    
+    _permitNoController.text = v.permitNumber ?? '';
+    if (v.permitExpiry != null) {
+      permitExpiry = v.permitExpiry;
+      _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(permitExpiry!);
+    }
+  }
+
+  Future<void> _loadVehicleDetails() async {
+    final updatedVehicle = await controller.fetchVehicleDetails(vehicle!.id);
+    if (updatedVehicle != null) {
+      setState(() {
+        vehicle = updatedVehicle;
+        _fillForm(vehicle!);
+      });
     }
   }
 

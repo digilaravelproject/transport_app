@@ -140,11 +140,23 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
               AppText(entry.station, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
             ],
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+          Row(
             children: [
-              AppText('₹ ${entry.amount.toStringAsFixed(1)}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
-              AppText('${entry.quantity.toStringAsFixed(1)} Ltr', style: AppTextStyle.caption),
+              if (entry.receiptPath != null && entry.receiptPath!.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.visibility_rounded, color: AppColors.primaryColor, size: 20),
+                  onPressed: () => Get.toNamed(
+                    RouteHelper.getDocumentPreviewRoute(),
+                    arguments: AppConstants.getFileUrl(entry.receiptPath),
+                  ),
+                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  AppText('₹ ${entry.amount.toStringAsFixed(1)}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
+                  AppText('${entry.quantity.toStringAsFixed(1)} Ltr', style: AppTextStyle.caption),
+                ],
+              ),
             ],
           ),
         ],

@@ -82,4 +82,10 @@ class AppConstants {
     static String vehicleRepairUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/repair';
     static String vehicleDocumentsUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/documents';
     static String vehicleTimelineUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/timeline';
+
+    static String getFileUrl(String? path) {
+      if (path == null || path.isEmpty) return '';
+      if (path.startsWith('http')) return path;
+      return '$baseUrl/storage/$path';
+    }
 }

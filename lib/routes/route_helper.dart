@@ -121,6 +121,7 @@ import '../features/membership/controllers/membership_controller.dart';
 import '../features/notifications/views/notifications_screen.dart';
 import '../features/notifications/views/notification_details_screen.dart';
 import '../features/dashboard/views/search_screen.dart';
+import '../features/vehicles/views/document_viewer_screen.dart';
 import 'app_routes.dart';
 
 class RouteHelper {
@@ -170,6 +171,7 @@ class RouteHelper {
   static String getFollowUpRoute() => AppRoutes.followUp;
   static String getQuotationPreviewRoute() => AppRoutes.quotationPreview;
   static String getPdfViewerRoute() => AppRoutes.pdfViewer;
+  static String getDocumentPreviewRoute() => AppRoutes.documentPreview;
 
   // Staff
   static String getStaffListRoute() => AppRoutes.staffList;
@@ -462,6 +464,10 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.servicePaymentHistory,
       page: () => const ServicePaymentHistoryScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.documentPreview,
+      page: () => const DocumentViewerScreen(),
     ),
 
     GetPage(

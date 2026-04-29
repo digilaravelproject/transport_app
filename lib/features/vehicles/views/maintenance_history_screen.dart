@@ -114,8 +114,23 @@ class _MaintenanceHistoryScreenState extends State<MaintenanceHistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     AppText(typeLabel, style: AppTextStyle.body, fontWeight: FontWeight.bold, color: AppColors.primaryColor),
-                    if (item.amount != null && item.amount! > 0)
-                      AppText('₹ ${item.amount!.toStringAsFixed(0)}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                    Row(
+                      children: [
+                        if (item.receiptPath != null && item.receiptPath!.isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.visibility_rounded, color: AppColors.primaryColor, size: 18),
+                            onPressed: () => Get.toNamed(
+                              RouteHelper.getDocumentPreviewRoute(),
+                              arguments: AppConstants.getFileUrl(item.receiptPath),
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        const SizedBox(width: 8),
+                        if (item.amount != null && item.amount! > 0)
+                          AppText('₹ ${item.amount!.toStringAsFixed(0)}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 4),

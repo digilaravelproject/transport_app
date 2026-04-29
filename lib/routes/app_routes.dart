@@ -14,6 +14,8 @@ class AppRoutes {
   static const String leadNotes = '/leadNotes';
   static const String followUp = '/followUp';
   static const String quotationPreview = '/quotationPreview';
+  static String getPdfViewerRoute() => AppRoutes.pdfViewer;
+  static String getDocumentPreviewRoute() => AppRoutes.documentPreview;
   static const String pdfViewer = '/pdfViewer';
   static const String tripList = '/trip-list';
   static const String createTrip = '/create-trip';
@@ -126,4 +128,5 @@ class AppRoutes {
   static const String notifications = '/notifications';
   static const String notificationDetails = '/notification-details';
   static const String search = '/search';
+  static const String documentPreview = '/document-preview';
 }

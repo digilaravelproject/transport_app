@@ -405,8 +405,8 @@ class VehicleController extends GetxController {
     isLoading.value = true;
     try {
       final List<MultipartDocument> otherFile = [];
-      if (receiptFile != null) {
-        otherFile.add(MultipartDocument('receipt_path', receiptFile));
+      if (receiptFile != null && receiptFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt_path', receiptFile.files.first));
       }
 
       final response = await _apiClient.postMultipartData(

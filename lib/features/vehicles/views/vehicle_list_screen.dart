@@ -187,6 +187,14 @@ class VehicleListScreen extends GetView<VehicleController> {
 
                   // Vehicle List
                   Obx(() {
+                    if (controller.isLoading.value) {
+                      return const Padding(
+                        padding: EdgeInsets.all(100.0),
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppColors.primaryColor),
+                        ),
+                      );
+                    }
                     if (controller.filteredVehicles.isEmpty) {
                       return const Padding(
                         padding: EdgeInsets.all(40.0),

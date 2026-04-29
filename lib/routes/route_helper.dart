@@ -48,7 +48,7 @@ import '../features/vehicles/controllers/vehicle_controller.dart';
 import '../features/staff/views/staff_list_screen.dart';
 import '../features/staff/views/add_staff_screen.dart';
 import '../features/staff/views/staff_details_screen.dart';
-import '../features/staff/views/edit_staff_screen.dart';
+import '../features/staff/views/staff_form_screen.dart';
 import '../features/staff/views/attendance_screen.dart';
 import '../features/staff/views/attendance_history_screen.dart';
 import '../features/staff/views/duty_hours_screen.dart';
@@ -472,7 +472,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.addStaff,
-      page: () => const AddStaffScreen(),
+      page: () => const StaffFormScreen(),
     ),
     GetPage(
       name: AppRoutes.staffDetails,
@@ -480,7 +480,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.editStaff,
-      page: () => const EditStaffScreen(),
+      page: () => const StaffFormScreen(),
     ),
     GetPage(
       name: AppRoutes.attendance,

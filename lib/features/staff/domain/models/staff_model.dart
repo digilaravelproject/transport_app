@@ -33,6 +33,13 @@ class StaffModel {
   final String? badgeNumber;
   final DateTime? badgeExpiry;
   final String? bankPassbookUrl;
+  final DateTime? dob;
+  final String? emergencyContact;
+  final String? emergencyContactName;
+  final String? bankName;
+  final String? bankAccount;
+  final String? bankIfsc;
+  final String? licenseType;
 
   StaffModel({
     required this.id,
@@ -63,6 +70,13 @@ class StaffModel {
     this.badgeNumber,
     this.badgeExpiry,
     this.bankPassbookUrl,
+    this.dob,
+    this.emergencyContact,
+    this.emergencyContactName,
+    this.bankName,
+    this.bankAccount,
+    this.bankIfsc,
+    this.licenseType,
   });
 
   factory StaffModel.fromJson(Map<String, dynamic> json) {
@@ -108,6 +122,13 @@ class StaffModel {
       badgeNumber: json['badge'] != null ? json['badge']['number'] : json['badge_number'],
       badgeExpiry: _parseDate(json['badge'] != null ? json['badge']['expiry'] : json['badge_expiry']),
       bankPassbookUrl: json['passbook_file'],
+      dob: _parseDate(json['date_of_birth'] ?? json['dob']),
+      emergencyContact: json['emergency_contact'],
+      emergencyContactName: json['emergency_contact_name'],
+      bankName: json['bank_name'],
+      bankAccount: json['bank_account'],
+      bankIfsc: json['bank_ifsc'],
+      licenseType: json['license_type'],
     );
   }
 

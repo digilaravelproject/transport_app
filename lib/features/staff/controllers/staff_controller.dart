@@ -240,6 +240,13 @@ class StaffController extends GetxController {
         'dl_expiry': data['dl_expiry'],
         'badge_number': data['badge_number'],
         'badge_expiry': data['badge_expiry'],
+        'date_of_birth': data['date_of_birth'],
+        'emergency_contact': data['emergency_contact'],
+        'emergency_contact_name': data['emergency_contact_name'],
+        'bank_name': data['bank_name'],
+        'bank_account': data['bank_account'],
+        'bank_ifsc': data['bank_ifsc'],
+        'license_type': data['license_type'],
       });
 
       // Add files
@@ -299,6 +306,13 @@ class StaffController extends GetxController {
         'dl_expiry': data['dl_expiry'],
         'badge_number': data['badge_number'],
         'badge_expiry': data['badge_expiry'],
+        'date_of_birth': data['date_of_birth'],
+        'emergency_contact': data['emergency_contact'],
+        'emergency_contact_name': data['emergency_contact_name'],
+        'bank_name': data['bank_name'],
+        'bank_account': data['bank_account'],
+        'bank_ifsc': data['bank_ifsc'],
+        'license_type': data['license_type'],
       });
 
       // Add files if new paths are provided

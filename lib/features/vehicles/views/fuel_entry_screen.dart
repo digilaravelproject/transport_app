@@ -155,7 +155,18 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
                           children: [
                             Icon(Iconsax.document_upload, color: AppColors.primaryColor),
                             SizedBox(width: 12),
-                            AppText('Upload Receipt (Optional)', style: AppTextStyle.body),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText('Upload Receipt (Optional)', style: AppTextStyle.body),
+                                SizedBox(height: 2),
+                                AppText(
+                                  'Supports: JPG, PNG, PDF or DOC',
+                                  fontSize: 11,
+                                  color: AppColors.textColorSecondary,
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                   ),

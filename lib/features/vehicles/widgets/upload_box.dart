@@ -165,9 +165,9 @@ class UploadBox extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       AppText(
-                        'JPG, PNG, PDF or DOC',
-                        fontSize: 10,
-                        color: AppColors.textColorSecondary.withValues(alpha: 0.6),
+                        'Supports: JPG, PNG, PDF or DOC',
+                        fontSize: 11,
+                        color: AppColors.textColorSecondary,
                       ),
                     ],
                   ),

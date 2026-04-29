@@ -52,6 +52,19 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   DateTime? insExpiry;
   DateTime? permitExpiry;
 
+  // Error States
+  String? regNoError;
+  String? typeError;
+  String? capacityError;
+  String? yearError;
+  String? priceError;
+  String? rcNoError;
+  String? rcExpiryError;
+  String? insNoError;
+  String? insExpiryError;
+  String? permitNoError;
+  String? permitExpiryError;
+
   @override
   void initState() {
     super.initState();
@@ -129,22 +142,83 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         if (type == 'RC') {
           rcExpiry = picked;
           _rcExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
+          rcExpiryError = null;
         } else if (type == 'Insurance') {
           insExpiry = picked;
           _insExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
+          insExpiryError = null;
         } else if (type == 'Permit') {
           permitExpiry = picked;
           _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
+          permitExpiryError = null;
         }
       });
     }
   }
 
   Future<void> _handleSave() async {
-    if (_regNoController.text.isEmpty || selectedType == null) {
-      Get.snackbar('Error', 'Please fill required fields', snackPosition: SnackPosition.BOTTOM);
-      return;
+    setState(() {
+      regNoError = null;
+      typeError = null;
+      capacityError = null;
+      yearError = null;
+      priceError = null;
+      rcNoError = null;
+      rcExpiryError = null;
+      insNoError = null;
+      insExpiryError = null;
+      permitNoError = null;
+      permitExpiryError = null;
+    });
+
+    bool hasError = false;
+
+    if (_regNoController.text.isEmpty) {
+      setState(() => regNoError = 'Vehicle number is required');
+      hasError = true;
     }
+    if (selectedType == null) {
+      setState(() => typeError = 'Please select vehicle type');
+      hasError = true;
+    }
+    if (_capacityController.text.isEmpty) {
+      setState(() => capacityError = 'Capacity is required');
+      hasError = true;
+    }
+    if (_yearController.text.isEmpty) {
+      setState(() => yearError = 'Model year is required');
+      hasError = true;
+    }
+    if (_perKmPriceController.text.isEmpty) {
+      setState(() => priceError = 'Price is required');
+      hasError = true;
+    }
+    if (_rcNoController.text.isEmpty) {
+      setState(() => rcNoError = 'RC number is required');
+      hasError = true;
+    }
+    if (rcExpiry == null) {
+      setState(() => rcExpiryError = 'RC expiry is required');
+      hasError = true;
+    }
+    if (_insNoController.text.isEmpty) {
+      setState(() => insNoError = 'Insurance number is required');
+      hasError = true;
+    }
+    if (insExpiry == null) {
+      setState(() => insExpiryError = 'Insurance expiry is required');
+      hasError = true;
+    }
+    if (_permitNoController.text.isEmpty) {
+      setState(() => permitNoError = 'Permit number is required');
+      hasError = true;
+    }
+    if (permitExpiry == null) {
+      setState(() => permitExpiryError = 'Permit expiry is required');
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     final Map<String, dynamic> data = {
       'registration_number': _regNoController.text,
@@ -215,15 +289,45 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                 AppCard(
                   child: Column(
                     children: [
-                      _buildTextField('Vehicle Number', 'e.g. DL 01 AB 1234', controller: _regNoController),
+                      AppInputField(
+                        label: 'Vehicle Number',
+                        hint: 'e.g. DL 01 AB 1234',
+                        controller: _regNoController,
+                        errorText: regNoError,
+                        onChanged: (_) => setState(() => regNoError = null),
+                      ),
                       const SizedBox(height: 16),
-                      _buildDropdown('Vehicle Type', vehicleTypes, selectedType, (val) => setState(() => selectedType = val)),
+                      _buildDropdown('Vehicle Type', vehicleTypes, selectedType, (val) {
+                        setState(() {
+                          selectedType = val;
+                          typeError = null;
+                        });
+                      }, errorText: typeError),
                       const SizedBox(height: 16),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(child: _buildTextField('Seating Capacity', 'e.g. 36', controller: _capacityController, keyboardType: TextInputType.number)),
+                          Expanded(
+                            child: AppInputField(
+                              label: 'Seating Capacity',
+                              hint: 'e.g. 36',
+                              controller: _capacityController,
+                              keyboardType: TextInputType.number,
+                              errorText: capacityError,
+                              onChanged: (_) => setState(() => capacityError = null),
+                            ),
+                          ),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('Model Year', 'e.g. 2022', controller: _yearController, keyboardType: TextInputType.number)),
+                          Expanded(
+                            child: AppInputField(
+                              label: 'Model Year',
+                              hint: 'e.g. 2022',
+                              controller: _yearController,
+                              keyboardType: TextInputType.number,
+                              errorText: yearError,
+                              onChanged: (_) => setState(() => yearError = null),
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -234,9 +338,21 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                 AppCard(
                   child: Column(
                     children: [
-                      _buildTextField('Per KM Price', 'e.g. 18.00', controller: _perKmPriceController, keyboardType: TextInputType.number),
+                      AppInputField(
+                        label: 'Per KM Price',
+                        hint: 'e.g. 18.00',
+                        controller: _perKmPriceController,
+                        keyboardType: TextInputType.number,
+                        errorText: priceError,
+                        onChanged: (_) => setState(() => priceError = null),
+                      ),
                       const SizedBox(height: 16),
-                      _buildTextField('AC Price per KM (Extra)', 'e.g. 2.00', controller: _acPriceController, keyboardType: TextInputType.number),
+                      AppInputField(
+                        label: 'AC Price per KM (Extra)',
+                        hint: 'e.g. 2.00',
+                        controller: _acPriceController,
+                        keyboardType: TextInputType.number,
+                      ),
                     ],
                   ),
                 ),
@@ -251,6 +367,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   'RC Number',
                   'RC',
                   remoteUrl: vehicle?.rcFileUrl,
+                  noError: rcNoError,
+                  expiryError: rcExpiryError,
                 ),
                 _buildDocumentSection(
                   'Insurance Policy',
@@ -261,6 +379,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   'Policy Number',
                   'Insurance',
                   remoteUrl: vehicle?.insuranceFileUrl,
+                  noError: insNoError,
+                  expiryError: insExpiryError,
                 ),
                 _buildDocumentSection(
                   'Permit Details',
@@ -271,6 +391,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   'Permit Number',
                   'Permit',
                   remoteUrl: vehicle?.permitFileUrl,
+                  noError: permitNoError,
+                  expiryError: permitExpiryError,
                 ),
                 const SizedBox(height: 40),
                 AppButton(
@@ -304,7 +426,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     VoidCallback onUpload,
     String noLabel,
     String type,
-    {String? remoteUrl}
+    {String? remoteUrl, String? noError, String? expiryError}
   ) {
     return AppCard(
       padding: const EdgeInsets.all(16),
@@ -341,6 +463,14 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             hint: 'Enter Number',
             controller: noController,
             icon: Iconsax.hashtag,
+            errorText: noError,
+            onChanged: (_) {
+              setState(() {
+                if (type == 'RC') rcNoError = null;
+                if (type == 'Insurance') insNoError = null;
+                if (type == 'Permit') permitNoError = null;
+              });
+            },
           ),
           const SizedBox(height: 16),
           AppInputField(
@@ -350,6 +480,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             readOnly: true,
             icon: Iconsax.calendar_1,
             onTap: () => _selectDate(context, type),
+            errorText: expiryError,
           ),
         ],
       ),
@@ -369,36 +500,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
-            filled: true,
-            fillColor: AppColors.slate50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdown(String label, List<String> items, String? initialVal, Function(String?) onChanged) {
+  Widget _buildDropdown(String label, List<String> items, String? initialVal, Function(String?) onChanged, {String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -409,13 +511,19 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.slate50,
+            errorText: errorText,
+            errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.primaryColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

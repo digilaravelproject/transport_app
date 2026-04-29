@@ -24,6 +24,7 @@ class AppInputField extends StatefulWidget {
   final String? phoneCode;
   final VoidCallback? onPhoneCodeTap;
   final bool isRequired;
+  final String? errorText;
 
   const AppInputField({
     Key? key,
@@ -48,6 +49,7 @@ class AppInputField extends StatefulWidget {
     this.phoneCode,
     this.onPhoneCodeTap,
     this.isRequired = false,
+    this.errorText,
   }) : super(key: key);
 
   @override
@@ -86,24 +88,11 @@ class _AppInputFieldState extends State<AppInputField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label != null) ...[
-          RichText(
-            text: TextSpan(
-              text: widget.label!,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textColorPrimary,
-              ),
-              children: widget.isRequired
-                  ? const [
-                TextSpan(
-                  text: ' *',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ]
-                  : [],
+          AppText(
+            widget.label!,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textColorPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -145,13 +134,13 @@ class _AppInputFieldState extends State<AppInputField> {
             // Default Border
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.slate200, width: 1),
+              borderSide: BorderSide(color: (widget.errorText != null || _errorText != null) ? Colors.red : AppColors.slate200, width: 1),
             ),
             
             // Focused Border
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primaryColor, width: 1.5),
+              borderSide: BorderSide(color: (widget.errorText != null || _errorText != null) ? Colors.red : AppColors.primaryColor, width: 1.5),
             ),
             
             // Error Border
@@ -235,11 +224,11 @@ class _AppInputFieldState extends State<AppInputField> {
             ),
           ),
         ),
-        if (_errorText != null)
+        if (_errorText != null || widget.errorText != null)
           Padding(
             padding: const EdgeInsets.only(top: 4, left: 4),
             child: AppText(
-              _errorText!,
+              _errorText ?? widget.errorText!,
               color: Colors.red,
               fontSize: 12,
             ),

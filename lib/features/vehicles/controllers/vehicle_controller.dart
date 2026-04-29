@@ -11,6 +11,9 @@ class VehicleController extends GetxController {
   final vehicles = <VehicleModel>[].obs;
   final filteredVehicles = <VehicleModel>[].obs;
   final isLoading = false.obs;
+  final totalVehicles = 0.obs;
+  final activeVehicles = 0.obs;
+  final serviceVehicles = 0.obs;
   final searchQuery = ''.obs;
   final selectedFilter = 'All'.obs; // Status: All, Active, Maintenance
   final selectedTypeFilter = 'All'.obs;
@@ -31,6 +34,7 @@ class VehicleController extends GetxController {
   void onInit() {
     super.onInit();
     fetchVehicles();
+    fetchVehicleStats();
     _loadMockMaintenance();
     
     debounce(searchQuery, (_) => fetchVehicles(), time: const Duration(milliseconds: 500));
@@ -81,6 +85,20 @@ class VehicleController extends GetxController {
       Logger.e('Error fetching vehicles: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleStats() async {
+    try {
+      final response = await _apiClient.get(AppConstants.getVehicleStatsUrl);
+      if (response.isSuccess) {
+        final data = response.body;
+        totalVehicles.value = data['total'] ?? 0;
+        activeVehicles.value = data['active'] ?? 0;
+        serviceVehicles.value = data['service'] ?? 0;
+      }
+    } catch (e) {
+      Logger.e('Error fetching vehicle stats: $e');
     }
   }
 

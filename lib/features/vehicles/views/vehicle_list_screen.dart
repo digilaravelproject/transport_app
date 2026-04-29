@@ -118,7 +118,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                             Expanded(
                               child: _StatCard(
                                 title: 'Total',
-                                value: controller.vehicles.length.toString(),
+                                value: controller.totalVehicles.value.toString(),
                                 color: const Color(0xFF3B82F6),
                                 icon: Iconsax.bus,
                               ),
@@ -127,10 +127,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                             Expanded(
                               child: _StatCard(
                                 title: 'Active',
-                                value: controller.vehicles
-                                    .where((v) => v.status == VehicleStatus.active)
-                                    .length
-                                    .toString(),
+                                value: controller.activeVehicles.value.toString(),
                                 color: const Color(0xFF10B981),
                                 icon: Iconsax.tick_circle5,
                               ),
@@ -139,10 +136,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                             Expanded(
                               child: _StatCard(
                                 title: 'Service',
-                                value: controller.vehicles
-                                    .where((v) => v.status == VehicleStatus.maintenance)
-                                    .length
-                                    .toString(),
+                                value: controller.serviceVehicles.value.toString(),
                                 color: const Color(0xFFF59E0B),
                                 icon: Iconsax.setting_25,
                               ),

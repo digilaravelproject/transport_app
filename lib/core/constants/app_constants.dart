@@ -61,4 +61,11 @@ class AppConstants {
     static String searchRoutesUrl(String query) => '/api/v1/routes/search?query=$query';
     static String updateRouteUrl(dynamic id) => '/api/v1/routes/$id';
     static String getRouteByIdUrl(dynamic id) => '/api/v1/routes/$id';
+
+    // Inventory Endpoints
+    static const String inventoryListUrl = '/api/v1/inventories';
+    static String inventoryDetailsUrl(int id) => '/api/v1/inventories/$id';
+    static String inventoryStocksUrl(int id) => '/api/v1/inventories/$id/stocks';
+    static String stockInUrl(int id) => '/api/v1/inventories/$id/stock-in';
+    static String stockOutUrl(int id) => '/api/v1/inventories/$id/stock-out';
 }

@@ -55,6 +55,18 @@ class InventoryListScreen extends GetView<InventoryController> {
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
+                  label: 'Tools',
+                  isSelected: controller.selectedFilter.value == 'Tools',
+                  onTap: () => controller.setFilter('Tools'),
+                ),
+                const SizedBox(width: 8),
+                AppFilterChip(
+                  label: 'Office Supplies',
+                  isSelected: controller.selectedFilter.value == 'Office Supplies',
+                  onTap: () => controller.setFilter('Office Supplies'),
+                ),
+                const SizedBox(width: 8),
+                AppFilterChip(
                   label: 'Oils & Fluids',
                   isSelected: controller.selectedFilter.value == 'Oils & Fluids',
                   onTap: () => controller.setFilter('Oils & Fluids'),
@@ -87,13 +99,27 @@ class InventoryListScreen extends GetView<InventoryController> {
           }),
           Expanded(
             child: Obx(() {
+               if (controller.isLoading.value) {
+                 return const Center(child: CircularProgressIndicator());
+               }
+               
                if (controller.filteredItems.isEmpty) {
                  return const Center(child: AppText('No inventory items found.'));
                }
+               
                return ListView.builder(
+                 controller: controller.scrollController,
                  padding: const EdgeInsets.all(16),
-                 itemCount: controller.filteredItems.length,
+                 itemCount: controller.filteredItems.length + (controller.isLoadingMore.value ? 1 : 0),
                  itemBuilder: (context, index) {
+                   if (index == controller.filteredItems.length) {
+                     return const Center(
+                       child: Padding(
+                         padding: EdgeInsets.all(16.0),
+                         child: CircularProgressIndicator(),
+                       ),
+                     );
+                   }
                    return _buildInventoryItem(controller.filteredItems[index]);
                  },
                );

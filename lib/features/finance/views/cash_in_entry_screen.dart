@@ -21,6 +21,8 @@ class CashInEntryScreen extends StatefulWidget {
 
 class _CashInEntryScreenState extends State<CashInEntryScreen> {
   final FinanceController controller = Get.find<FinanceController>();
+  final _formKey = GlobalKey<FormState>();
+  
   String _category = 'Corporate Payment';
   String _paymentMethod = 'Bank Transfer';
   
@@ -45,35 +47,29 @@ class _CashInEntryScreenState extends State<CashInEntryScreen> {
   }
 
   void _saveIncome() async {
-    final amount = double.tryParse(_amountController.text);
-    if (amount == null || amount <= 0) {
-      Get.snackbar('Error', 'Please enter a valid amount', snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-    
-    if (_dateController.text.isEmpty) {
-      Get.snackbar('Error', 'Please select a date', snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
+    if (_formKey.currentState!.validate()) {
+      final amount = double.tryParse(_amountController.text);
+      if (amount == null || amount <= 0) {
+        Get.snackbar('Error', 'Please enter a valid amount', snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+      
+      final request = TransactionRequestModel(
+        type: 'income',
+        amount: amount,
+        entryDate: _dateController.text, // Assume YYYY-MM-DD
+        category: _category.replaceAll(' ', '_').toLowerCase(),
+        paymentMethod: _paymentMethod.replaceAll(' ', '_').toLowerCase(),
+        referenceNumber: _refController.text,
+        description: _descController.text,
+      );
 
-    if (_descController.text.isEmpty) {
-      Get.snackbar('Error', 'Please enter a description', snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-
-    final request = TransactionRequestModel(
-      type: 'income',
-      amount: amount,
-      entryDate: _dateController.text, // Assume YYYY-MM-DD
-      category: _category.replaceAll(' ', '_').toLowerCase(),
-      paymentMethod: _paymentMethod.replaceAll(' ', '_').toLowerCase(),
-      referenceNumber: _refController.text,
-      description: _descController.text,
-    );
-
-    final success = await controller.saveTransaction(request);
-    if (success) {
-      Get.back();
+      final success = await controller.saveTransaction(request);
+      if (success) {
+        Get.back();
+      }
+    } else {
+      Get.snackbar('Error', 'Please fill in all required fields', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.redAccent, colorText: Colors.white);
     }
   }
 
@@ -99,66 +95,83 @@ class _CashInEntryScreenState extends State<CashInEntryScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText('Income Details', style: AppTextStyle.subheading, color: AppColors.successColor),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    controller: _amountController,
-                    label: 'Amount (₹)',
-                    hint: '0.00',
-                    icon: Iconsax.card,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: _selectDate,
-                    child: AbsorbPointer(
-                      child: AppInputField(
-                        controller: _dateController,
-                        label: 'Date',
-                        hint: 'YYYY-MM-DD',
-                        icon: Iconsax.calendar_1,
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              AppCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText('Income Details', style: AppTextStyle.subheading, color: AppColors.successColor),
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      controller: _amountController,
+                      label: 'Amount (₹)',
+                      hint: '0.00',
+                      icon: Iconsax.card,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Amount is required';
+                        if (double.tryParse(value) == null) return 'Invalid amount';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: _selectDate,
+                      child: AbsorbPointer(
+                        child: AppInputField(
+                          controller: _dateController,
+                          label: 'Date',
+                          hint: 'YYYY-MM-DD',
+                          icon: Iconsax.calendar_1,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) return 'Date is required';
+                            return null;
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDropdown('Category', _category, ['Corporate Payment', 'Trip Advance', 'Other Income'], (val) => setState(() => _category = val!)),
-                  const SizedBox(height: 16),
-                  _buildDropdown('Payment Method', _paymentMethod, ['Cash', 'Bank Transfer', 'UPI', 'Cheque'], (val) => setState(() => _paymentMethod = val!)),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    controller: _refController,
-                    label: 'Reference No. / ID',
-                    hint: 'e.g. TRP001 or VHC001',
-                    icon: Icons.tag_rounded,
-                  ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    controller: _descController,
-                    label: 'Description',
-                    hint: 'Add short note...',
-                    icon: Icons.notes_rounded,
-                    maxLines: 3,
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    _buildDropdown('Category', _category, ['Corporate Payment', 'Trip Advance', 'Other Income'], (val) => setState(() => _category = val!)),
+                    const SizedBox(height: 16),
+                    _buildDropdown('Payment Method', _paymentMethod, ['Cash', 'Bank Transfer', 'UPI', 'Cheque'], (val) => setState(() => _paymentMethod = val!)),
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      controller: _refController,
+                      label: 'Reference No. / ID',
+                      hint: 'e.g. TRP001 or VHC001',
+                      icon: Icons.tag_rounded,
+                      // Reference is optional based on the request model
+                    ),
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      controller: _descController,
+                      label: 'Description',
+                      hint: 'Add short note...',
+                      icon: Icons.notes_rounded,
+                      maxLines: 3,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Description is required';
+                        return null;
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            Obx(() => AppButton(
-              text: controller.isLoading.value ? 'Saving...' : 'Save Income',
-              onPressed: controller.isLoading.value ? () {} : _saveIncome,
-            )),
-            const SizedBox(height: 12),
-            AppButton.outline(
-              text: 'Cancel',
-              onPressed: () => Get.back(),
-            ),
-          ],
+              const SizedBox(height: 32),
+              Obx(() => AppButton(
+                text: controller.isLoading.value ? 'Saving...' : 'Save Income',
+                onPressed: controller.isLoading.value ? () {} : _saveIncome,
+              )),
+              const SizedBox(height: 12),
+              AppButton.outline(
+                text: 'Cancel',
+                onPressed: () => Get.back(),
+              ),
+            ],
+          ),
         ),
       ),
     );

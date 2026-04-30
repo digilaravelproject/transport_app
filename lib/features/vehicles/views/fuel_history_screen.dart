@@ -8,6 +8,8 @@ import '../../../core/widgets/app_text.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 import '../domain/models/fuel_entry_model.dart';
+import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_constants.dart';
 
 class FuelHistoryScreen extends StatefulWidget {
   const FuelHistoryScreen({Key? key}) : super(key: key);

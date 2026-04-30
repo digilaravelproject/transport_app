@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -37,6 +38,10 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
       appBar: AppHeader(
         title: 'Fuel History',
         subtitle: vehicle.vehicleNumber,
+        trailing: _buildAddHeaderButton(
+          color: Colors.orange,
+          onTap: () => Get.toNamed(RouteHelper.getFuelEntryRoute(), arguments: vehicle),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: () => controller.fetchFuelHistory(vehicle.id),
@@ -69,14 +74,9 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
 
   Widget _buildSummaryCard() {
     return Obx(() {
-      final total = controller.fuelHistory.fold(0.0, (sum, item) => sum + item.amount);
-      final avg = controller.fuelHistory.isEmpty ? 0.0 : total / controller.fuelHistory.fold(0.0, (sum, item) => sum + item.quantity);
-      
-      // Calculate monthly cost (current month)
-      final now = DateTime.now();
-      final monthly = controller.fuelHistory
-          .where((e) => e.date.month == now.month && e.date.year == now.year)
-          .fold(0.0, (sum, item) => sum + item.amount);
+      final total = controller.totalFuelExpense.value;
+      final monthly = controller.monthlyFuelCost.value;
+      final avg = controller.avgFuelPrice.value;
 
       return Container(
         width: double.infinity,
@@ -145,11 +145,18 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
           Row(
             children: [
               if (entry.receiptPath != null && entry.receiptPath!.isNotEmpty)
-                IconButton(
-                  icon: const Icon(Icons.visibility_rounded, color: AppColors.primaryColor, size: 20),
-                  onPressed: () => Get.toNamed(
-                    RouteHelper.getDocumentPreviewRoute(),
-                    arguments: AppConstants.getFileUrl(entry.receiptPath),
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: () => Get.toNamed('/document-preview', arguments: entry.receiptPath),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Iconsax.eye, size: 16, color: Colors.orange),
+                    ),
                   ),
                 ),
               Column(
@@ -162,6 +169,33 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAddHeaderButton({required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Iconsax.add_circle, color: color, size: 14),
+            const SizedBox(width: 4),
+            AppText('Add', 
+              fontSize: 12, 
+              color: color, 
+              fontWeight: FontWeight.w800,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_constants.dart';
+
 class TimelineRecord {
   final int id;
   final String activityType;
@@ -27,7 +29,7 @@ class TimelineRecord {
       date: DateTime.tryParse(json['activity_date'] ?? '') ?? DateTime.now(),
       amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
       quantity: double.tryParse(json['quantity']?.toString() ?? '0'),
-      receiptPath: json['receipt_path'],
+      receiptPath: AppConstants.getFileUrl(json['receipt_path']),
       kind: json['kind'] ?? 'activity',
     );
   }

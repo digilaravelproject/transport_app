@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../../routes/route_helper.dart';
 import '../domain/models/service_record_model.dart';
 
 class ServiceHistoryScreen extends StatefulWidget {
@@ -41,82 +42,93 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
       appBar: AppHeader(
         title: 'Service History',
         subtitle: vehicle.vehicleNumber,
+        trailing: _buildAddHeaderButton(
+          color: AppColors.primaryColor,
+          onTap: () => Get.toNamed('/service-entry', arguments: vehicle),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/service-entry', arguments: vehicle),
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummaryCard(),
-          Obx(() => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                AppFilterChip(label: 'All', isSelected: controller.selectedServiceFilter.value == 'All', onTap: () => controller.setServiceFilter('All')),
-                const SizedBox(width: 8),
-                AppFilterChip(label: 'Pending', isSelected: controller.selectedServiceFilter.value == 'Pending', onTap: () => controller.setServiceFilter('Pending')),
-                const SizedBox(width: 8),
-                AppFilterChip(label: 'Paid', isSelected: controller.selectedServiceFilter.value == 'Paid', onTap: () => controller.setServiceFilter('Paid')),
-                const SizedBox(width: 8),
-                AppFilterChip(
-                  label: controller.serviceStartDate.value == null 
-                    ? 'Date' 
-                    : '${controller.serviceStartDate.value!.day}/${controller.serviceStartDate.value!.month} - ${controller.serviceEndDate.value!.day}/${controller.serviceEndDate.value!.month}',
-                  isSelected: controller.serviceStartDate.value != null,
-                  showIcon: true,
-                  onTap: () async {
-                    if (controller.serviceStartDate.value != null) {
-                      controller.clearServiceDateRange();
-                    } else {
-                      final range = await showDateRangePicker(
-                        context: context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: AppColors.primaryColor,
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: AppColors.textColorPrimary,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (range != null) {
-                        controller.setServiceDateRange(range.start, range.end);
-                      }
-                    }
-                  },
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchServiceHistory(vehicle.id),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSummaryCard(),
+            Obx(() => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  AppFilterChip(
+                  label: 'All', 
+                  isSelected: controller.selectedServiceFilter.value == 'All' && controller.serviceStartDate.value == null, 
+                  onTap: () => controller.setServiceFilter('All'),
                 ),
-              ],
+                  const SizedBox(width: 8),
+                  AppFilterChip(label: 'Pending', isSelected: controller.selectedServiceFilter.value == 'Pending', onTap: () => controller.setServiceFilter('Pending')),
+                  const SizedBox(width: 8),
+                  AppFilterChip(label: 'Paid', isSelected: controller.selectedServiceFilter.value == 'Paid', onTap: () => controller.setServiceFilter('Paid')),
+                  const SizedBox(width: 8),
+                  AppFilterChip(
+                    label: controller.serviceStartDate.value == null 
+                      ? 'Date' 
+                      : '${controller.serviceStartDate.value!.day}/${controller.serviceStartDate.value!.month} - ${controller.serviceEndDate.value!.day}/${controller.serviceEndDate.value!.month}',
+                    isSelected: controller.serviceStartDate.value != null,
+                    showIcon: true,
+                    onTap: () async {
+                      if (controller.serviceStartDate.value != null) {
+                        controller.clearServiceDateRange();
+                      } else {
+                        final range = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: AppColors.primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textColorPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (range != null) {
+                          controller.setServiceDateRange(range.start, range.end);
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Obx(() {
+                final history = controller.filteredServiceHistory;
+                if (history.isEmpty) {
+                  return ListView(
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(child: AppText('No service records found', style: AppTextStyle.body)),
+                    ],
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: history.length,
+                  itemBuilder: (context, index) {
+                    final record = history[index];
+                    return _buildServiceCard(record, vehicle);
+                  },
+                );
+              }),
             ),
-          )),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Obx(() {
-              final history = controller.filteredServiceHistory;
-              if (history.isEmpty) {
-                return const Center(child: AppText('No service records found', style: AppTextStyle.body));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final record = history[index];
-                  return _buildServiceCard(record, vehicle);
-                },
-              );
-            }),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -132,11 +144,9 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
         border: Border.all(color: AppColors.slate200),
       ),
       child: Obx(() {
-        final totalBill =
-            controller.serviceHistory.fold<double>(0.0, (sum, item) => sum + item.totalBill);
-        final totalPaid =
-            controller.serviceHistory.fold<double>(0.0, (sum, item) => sum + item.paidAmount);
-        final totalPending = totalBill - totalPaid;
+        final totalBill = controller.totalServiceAmount.value;
+        final totalPaid = controller.paidServiceAmount.value;
+        final totalPending = controller.dueServiceAmount.value;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,7 +228,26 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
                 ],
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textColorHint),
+              Row(
+                children: [
+                  if (record.billUrl != null && record.billUrl!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => Get.toNamed('/document-preview', arguments: record.billUrl),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Iconsax.eye, size: 16, color: AppColors.primaryColor),
+                        ),
+                      ),
+                    ),
+                  const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textColorHint),
+                ],
+              ),
             ],
           ),
           const Divider(height: 24, thickness: 0.5),
@@ -248,6 +277,33 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
         const SizedBox(height: 2),
         AppText(label, style: AppTextStyle.caption, fontSize: 9, color: AppColors.textColorHint),
       ],
+    );
+  }
+
+  Widget _buildAddHeaderButton({required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Iconsax.add_circle, color: color, size: 14),
+            const SizedBox(width: 4),
+            AppText('Add', 
+              fontSize: 12, 
+              color: color, 
+              fontWeight: FontWeight.w800,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -40,24 +40,33 @@ class _MaintenanceHistoryScreenState extends State<MaintenanceHistoryScreen> {
         title: 'Maintenance Timeline',
         subtitle: vehicle.vehicleNumber,
       ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.timelineHistory.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        
-        if (controller.timelineHistory.isEmpty) {
-          return const Center(child: AppText('No maintenance history available', style: AppTextStyle.body));
-        }
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchVehicleTimeline(vehicle.id),
+        child: Obx(() {
+          if (controller.isLoading.value && controller.timelineHistory.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (controller.timelineHistory.isEmpty) {
+            return ListView(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                const Center(child: AppText('No maintenance history available', style: AppTextStyle.body)),
+              ],
+            );
+          }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: controller.timelineHistory.length,
-          itemBuilder: (context, index) {
-            final item = controller.timelineHistory[index];
-            return _buildTimelineItem(item, index == controller.timelineHistory.length - 1);
-          },
-        );
-      }),
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemCount: controller.timelineHistory.length,
+            itemBuilder: (context, index) {
+              final item = controller.timelineHistory[index];
+              return _buildTimelineItem(item, index == controller.timelineHistory.length - 1);
+            },
+          );
+        }),
+      ),
     );
   }
 
@@ -119,14 +128,19 @@ class _MaintenanceHistoryScreenState extends State<MaintenanceHistoryScreen> {
                     Row(
                       children: [
                         if (item.receiptPath != null && item.receiptPath!.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.visibility_rounded, color: AppColors.primaryColor, size: 18),
-                            onPressed: () => Get.toNamed(
-                              RouteHelper.getDocumentPreviewRoute(),
-                              arguments: AppConstants.getFileUrl(item.receiptPath),
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: InkWell(
+                              onTap: () => Get.toNamed(RouteHelper.getDocumentPreviewRoute(), arguments: item.receiptPath),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryColor.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Iconsax.eye, size: 14, color: AppColors.primaryColor),
+                              ),
                             ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
                           ),
                         const SizedBox(width: 8),
                         if (item.amount != null && item.amount! > 0)

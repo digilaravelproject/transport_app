@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_constants.dart';
+
 class PaymentLog {
   final DateTime date;
   final double amount;
@@ -10,6 +12,15 @@ class PaymentLog {
     this.note,
     this.receiptUrl,
   });
+
+  factory PaymentLog.fromJson(Map<String, dynamic> json) {
+    return PaymentLog(
+      date: DateTime.tryParse(json['paid_at'] ?? '') ?? DateTime.now(),
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
+      note: json['notes'],
+      receiptUrl: AppConstants.getFileUrl(json['receipt_path']),
+    );
+  }
 }
 
 class ServiceRecord {
@@ -36,16 +47,24 @@ class ServiceRecord {
   });
 
   factory ServiceRecord.fromJson(Map<String, dynamic> json) {
+    final double total = double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0;
+    final double paid = double.tryParse(json['amount_paid']?.toString() ?? '0') ?? 0.0;
+
+    final dynamic metaData = json['meta'];
+    final Map<String, dynamic> meta = (metaData is Map) ? Map<String, dynamic>.from(metaData) : {};
+    final List<dynamic> paymentsList = meta['payments'] ?? [];
+    final List<PaymentLog> payments = paymentsList.map((e) => PaymentLog.fromJson(e)).toList();
+
     return ServiceRecord(
       id: json['id'] ?? 0,
       date: DateTime.tryParse(json['activity_date'] ?? '') ?? DateTime.now(),
       type: json['title'] ?? json['activity_type'] ?? 'Service',
-      totalBill: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
-      paidAmount: double.tryParse(json['amount_paid']?.toString() ?? '0') ?? 
-                 double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
+      totalBill: total,
+      paidAmount: paid,
       workshop: json['workshop_name'] ?? json['garage_name'] ?? 'Unknown Workshop',
-      billUrl: json['receipt_path'],
+      billUrl: AppConstants.getFileUrl(json['receipt_path']),
       kmReading: json['km_reading']?.toString(),
+      payments: payments,
     );
   }
 

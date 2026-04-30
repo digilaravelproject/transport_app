@@ -129,6 +129,7 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
         description: _descCtrl.text.trim(),
         assignedUsersCount: widget.role!.assignedUsersCount,
         permissions: _selectedPermissions,
+        level: widget.role!.level,
       ));
     } else {
       success = await controller.addRole(RoleModel(

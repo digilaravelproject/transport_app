@@ -24,9 +24,11 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    final RoleModel initialRole = Get.arguments as RoleModel;
-    controller.selectedRole.value = initialRole;
-    controller.fetchRoleDetails(initialRole.id);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final RoleModel initialRole = Get.arguments as RoleModel;
+      controller.selectedRole.value = initialRole;
+      controller.fetchRoleDetails(initialRole.id);
+    });
   }
 
   @override
@@ -50,135 +52,139 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
           );
         }),
       ),
-      body: Obx(() {
-        final role = controller.selectedRole.value;
-        if (controller.isLoading.value && role == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (role == null) {
-          return const Center(child: AppText('Role not found'));
-        }
-
-        final bool isAdmin = role.roleName.toLowerCase().contains('admin');
-        final Color iconColor = isAdmin ? AppColors.errorColor : AppColors.primaryColor;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Header Card ---
-              AppCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: iconColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchRoleDetails(Get.arguments.id),
+        child: Obx(() {
+          final role = controller.selectedRole.value;
+          if (controller.isLoading.value && role == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+  
+          if (role == null) {
+            return const Center(child: AppText('Role not found'));
+          }
+  
+          final bool isAdmin = role.roleName.toLowerCase().contains('admin');
+          final Color iconColor = isAdmin ? AppColors.errorColor : AppColors.primaryColor;
+  
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Header Card ---
+                AppCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: iconColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(Iconsax.shield_tick, color: iconColor, size: 40),
                           ),
-                          child: Icon(Iconsax.shield_tick, color: iconColor, size: 40),
-                        ),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              AppText(role.roleName, style: AppTextStyle.heading, fontSize: 24),
-                              const SizedBox(height: 4),
-                              AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
-                            ],
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(role.roleName, style: AppTextStyle.heading, fontSize: 24),
+                                const SizedBox(height: 4),
+                                AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    const Divider(height: 1, thickness: 0.5),
-                    const SizedBox(height: 20),
-                    _buildDetailRow(Iconsax.info_circle, 'Description', role.description),
-                    const SizedBox(height: 16),
-                    _buildDetailRow(Iconsax.people, 'Assigned Users', '${role.assignedUsersCount} Users'),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // --- Stats Row ---
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard('Permissions', '${role.permissions.length}', Iconsax.key, AppColors.primaryColor),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildStatCard('Level', isAdmin ? 'High' : 'Medium', Iconsax.hierarchy, AppColors.infoColor),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // --- Permissions Section ---
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 12),
-                child: AppText('Access Permissions', 
-                  fontSize: 18, 
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textColorPrimary,
-                ),
-              ),
-              AppCard(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: role.permissions.map((p) =>
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withOpacity(0.06),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.check_circle, size: 16, color: AppColors.successColor),
-                              const SizedBox(width: 8),
-                              AppText(p, 
-                                fontSize: 14, 
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textColorPrimary,
-                              ),
-                            ],
-                          ),
-                        )
-                      ).toList(),
-                    ),
-                    if (role.permissions.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: AppText('No permissions assigned', 
-                            style: AppTextStyle.caption,
-                          ),
-                        ),
+                        ],
                       ),
+                      const SizedBox(height: 24),
+                      const Divider(height: 1, thickness: 0.5),
+                      const SizedBox(height: 20),
+                      _buildDetailRow(Iconsax.info_circle, 'Description', role.description),
+                      const SizedBox(height: 16),
+                      _buildDetailRow(Iconsax.people, 'Assigned Users', '${role.assignedUsersCount} Users'),
+                    ],
+                  ),
+                ),
+  
+                const SizedBox(height: 24),
+  
+                // --- Stats Row ---
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatCard('Permissions', '${role.permissions.length}', Iconsax.key, AppColors.primaryColor),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildStatCard('Level', role.level, Iconsax.hierarchy, AppColors.infoColor),
+                    ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+  
+                const SizedBox(height: 24),
+  
+                // --- Permissions Section ---
+                const Padding(
+                  padding: EdgeInsets.only(left: 4, bottom: 12),
+                  child: AppText('Access Permissions', 
+                    fontSize: 18, 
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textColorPrimary,
+                  ),
+                ),
+                AppCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: role.permissions.map((p) =>
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.06),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle, size: 16, color: AppColors.successColor),
+                                const SizedBox(width: 8),
+                                AppText(p, 
+                                  fontSize: 14, 
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textColorPrimary,
+                                ),
+                              ],
+                            ),
+                          )
+                        ).toList(),
+                      ),
+                      if (role.permissions.isEmpty)
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: AppText('No permissions assigned', 
+                              style: AppTextStyle.caption,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 

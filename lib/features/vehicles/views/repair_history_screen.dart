@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../../routes/route_helper.dart';
 import '../domain/models/service_record_model.dart';
 
 class RepairHistoryScreen extends StatefulWidget {
@@ -41,82 +42,93 @@ class _RepairHistoryScreenState extends State<RepairHistoryScreen> {
       appBar: AppHeader(
         title: 'Repair History',
         subtitle: vehicle.vehicleNumber,
+        trailing: _buildAddHeaderButton(
+          color: AppColors.errorColor,
+          onTap: () => Get.toNamed('/repair-entry', arguments: vehicle),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed('/repair-entry', arguments: vehicle),
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummaryCard(),
-          Obx(() => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                AppFilterChip(label: 'All', isSelected: controller.selectedRepairFilter.value == 'All', onTap: () => controller.setRepairFilter('All')),
-                const SizedBox(width: 8),
-                AppFilterChip(label: 'Pending', isSelected: controller.selectedRepairFilter.value == 'Pending', onTap: () => controller.setRepairFilter('Pending')),
-                const SizedBox(width: 8),
-                AppFilterChip(label: 'Paid', isSelected: controller.selectedRepairFilter.value == 'Paid', onTap: () => controller.setRepairFilter('Paid')),
-                const SizedBox(width: 8),
-                AppFilterChip(
-                  label: controller.repairStartDate.value == null 
-                    ? 'Date' 
-                    : '${controller.repairStartDate.value!.day}/${controller.repairStartDate.value!.month} - ${controller.repairEndDate.value!.day}/${controller.repairEndDate.value!.month}',
-                  isSelected: controller.repairStartDate.value != null,
-                  showIcon: true,
-                  onTap: () async {
-                    if (controller.repairStartDate.value != null) {
-                      controller.clearRepairDateRange();
-                    } else {
-                      final range = await showDateRangePicker(
-                        context: context,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                        builder: (context, child) {
-                          return Theme(
-                            data: Theme.of(context).copyWith(
-                              colorScheme: ColorScheme.light(
-                                primary: AppColors.primaryColor,
-                                onPrimary: Colors.white,
-                                surface: Colors.white,
-                                onSurface: AppColors.textColorPrimary,
-                              ),
-                            ),
-                            child: child!,
-                          );
-                        },
-                      );
-                      if (range != null) {
-                        controller.setRepairDateRange(range.start, range.end);
-                      }
-                    }
-                  },
+      body: RefreshIndicator(
+        onRefresh: () => controller.fetchRepairHistory(vehicle.id),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSummaryCard(),
+            Obx(() => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  AppFilterChip(
+                  label: 'All', 
+                  isSelected: controller.selectedRepairFilter.value == 'All' && controller.repairStartDate.value == null, 
+                  onTap: () => controller.setRepairFilter('All'),
                 ),
-              ],
+                  const SizedBox(width: 8),
+                  AppFilterChip(label: 'Pending', isSelected: controller.selectedRepairFilter.value == 'Pending', onTap: () => controller.setRepairFilter('Pending')),
+                  const SizedBox(width: 8),
+                  AppFilterChip(label: 'Paid', isSelected: controller.selectedRepairFilter.value == 'Paid', onTap: () => controller.setRepairFilter('Paid')),
+                  const SizedBox(width: 8),
+                  AppFilterChip(
+                    label: controller.repairStartDate.value == null 
+                      ? 'Date' 
+                      : '${controller.repairStartDate.value!.day}/${controller.repairStartDate.value!.month} - ${controller.repairEndDate.value!.day}/${controller.repairEndDate.value!.month}',
+                    isSelected: controller.repairStartDate.value != null,
+                    showIcon: true,
+                    onTap: () async {
+                      if (controller.repairStartDate.value != null) {
+                        controller.clearRepairDateRange();
+                      } else {
+                        final range = await showDateRangePicker(
+                          context: context,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          builder: (context, child) {
+                            return Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: AppColors.primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textColorPrimary,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          },
+                        );
+                        if (range != null) {
+                          controller.setRepairDateRange(range.start, range.end);
+                        }
+                      }
+                    },
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 12),
+            Expanded(
+              child: Obx(() {
+                final history = controller.filteredRepairHistory;
+                if (history.isEmpty) {
+                  return ListView(
+                    children: const [
+                      SizedBox(height: 200),
+                      Center(child: AppText('No repair records found', style: AppTextStyle.body)),
+                    ],
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: history.length,
+                  itemBuilder: (context, index) {
+                    final record = history[index];
+                    return _buildRepairCard(record, vehicle);
+                  },
+                );
+              }),
             ),
-          )),
-          const SizedBox(height: 12),
-          Expanded(
-            child: Obx(() {
-              final history = controller.filteredRepairHistory;
-              if (history.isEmpty) {
-                return const Center(child: AppText('No repair records found', style: AppTextStyle.body));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: history.length,
-                itemBuilder: (context, index) {
-                  final record = history[index];
-                  return _buildRepairCard(record, vehicle);
-                },
-              );
-            }),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -132,11 +144,9 @@ class _RepairHistoryScreenState extends State<RepairHistoryScreen> {
         border: Border.all(color: AppColors.slate200),
       ),
       child: Obx(() {
-        final totalBill =
-            controller.repairHistory.fold<double>(0.0, (sum, item) => sum + item.totalBill);
-        final totalPaid =
-            controller.repairHistory.fold<double>(0.0, (sum, item) => sum + item.paidAmount);
-        final totalPending = totalBill - totalPaid;
+        final totalBill = controller.totalRepairAmount.value;
+        final totalPaid = controller.paidRepairAmount.value;
+        final totalPending = controller.dueRepairAmount.value;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,7 +228,26 @@ class _RepairHistoryScreenState extends State<RepairHistoryScreen> {
                 ],
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textColorHint),
+              Row(
+                children: [
+                  if (record.billUrl != null && record.billUrl!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => Get.toNamed('/document-preview', arguments: record.billUrl),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.errorColor.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Iconsax.eye, size: 16, color: AppColors.errorColor),
+                        ),
+                      ),
+                    ),
+                  const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textColorHint),
+                ],
+              ),
             ],
           ),
           const Divider(height: 24, thickness: 0.5),
@@ -248,6 +277,33 @@ class _RepairHistoryScreenState extends State<RepairHistoryScreen> {
         const SizedBox(height: 2),
         AppText(label, style: AppTextStyle.caption, fontSize: 9, color: AppColors.textColorHint),
       ],
+    );
+  }
+
+  Widget _buildAddHeaderButton({required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: color.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Iconsax.add_circle, color: color, size: 14),
+            const SizedBox(width: 4),
+            AppText('Add', 
+              fontSize: 12, 
+              color: color, 
+              fontWeight: FontWeight.w800,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

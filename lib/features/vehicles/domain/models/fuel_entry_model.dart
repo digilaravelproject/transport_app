@@ -1,3 +1,5 @@
+import '../../../../core/constants/app_constants.dart';
+
 class FuelEntryModel {
   final int? id;
   final int vehicleId;
@@ -28,7 +30,7 @@ class FuelEntryModel {
       quantity: double.tryParse(json['quantity']?.toString() ?? '0') ?? 0.0,
       pricePerUnit: double.tryParse(json['price_per_unit']?.toString() ?? '0') ?? 0.0,
       station: json['station_name'] ?? '',
-      receiptPath: json['receipt_path'],
+      receiptPath: AppConstants.getFileUrl(json['receipt_path']),
     );
   }
 

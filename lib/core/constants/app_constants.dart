@@ -82,6 +82,10 @@ class AppConstants {
     static String vehicleRepairUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/repair';
     static String vehicleDocumentsUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/documents';
     static String vehicleTimelineUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/timeline';
+    static String vehicleServiceDetailsUrl(dynamic vehicleId, dynamic serviceId) => '/api/v1/vehicles/$vehicleId/activity/service/$serviceId';
+    static String vehicleRepairDetailsUrl(dynamic vehicleId, dynamic repairId) => '/api/v1/vehicles/$vehicleId/activity/repair/$repairId';
+    static String vehicleServicePaymentUrl(dynamic vehicleId, dynamic serviceId) => '/api/v1/vehicles/$vehicleId/activity/service/$serviceId/payment';
+    static String vehicleRepairPaymentUrl(dynamic vehicleId, dynamic repairId) => '/api/v1/vehicles/$vehicleId/activity/repair/$repairId/payment';
 
     static String getFileUrl(String? path) {
       if (path == null || path.isEmpty) return '';

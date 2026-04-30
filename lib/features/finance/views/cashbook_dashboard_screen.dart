@@ -24,43 +24,94 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
           onPressed: () {},
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildQuickActions(),
-            const SizedBox(height: 24),
-            _buildBalanceCard(),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Obx(() {
+        if (controller.isLoading.value && controller.transactions.isEmpty) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.primaryColor,
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => controller.refreshFinanceData(),
+          color: AppColors.primaryColor,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText('Recent Transactions', style: AppTextStyle.subheading),
-                TextButton(
-                  onPressed: () {},
-                  child: const AppText('View All', style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                _buildQuickActions(),
+                const SizedBox(height: 24),
+                _buildBalanceCard(),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const AppText('Recent Transactions', style: AppTextStyle.subheading),
+                    TextButton(
+                      onPressed: () {
+                        Get.toNamed(RouteHelper.getPaymentHistoryRoute());
+                      },
+                      child: const AppText(
+                        'View All',
+                        style: AppTextStyle.caption,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 12),
+                _buildRecentTransactions(),
               ],
             ),
-            const SizedBox(height: 12),
-            Obx(() {
-              if (controller.transactions.isEmpty) {
-                return const Center(child: AppText('No transactions yet.'));
-              }
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: controller.transactions.length,
-                itemBuilder: (context, index) {
-                  return _buildTransactionItem(controller.transactions[index]);
-                },
-              );
-            }),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
+  }
+
+  Widget _buildRecentTransactions() {
+    return Obx(() {
+      final recentTransactions = controller.recentTransactions;
+      
+      if (recentTransactions.isEmpty) {
+        return Center(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              const Icon(
+                Icons.receipt_long_outlined,
+                size: 64,
+                color: AppColors.textColorSecondary,
+              ),
+              const SizedBox(height: 16),
+              const AppText(
+                'No transactions yet.',
+                style: AppTextStyle.body,
+                color: AppColors.textColorSecondary,
+              ),
+              const SizedBox(height: 16),
+              AppButton(
+                text: 'Refresh',
+                onPressed: () => controller.refreshFinanceData(),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: recentTransactions.length,
+        itemBuilder: (context, index) {
+          return _buildTransactionItem(recentTransactions[index]);
+        },
+      );
+    });
   }
 
   Widget _buildBalanceCard() {
@@ -169,7 +220,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
   }
 
   Widget _buildTransactionItem(TransactionModel transaction) {
-    bool isIncome = transaction.type == 'income';
+    bool isIncome = transaction.entryType == 'income';
     Color amountColor = isIncome ? AppColors.successColor : AppColors.errorColor;
     String prefix = isIncome ? '+' : '-';
     IconData icon = isIncome ? Iconsax.document_download : Iconsax.document_upload;
@@ -192,13 +243,36 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText(transaction.category, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                AppText(
+                  transaction.displayCategory,
+                  style: AppTextStyle.body,
+                  fontWeight: FontWeight.bold,
+                ),
                 const SizedBox(height: 4),
-                AppText('${transaction.date.day}/${transaction.date.month}/${transaction.date.year} • ${transaction.paymentMethod}', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                AppText(
+                  '${transaction.entryDate.day}/${transaction.entryDate.month}/${transaction.entryDate.year} • ${transaction.paymentMethod}',
+                  style: AppTextStyle.caption,
+                  color: AppColors.textColorSecondary,
+                ),
+                if (transaction.description.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  AppText(
+                    transaction.description,
+                    style: AppTextStyle.caption,
+                    color: AppColors.textColorSecondary,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           ),
-          AppText('$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}', style: AppTextStyle.subheading, color: amountColor, fontWeight: FontWeight.bold),
+          AppText(
+            '$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}',
+            style: AppTextStyle.subheading,
+            color: amountColor,
+            fontWeight: FontWeight.bold,
+          ),
         ],
       ),
     );

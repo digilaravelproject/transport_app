@@ -62,7 +62,7 @@ class AppConstants {
     static String updateRouteUrl(dynamic id) => '/api/v1/routes/$id';
     static String getRouteByIdUrl(dynamic id) => '/api/v1/routes/$id';
 
-    // Staff Endpoints
+
     static const String staffUrl = '/api/v1/staff';
     static const String getStaffUrl = '/api/v1/staff';
     static const String createStaffUrl = '/api/v1/staff';
@@ -88,4 +88,10 @@ class AppConstants {
       if (path.startsWith('http')) return path;
       return '$baseUrl/storage/$path';
     }
+
+    static const String inventoryListUrl = '/api/v1/inventories';
+    static String inventoryDetailsUrl(int id) => '/api/v1/inventories/$id';
+    static String inventoryStocksUrl(int id) => '/api/v1/inventories/$id/stocks';
+    static String stockInUrl(int id) => '/api/v1/inventories/$id/stock-in';
+    static String stockOutUrl(int id) => '/api/v1/inventories/$id/stock-out';
 }

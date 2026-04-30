@@ -83,6 +83,7 @@ class AppRoutes {
   static const String inventoryDetails = '/inventory-details';
   static const String stockIn = '/stock-in';
   static const String stockOut = '/stock-out';
+  static const String stockHistory = '/stock-history';
 
   // Shifts
   static const String shiftList = '/shift-list';

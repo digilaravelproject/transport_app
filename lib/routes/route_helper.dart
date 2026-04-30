@@ -7,6 +7,8 @@ import '../features/auth/views/forgot_password_screen.dart';
 import '../features/auth/views/reset_password_screen.dart';
 import '../features/intro/views/intro_screen.dart';
 import '../features/intro/controllers/intro_controller.dart';
+import '../features/inventory/controllers/inventory_stocks_controller.dart';
+import '../features/inventory/views/inventory_stocks_screen.dart';
 import '../features/splash/views/splash_screen.dart';
 import '../features/dashboard/views/dashboard_screen.dart';
 import '../features/dashboard/controllers/dashboard_controller.dart';
@@ -75,12 +77,15 @@ import '../features/finance/views/cash_out_entry_screen.dart';
 import '../features/finance/views/payment_history_screen.dart';
 import '../features/finance/views/payment_details_screen.dart';
 import '../features/finance/controllers/finance_controller.dart';
+import '../features/finance/bindings/finance_binding.dart';
 import '../features/inventory/views/inventory_list_screen.dart';
 import '../features/inventory/views/add_inventory_item_screen.dart';
 import '../features/inventory/views/inventory_details_screen.dart';
 import '../features/inventory/views/stock_in_screen.dart';
 import '../features/inventory/views/stock_out_screen.dart';
 import '../features/inventory/controllers/inventory_controller.dart';
+import '../features/inventory/domain/repositories/inventory_repository.dart';
+import '../features/inventory/domain/services/inventory_service.dart';
 import '../features/shifts/views/shift_list_screen.dart';
 import '../features/shifts/views/create_shift_screen.dart';
 import '../features/shifts/views/assign_driver_to_shift_screen.dart';
@@ -212,6 +217,7 @@ class RouteHelper {
   static String getInventoryDetailsRoute() => AppRoutes.inventoryDetails;
   static String getStockInRoute() => AppRoutes.stockIn;
   static String getStockOutRoute() => AppRoutes.stockOut;
+  static String getStockHistoryRoute() => AppRoutes.stockHistory;
 
   // Shifts
   static String getShiftListRoute() => AppRoutes.shiftList;
@@ -574,9 +580,7 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.cashbookDashboard,
       page: () => const CashbookDashboardScreen(),
-      binding: BindingsBuilder(() {
-        Get.put(FinanceController());
-      }),
+      binding: FinanceBinding(),
     ),
     GetPage(
       name: AppRoutes.cashInEntry,
@@ -603,7 +607,24 @@ class RouteHelper {
       name: AppRoutes.inventoryList,
       page: () => const InventoryListScreen(),
       binding: BindingsBuilder(() {
-        Get.put(InventoryController());
+        Get.lazyPut<InventoryRepository>(() => InventoryRepositoryImpl(Get.find()));
+        Get.lazyPut(() => AddInventoryItemUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => GetInventoryDataUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => GetInventoryDetailsUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => GetInventoryStocksUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => UpdateInventoryItemUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => DeleteInventoryItemUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => StockInUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => StockOutUseCase(Get.find<InventoryRepository>()));
+        Get.put(InventoryController(
+          addInventoryItemUseCase: Get.find<AddInventoryItemUseCase>(),
+          getInventoryDataUseCase: Get.find<GetInventoryDataUseCase>(),
+          getInventoryDetailsUseCase: Get.find<GetInventoryDetailsUseCase>(),
+          updateInventoryItemUseCase: Get.find<UpdateInventoryItemUseCase>(),
+          deleteInventoryItemUseCase: Get.find<DeleteInventoryItemUseCase>(),
+          stockInUseCase: Get.find<StockInUseCase>(),
+          stockOutUseCase: Get.find<StockOutUseCase>(),
+        ));
       }),
     ),
     GetPage(
@@ -625,6 +646,18 @@ class RouteHelper {
       name: AppRoutes.stockOut,
       page: () => const StockOutScreen(),
       transition: Transition.downToUp,
+    ),
+    GetPage(
+      name: AppRoutes.stockHistory,
+      page: () => const InventoryStocksScreen(),
+      transition: Transition.rightToLeft,
+      binding: BindingsBuilder(() {
+        Get.lazyPut<InventoryRepository>(() => InventoryRepositoryImpl(Get.find()));
+        Get.lazyPut(() => GetInventoryStocksUseCase(Get.find<InventoryRepository>()));
+        Get.lazyPut(() => InventoryStocksController(
+          getInventoryStocksUseCase: Get.find<GetInventoryStocksUseCase>(),
+        ));
+      }),
     ),
     
     // Shifts
@@ -721,7 +754,7 @@ class RouteHelper {
       page: () => const ProfitLossReportScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => ReportsController());
-        Get.lazyPut(() => FinanceController());
+        FinanceBinding().dependencies();
       }),
       transition: Transition.rightToLeft,
     ),

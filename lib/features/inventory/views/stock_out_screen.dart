@@ -125,8 +125,8 @@ class _StockOutScreenState extends State<StockOutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Remove / Use Stock', style: AppTextStyle.subheading, color: AppColors.errorColor),
-                    const SizedBox(height: 16),
-                    _buildItemDropdown(),
+                   // const SizedBox(height: 16),
+                   // _buildItemDropdown(),
                     if (_selectedItem != null) ...[
                       const SizedBox(height: 8),
                       AppText('Current Stock: ${_selectedItem!.currentStock} units', style: AppTextStyle.caption, color: AppColors.textColorSecondary),

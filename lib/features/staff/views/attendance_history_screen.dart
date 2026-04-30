@@ -78,12 +78,12 @@ class AttendanceHistoryScreen extends GetView<AttendanceHistoryController> {
                         color: AppColors.textColorSecondary,
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: () => controller.refreshAttendanceHistory(),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Refresh'),
-                      ),
+                      // const SizedBox(height: 16),
+                      // ElevatedButton.icon(
+                      //   onPressed: () => controller.refreshAttendanceHistory(),
+                      //   icon: const Icon(Icons.refresh),
+                      //   label: const Text('Refresh'),
+                      // ),
                     ],
                   ),
                 );
@@ -223,27 +223,27 @@ class _HistoryCard extends StatelessWidget {
                         _buildStatusBadge(record.displayStatus, statusColor),
                       ],
                     ),
-                    const Divider(height: 28),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildTimeColumn(
-                          'In',
-                          record.inTime != null ? _formatTime(record.inTime!) : '--:--',
-                          Iconsax.login_1,
-                        ),
-                        _buildTimeColumn(
-                          'Out',
-                          record.outTime != null ? _formatTime(record.outTime!) : '--:--',
-                          Iconsax.logout,
-                        ),
-                        _buildTimeColumn(
-                          'Total',
-                          record.displayTotalHours,
-                          Iconsax.timer_1,
-                        ),
-                      ],
-                    ),
+                    // const Divider(height: 28),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    //   children: [
+                    //     _buildTimeColumn(
+                    //       'In',
+                    //       record.inTime != null ? _formatTime(record.inTime!) : '--:--',
+                    //       Iconsax.login_1,
+                    //     ),
+                    //     _buildTimeColumn(
+                    //       'Out',
+                    //       record.outTime != null ? _formatTime(record.outTime!) : '--:--',
+                    //       Iconsax.logout,
+                    //     ),
+                    //     _buildTimeColumn(
+                    //       'Total',
+                    //       record.displayTotalHours,
+                    //       Iconsax.timer_1,
+                    //     ),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),
@@ -289,13 +289,13 @@ class _HistoryCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: AppText(
         status,
         style: AppTextStyle.caption,
-        fontSize: 10,
+        fontSize: 12,
         color: color,
         fontWeight: FontWeight.bold,
       ),

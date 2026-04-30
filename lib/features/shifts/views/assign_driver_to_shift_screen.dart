@@ -117,14 +117,14 @@ class _AssignDriverToShiftScreenState extends State<AssignDriverToShiftScreen> {
                         color: AppColors.textColorSecondary,
                       ),
                       const SizedBox(height: 16),
-                      AppButton(
+                      /*AppButton(
                         text: 'Refresh',
                         onPressed: () {
                           if (shiftId != null) {
                             controller.loadAvailableDriversForShift(shiftId!);
                           }
                         },
-                      ),
+                      ),*/
                     ],
                   ),
                 );

@@ -59,10 +59,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
                         color: AppColors.textColorSecondary,
                       ),
                       const SizedBox(height: 16),
-                      AppButton(
-                        text: 'Refresh',
-                        onPressed: () => controller.refreshAttendance(),
-                      ),
+
                     ],
                   ),
                 );
@@ -83,14 +80,19 @@ class AttendanceScreen extends GetView<AttendanceController> {
               );
             }),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-            child: Obx(() => AppButton(
-              text: 'Save Attendance',
-              isLoading: controller.isLoading.value,
-              onPressed: controller.isLoading.value ? null : () => controller.saveAttendance(),
-            )),
-          ),
+          Obx(() {
+            if (controller.attendanceList.isEmpty || controller.isLoading.value) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: AppButton(
+                text: 'Save Attendance',
+                isLoading: controller.isLoading.value,
+                onPressed: () => controller.saveAttendance(),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -175,22 +177,22 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
                     children: [
                       AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
                       AppText(staff.displayRole, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                      if (staff.attendance != null && staff.attendance!.inTime != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            children: [
-                              const Icon(Iconsax.clock, size: 12, color: AppColors.textColorSecondary),
-                              const SizedBox(width: 4),
-                              AppText(
-                                'In: ${staff.attendance!.inTime} ${staff.attendance!.outTime != null ? "• Out: ${staff.attendance!.outTime}" : ""}',
-                                style: AppTextStyle.caption,
-                                fontSize: 11,
-                                color: AppColors.textColorSecondary,
-                              ),
-                            ],
-                          ),
-                        ),
+                      // if (staff.attendance != null && staff.attendance!.inTime != null)
+                      //   Padding(
+                      //     padding: const EdgeInsets.only(top: 4),
+                      //     child: Row(
+                      //       children: [
+                      //         const Icon(Iconsax.clock, size: 12, color: AppColors.textColorSecondary),
+                      //         const SizedBox(width: 4),
+                      //         AppText(
+                      //           'In: ${staff.attendance!.inTime} ${staff.attendance!.outTime != null ? "• Out: ${staff.attendance!.outTime}" : ""}',
+                      //           style: AppTextStyle.caption,
+                      //           fontSize: 11,
+                      //           color: AppColors.textColorSecondary,
+                      //         ),
+                      //       ],
+                      //     ),
+                      //   ),
                     ],
                   ),
                 ),

@@ -119,8 +119,8 @@ class _StockInScreenState extends State<StockInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Add Stock', style: AppTextStyle.subheading, color: AppColors.successColor),
-                    const SizedBox(height: 16),
-                    _buildItemDropdown(),
+                  //  const SizedBox(height: 16),
+                    //_buildItemDropdown(),
                     const SizedBox(height: 16),
                     AppInputField(
                       label: 'Quantity Added',

@@ -154,7 +154,7 @@ class RouteHelper {
   static String getDutySheetUploadRoute() => AppRoutes.dutySheetUpload;
   static String getTripStatusUpdateRoute() => AppRoutes.tripStatusUpdate;
   static String getTripSummaryRoute() => AppRoutes.tripSummary;
-  
+
   // Vehicles
   static String getVehicleListRoute() => AppRoutes.vehicleList;
   static String getAddVehicleRoute() => AppRoutes.addVehicle;
@@ -575,7 +575,7 @@ class RouteHelper {
       page: () => const CorporateInvoiceScreen(),
       transition: Transition.rightToLeft,
     ),
-    
+
     // Finance
     GetPage(
       name: AppRoutes.cashbookDashboard,
@@ -601,7 +601,7 @@ class RouteHelper {
       page: () => const PaymentDetailsScreen(),
       transition: Transition.rightToLeft,
     ),
-    
+
     // Inventory
     GetPage(
       name: AppRoutes.inventoryList,
@@ -659,7 +659,7 @@ class RouteHelper {
         ));
       }),
     ),
-    
+
     // Shifts
     GetPage(
       name: AppRoutes.shiftList,
@@ -686,7 +686,7 @@ class RouteHelper {
       page: () => const ShiftDetailsScreen(),
       transition: Transition.rightToLeft,
     ),
-    
+
     // Routes Management
     GetPage(
       name: AppRoutes.routeList,
@@ -758,7 +758,7 @@ class RouteHelper {
       }),
       transition: Transition.rightToLeft,
     ),
-    
+
     // Settings & Profile
     GetPage(
       name: AppRoutes.profile,

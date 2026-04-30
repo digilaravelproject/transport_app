@@ -129,11 +129,11 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                           style: AppTextStyle.body,
                           color: AppColors.textColorSecondary,
                         ),
-                        const SizedBox(height: 16),
-                        AppButton(
-                          text: 'Refresh',
-                          onPressed: () => controller.refreshVehicles(),
-                        ),
+                        // const SizedBox(height: 16),
+                        // AppButton(
+                        //   text: 'Refresh',
+                        //   onPressed: () => controller.refreshVehicles(),
+                        // ),
                       ],
                     ),
                   );

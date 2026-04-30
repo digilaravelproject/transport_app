@@ -47,10 +47,31 @@ class ProfileScreen extends StatelessWidget {
                       backgroundColor: AppColors.primaryLight,
                       child: const Icon(Iconsax.building, color: AppColors.primaryColor, size: 35),
                     ),*/
+                  //  NetworkImage(profile!.logoUrl),
+                  //   CircleAvatar(
+                  //     radius: 35,
+                  //     backgroundColor: AppColors.primaryLight,
+                  //     child: Text(
+                  //       (profile?.companyName != null && profile!.companyName!.isNotEmpty)
+                  //           ? profile.companyName![0].toUpperCase()
+                  //           : '?',
+                  //       style: const TextStyle(
+                  //         color: AppColors.primaryColor,
+                  //         fontSize: 28,
+                  //         fontWeight: FontWeight.bold,
+                  //       ),
+                  //     ),
+                  //   ),
+
+
                     CircleAvatar(
                       radius: 35,
                       backgroundColor: AppColors.primaryLight,
-                      child: Text(
+                      backgroundImage: (profile?.logoUrl != null && profile!.logoUrl!.isNotEmpty)
+                          ? NetworkImage(profile.logoUrl!)
+                          : null,
+                      child: (profile?.logoUrl == null || profile!.logoUrl!.isEmpty)
+                          ? Text(
                         (profile?.companyName != null && profile!.companyName!.isNotEmpty)
                             ? profile.companyName![0].toUpperCase()
                             : '?',
@@ -59,8 +80,10 @@ class ProfileScreen extends StatelessWidget {
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                         ),
-                      ),
+                      )
+                          : null,
                     ),
+
                     const SizedBox(width: 20),
                     Expanded(
                       child: Column(

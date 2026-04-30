@@ -16,11 +16,11 @@ class CorporateController extends GetxController {
     return _companies.where((company) {
       final matchesSearch = company.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
           company.contactPerson.toLowerCase().contains(searchQuery.value.toLowerCase());
-      
+
       bool matchesFilter = true;
       if (selectedFilter.value == 'Active') matchesFilter = company.isActive;
       if (selectedFilter.value == 'No Contracts') matchesFilter = company.activeContracts == 0;
-      
+
       return matchesSearch && matchesFilter;
     }).toList();
   }

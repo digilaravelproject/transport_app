@@ -24,6 +24,13 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
           onPressed: () {},
         ),
       ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+        ),
+        child: _buildQuickActions(),
+      ),
       body: Obx(() {
         if (controller.isLoading.value && controller.transactions.isEmpty) {
           return const Center(
@@ -37,15 +44,14 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
           onRefresh: () => controller.refreshFinanceData(),
           color: AppColors.primaryColor,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             physics: const AlwaysScrollableScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildQuickActions(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 _buildBalanceCard(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -63,8 +69,9 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 _buildRecentTransactions(),
+                const SizedBox(height: 100), // Space for bottom buttons
               ],
             ),
           ),
@@ -93,11 +100,6 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                 style: AppTextStyle.body,
                 color: AppColors.textColorSecondary,
               ),
-              const SizedBox(height: 16),
-              AppButton(
-                text: 'Refresh',
-                onPressed: () => controller.refreshFinanceData(),
-              ),
             ],
           ),
         );
@@ -118,50 +120,76 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
     return Obx(() {
       return AppCard(
         color: AppColors.primaryColor,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const AppText('Current Balance', style: AppTextStyle.body, color: Colors.white70),
-            const SizedBox(height: 8),
-            AppText('\u20B9 ${controller.currentBalance.toStringAsFixed(2)}', style: AppTextStyle.heading, fontSize: 36, color: Colors.white),
-            const SizedBox(height: 24),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const AppText('Total In', style: AppTextStyle.caption, color: Colors.white70),
-                        const SizedBox(height: 4),
-                        AppText('\u20B9 ${controller.totalIncome.toStringAsFixed(0)}', style: AppTextStyle.subheading, color: AppColors.successColor),
-                      ],
-                    ),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppText('Current Balance', style: AppTextStyle.caption, color: Colors.white70),
+                    const SizedBox(height: 4),
+                    AppText('\u20B9 ${controller.currentBalance.toStringAsFixed(2)}', 
+                        style: AppTextStyle.heading, fontSize: 28, color: Colors.white),
+                  ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        const AppText('Total Out', style: AppTextStyle.caption, color: Colors.white70),
-                        const SizedBox(height: 4),
-                        AppText('\u20B9 ${controller.totalExpense.toStringAsFixed(0)}', style: AppTextStyle.subheading, color: AppColors.errorColor),
-                      ],
-                    ),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    shape: BoxShape.circle,
                   ),
+                  child: const Icon(Iconsax.wallet_1, color: Colors.white, size: 24),
                 ),
               ],
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.arrow_downward_rounded, color: AppColors.successColor, size: 16),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppText('Total In', style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
+                            AppText('\u20B9 ${controller.totalIncome.toStringAsFixed(0)}', 
+                                style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(height: 30, width: 1, color: Colors.white12),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.arrow_upward_rounded, color: AppColors.errorColor, size: 16),
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const AppText('Total Out', style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
+                            AppText('\u20B9 ${controller.totalExpense.toStringAsFixed(0)}', 
+                                style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -173,46 +201,20 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
     return Row(
       children: [
         Expanded(
-          child: InkWell(
-            onTap: () => Get.toNamed(RouteHelper.getCashInEntryRoute()),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.successColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.successColor.withOpacity(0.3)),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.arrow_downward_rounded, color: AppColors.successColor),
-                  SizedBox(height: 8),
-                  AppText('Cash In', style: AppTextStyle.body, color: AppColors.successColor, fontWeight: FontWeight.bold),
-                ],
-              ),
-            ),
+          child: AppButton(
+            text: 'Cash In',
+            color: AppColors.successColor,
+            icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 20),
+            onPressed: () => Get.toNamed(RouteHelper.getCashInEntryRoute()),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: InkWell(
-            onTap: () => Get.toNamed(RouteHelper.getCashOutEntryRoute()),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.errorColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.errorColor.withOpacity(0.3)),
-              ),
-              child: const Column(
-                children: [
-                  Icon(Icons.arrow_upward_rounded, color: AppColors.errorColor),
-                  SizedBox(height: 8),
-                  AppText('Cash Out', style: AppTextStyle.body, color: AppColors.errorColor, fontWeight: FontWeight.bold),
-                ],
-              ),
-            ),
+          child: AppButton(
+            text: 'Cash Out',
+            color: AppColors.errorColor,
+            icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.white, size: 20),
+            onPressed: () => Get.toNamed(RouteHelper.getCashOutEntryRoute()),
           ),
         ),
       ],

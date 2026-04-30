@@ -64,10 +64,7 @@ class _CashOutEntryScreenState extends State<CashOutEntryScreen> {
         description: _descController.text,
       );
 
-      final success = await controller.saveTransaction(request);
-      if (success) {
-        Get.back();
-      }
+      await controller.saveTransaction(request);
     } else {
       Get.snackbar('Error', 'Please fill in all required fields', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.redAccent, colorText: Colors.white);
     }

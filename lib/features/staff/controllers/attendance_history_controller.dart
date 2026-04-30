@@ -76,6 +76,7 @@ class AttendanceHistoryController extends GetxController {
         final List<AttendanceHistoryModel> records =
             response.body as List<AttendanceHistoryModel>;
         historyList.assignAll(records);
+       // Get.back();
 
         print('Successfully loaded ${records.length} attendance history records');
       } else {

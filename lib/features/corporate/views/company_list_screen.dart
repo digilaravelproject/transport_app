@@ -24,7 +24,9 @@ class CompanyListScreen extends GetView<CorporateController> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
-        onPressed: () => Get.toNamed(RouteHelper.getCreateCorporateContractRoute()),
+        onPressed: () => Get.toNamed(RouteHelper.getCreateCorporateContractRoute())?.then((_) {
+          controller.loadVendors(isRefresh: true);
+        }),
         backgroundColor: AppColors.primaryColor,
         elevation: 4,
         icon: const Icon(Iconsax.add, color: Colors.white),
@@ -48,33 +50,67 @@ class CompanyListScreen extends GetView<CorporateController> {
                     const SizedBox(width: 8),
                     _buildFilterChip('Active', controller.selectedFilter.value == 'Active'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('No Contracts', controller.selectedFilter.value == 'No Contracts'),
+                    _buildFilterChip('Inactive', controller.selectedFilter.value == 'Inactive'),
                   ],
-                )),
+                )
+                ),
               ],
             ),
           ),
           Expanded(
             child: Obx(() {
-              if (controller.filteredCompanies.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              if (controller.isLoading.value && controller.companies.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              if (controller.companies.isEmpty) {
+                return RefreshIndicator(
+                  onRefresh: () => controller.loadVendors(isRefresh: true),
+                  child: ListView(
                     children: [
-                      Icon(Iconsax.building_34, size: 64, color: AppColors.slate300),
-                      const SizedBox(height: 16),
-                      AppText('No vendors found', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Iconsax.building_34, size: 64, color: AppColors.slate300),
+                            const SizedBox(height: 16),
+                            AppText('No vendors found', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: controller.filteredCompanies.length,
-                itemBuilder: (context, index) {
-                  final company = controller.filteredCompanies[index];
-                  return _CompanyCard(company: company);
-                },
+              
+              return RefreshIndicator(
+                onRefresh: () => controller.loadVendors(isRefresh: true),
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                      controller.loadVendors();
+                    }
+                    return false;
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: controller.filteredCompanies.length + (controller.isMoreLoading.value ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index < controller.filteredCompanies.length) {
+                        final company = controller.filteredCompanies[index];
+                        return _CompanyCard(company: company);
+                      } else {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
               );
             }),
           ),
@@ -114,7 +150,6 @@ class _CompanyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isActive = company.isActive;
-    final CorporateController controller = Get.find<CorporateController>();
     
     return AppCard(
       margin: const EdgeInsets.only(bottom: 16),
@@ -142,7 +177,7 @@ class _CompanyCard extends StatelessWidget {
                           radius: 20,
                           backgroundColor: AppColors.primaryLight,
                           child: AppText(
-                            company.name.substring(0, 1).toUpperCase(),
+                            company.name.isNotEmpty ? company.name.substring(0, 1).toUpperCase() : 'V',
                             style: AppTextStyle.subheading,
                             color: AppColors.primaryColor,
                             fontWeight: FontWeight.bold,
@@ -154,12 +189,35 @@ class _CompanyCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               AppText(company.name, style: AppTextStyle.subheading, fontSize: 17, fontWeight: FontWeight.bold),
-                              AppText('Corporate Partner', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                              AppText(company.dutyType ?? 'Corporate Partner', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                             ],
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => controller.toggleCompanyStatus(company.id),
+                          onTap: () {
+                            Get.dialog(
+                              AlertDialog(
+                                title: const AppText('Change Status', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+                                content: AppText('Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this vendor?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: const AppText('Cancel', color: AppColors.textColorSecondary),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Get.back();
+                                      Get.find<CorporateController>().toggleVendorStatus(company.id);
+                                    },
+                                    child: AppText(isActive ? 'Deactivate' : 'Activate', 
+                                      color: isActive ? AppColors.errorColor : AppColors.successColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                           child: _buildStatusBadge(isActive),
                         ),
                       ],
@@ -167,10 +225,11 @@ class _CompanyCard extends StatelessWidget {
                     const Divider(height: 32),
                     Row(
                       children: [
-                        _buildInfoItem(Iconsax.user, 'Contact', company.contactPerson),
+                        _buildInfoItem(Iconsax.user, 'Contact', company.contactPerson ?? 'N/A'),
                         const Spacer(),
-                        _buildInfoItem(Iconsax.call, 'Phone', company.phone),
+                        _buildInfoItem(Iconsax.call, 'Phone', company.contractNumber.toString()),
                         const Spacer(),
+                       // _buildInfoItem(Iconsax.money, 'Amount', '₹${company.monthlyAmount ?? '0'}'),
                       ],
                     ),
                   ],
@@ -195,7 +254,7 @@ class _CompanyCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 2),
-        AppText(value, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w600),
+        AppText(value, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w600, maxLines: 1),
       ],
     );
   }
@@ -203,7 +262,7 @@ class _CompanyCard extends StatelessWidget {
   Widget _buildStatusBadge(bool isActive) {
     final Color color = isActive ? AppColors.successColor : AppColors.errorColor;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
@@ -212,12 +271,12 @@ class _CompanyCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(isActive ? Iconsax.tick_circle : Iconsax.close_circle, size: 12, color: color),
+          Icon(isActive ? Iconsax.tick_circle : Iconsax.close_circle, size: 10, color: color),
           const SizedBox(width: 4),
           AppText(
             isActive ? 'Active' : 'Inactive',
             style: AppTextStyle.caption,
-            fontSize: 10,
+            fontSize: 9,
             color: color,
             fontWeight: FontWeight.bold,
           ),

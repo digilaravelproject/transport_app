@@ -19,88 +19,138 @@ class AssignVehicleToContractScreen extends StatefulWidget {
 
 class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractScreen> {
   final CorporateController controller = Get.find<CorporateController>();
-  final List<String> _selectedVehicles = [];
+  final RxList<int> _selectedVehicleIds = <int>[].obs;
+  late String vendorId;
 
-  // Mock list of available vehicles
-  final List<Map<String, String>> _availableVehicles = [
-    {'id': 'V001', 'no': 'MH 12 AB 1234', 'type': 'Bus (50 Seater)'},
-    {'id': 'V002', 'no': 'MH 12 CD 5678', 'type': 'Mini Bus (30 Seater)'},
-    {'id': 'V003', 'no': 'MH 12 EF 9012', 'type': 'Tempo Traveller'},
-    {'id': 'V004', 'no': 'MH 14 GH 3456', 'type': 'Bus (50 Seater)'},
-    {'id': 'V005', 'no': 'MH 14 IJ 7890', 'type': 'Mini Bus'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    vendorId = Get.arguments.toString();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadAvailableVehicles(vendorId, isRefresh: true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Assign Vehicles',
-        rightWidget: IconButton(
-          icon: const Icon(Icons.filter_list_rounded, color: AppColors.textColorPrimary),
-          onPressed: () {},
-        ),
+        title: 'Available Vehicles',
+        subtitle: 'Select vehicles to assign',
       ),
-      floatingActionButton: _selectedVehicles.isNotEmpty
-          ? FloatingActionButton.extended(heroTag: null,
-              onPressed: () {
-                Get.snackbar('Success', '${_selectedVehicles.length} vehicles assigned.', snackPosition: SnackPosition.BOTTOM);
-                Get.back();
-              },
+      floatingActionButton: Obx(() => _selectedVehicleIds.isNotEmpty
+          ? FloatingActionButton.extended(
+              heroTag: null,
+              onPressed: controller.isLoading.value 
+                ? null 
+                : () async {
+                    bool success = await controller.assignVehicles(vendorId, _selectedVehicleIds);
+                    if (success) {
+                      controller.loadVendorDetails(vendorId);
+                      Get.back();
+                    }
+                  },
               backgroundColor: AppColors.primaryColor,
-              label: AppText('Assign ${_selectedVehicles.length} Vehicles', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
-              icon: const Icon(Iconsax.tick_circle, color: Colors.white),
+              label: controller.isLoading.value 
+                ? const SizedBox(
+                    height: 20, 
+                    width: 20, 
+                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  )
+                : AppText('Assign ${_selectedVehicleIds.length} Vehicles', 
+                    style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+              icon: controller.isLoading.value ? null : const Icon(Iconsax.tick_circle, color: Colors.white),
             )
-          : null,
+          : const SizedBox.shrink()),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: AppSearchBar(
-              hint: 'Search Vehicle No.',
-              onChanged: (v) {},
+              hint: 'Search Vehicle No...',
+              onChanged: (v) => controller.updateVehicleSearch(vendorId, v),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _availableVehicles.length,
-              itemBuilder: (context, index) {
-                final vehicle = _availableVehicles[index];
-                final isSelected = _selectedVehicles.contains(vehicle['id']);
-                return AppCard(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(8),
-                  child: CheckboxListTile(
-                    value: isSelected,
-                    activeColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    title: AppText(vehicle['no']!, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                    subtitle: AppText(vehicle['type']!, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                    secondary: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.slate50,
-                        borderRadius: BorderRadius.circular(8),
+            child: Obx(() {
+              if (controller.isAvailableVehiclesLoading.value && controller.availableVehicles.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (controller.availableVehicles.isEmpty) {
+                return RefreshIndicator(
+                  onRefresh: () => controller.loadAvailableVehicles(vendorId, isRefresh: true),
+                  child: ListView(
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(Iconsax.bus, size: 64, color: AppColors.slate300),
+                            const SizedBox(height: 16),
+                            AppText('No available vehicles found', 
+                              style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                          ],
+                        ),
                       ),
-                      child: const Icon(Iconsax.bus, color: AppColors.primaryColor, size: 20),
-                    ),
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value == true) {
-                          _selectedVehicles.add(vehicle['id']!);
-                        } else {
-                          _selectedVehicles.remove(vehicle['id']);
-                        }
-                      });
-                    },
+                    ],
                   ),
                 );
-              },
-            ),
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => controller.loadAvailableVehicles(vendorId, isRefresh: true),
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                  itemCount: controller.availableVehicles.length,
+                  itemBuilder: (context, index) {
+                    final vehicle = controller.availableVehicles[index];
+                    final int id = vehicle['id'];
+                    final isSelected = _selectedVehicleIds.contains(id);
+                    
+                    return AppCard(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.zero,
+                      child: Obx(() => CheckboxListTile(
+                        value: _selectedVehicleIds.contains(id),
+                        activeColor: AppColors.primaryColor,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        title: AppText(vehicle['registration_number'] ?? 'N/A', 
+                          style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            AppText(vehicle['type'] ?? 'N/A', 
+                              style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                            AppText('Capacity: ${vehicle['seating_capacity'] ?? 'N/A'}', 
+                              style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontSize: 10),
+                          ],
+                        ),
+                        secondary: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Iconsax.bus, color: AppColors.primaryColor, size: 24),
+                        ),
+                        onChanged: (bool? value) {
+                          if (value == true) {
+                            _selectedVehicleIds.add(id);
+                          } else {
+                            _selectedVehicleIds.remove(id);
+                          }
+                        },
+                      )),
+                    );
+                  },
+                ),
+              );
+            }),
           ),
-          // Add some bottom padding so FAB doesn't overlap last item
-          const SizedBox(height: 80), 
         ],
       ),
     );

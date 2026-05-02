@@ -312,6 +312,48 @@ class ApiClient {
     }
   }
 
+  Future<ResponseModel> patch(
+      String path, {
+        dynamic data,
+        Map<String, dynamic>? queryParameters,
+        Options? options,
+        CancelToken? cancelToken,
+        ProgressCallback? onSendProgress,
+        ProgressCallback? onReceiveProgress,
+        bool handleError = AppConstants.handleError,
+        bool showToaster = AppConstants.showToaster,
+        bool showErrorScreen = AppConstants.isHandleErrorScreen,
+        bool showInternetScreen = AppConstants.isHandleInternetScreen,
+      }) async {
+    if (showInternetScreen && !(await _checkInternetConnection(showDialog: showInternetScreen))) {
+      return const ResponseModel(isSuccess: false, message: 'No internet connection');
+    }
+
+    try {
+      Logger.d('ApiClient() => PATCH request: $path, data: $data');
+      final response = await _dio.patch(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+      );
+      Logger.d('ApiClient() => PATCH response: ${response.data}');
+
+      if (handleError) {
+        final result = ApiChecker.checkResponse(response, showToaster: showToaster);
+        return ResponseModel.fromJson(result.data, statusCode: result.statusCode);
+      } else {
+        return ApiChecker.checkApi(response, showToaster: showToaster);
+      }
+    } catch (e) {
+      Logger.e('ApiClient() => PATCH error: $e');
+      return ApiChecker.handleError(e, showErrorScreen: showErrorScreen);
+    }
+  }
+
   Future<ResponseModel> delete(
       String path, {
         dynamic data,

@@ -68,4 +68,7 @@ class AppConstants {
   static String inventoryStocksUrl(int id) => '/api/v1/inventories/$id/stocks';
   static String stockInUrl(int id) => '/api/v1/inventories/$id/stock-in';
   static String stockOutUrl(int id) => '/api/v1/inventories/$id/stock-out';
+
+  // Corporate Endpoints
+  static const String createVendorUrl = '/api/v1/vendors';
 }

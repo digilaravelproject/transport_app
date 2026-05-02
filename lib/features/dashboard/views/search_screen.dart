@@ -5,6 +5,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../routes/route_helper.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -20,13 +21,13 @@ class _SearchScreenState extends State<SearchScreen> {
 
   // Mock data for search
   final List<Map<String, dynamic>> _mockData = [
-    {'title': 'Trip #TRS-204', 'type': 'Trip', 'desc': 'Delhi to Shimla • Ongoing', 'icon': Iconsax.routing_2, 'color': AppColors.primaryColor},
-    {'title': 'Trip #TRS-203', 'type': 'Trip', 'desc': 'Noida to Jaipur • Completed', 'icon': Iconsax.tick_circle, 'color': Colors.green},
-    {'title': 'Lead: Rajesh Kumar', 'type': 'Lead', 'desc': 'Inquiry for 12-seater Tempo Traveller', 'icon': Iconsax.user_search, 'color': Colors.orange},
-    {'title': 'Lead: Amit Singh', 'type': 'Lead', 'desc': 'Corporate booking request', 'icon': Iconsax.building_3, 'color': Colors.blue},
-    {'title': 'Vehicle: DL01-7890', 'type': 'Vehicle', 'desc': 'Tata Winger • Active', 'icon': Iconsax.bus, 'color': AppColors.primaryColor},
-    {'title': 'Vehicle: UP16-4421', 'type': 'Vehicle', 'desc': 'Maruti Ertiga • Maintenance', 'icon': Icons.build_rounded, 'color': Colors.redAccent},
-    {'title': 'Driver: Amar Singh', 'type': 'Staff', 'desc': 'On Duty (Trip #TRS-204)', 'icon': Iconsax.profile_circle, 'color': AppColors.primaryColor},
+    {'id': '1', 'title': 'Trip #TRS-204', 'type': 'Trip', 'desc': 'Delhi to Shimla • Ongoing', 'icon': Iconsax.routing_2, 'color': AppColors.primaryColor},
+    {'id': '2', 'title': 'Trip #TRS-203', 'type': 'Trip', 'desc': 'Noida to Jaipur • Completed', 'icon': Iconsax.tick_circle, 'color': Colors.green},
+    {'id': '1', 'title': 'Lead: Rajesh Kumar', 'type': 'Lead', 'desc': 'Inquiry for 12-seater Tempo Traveller', 'icon': Iconsax.user_search, 'color': Colors.orange},
+    {'id': '2', 'title': 'Lead: Amit Singh', 'type': 'Lead', 'desc': 'Corporate booking request', 'icon': Iconsax.building_3, 'color': Colors.blue},
+    {'id': '1', 'title': 'Vehicle: DL01-7890', 'type': 'Vehicle', 'desc': 'Tata Winger • Active', 'icon': Iconsax.bus, 'color': AppColors.primaryColor},
+    {'id': '2', 'title': 'Vehicle: UP16-4421', 'type': 'Vehicle', 'desc': 'Maruti Ertiga • Maintenance', 'icon': Icons.build_rounded, 'color': Colors.redAccent},
+    {'id': '1', 'title': 'Driver: Amar Singh', 'type': 'Staff', 'desc': 'On Duty (Trip #TRS-204)', 'icon': Iconsax.profile_circle, 'color': AppColors.primaryColor},
   ];
 
   List<Map<String, dynamic>> get _filteredResults {
@@ -36,6 +37,30 @@ class _SearchScreenState extends State<SearchScreen> {
              item['type'].toString().toLowerCase().contains(_searchQuery.toLowerCase()) ||
              item['desc'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
+  }
+
+  void _handleNavigation(Map<String, dynamic> item) {
+    FocusScope.of(context).unfocus();
+    
+    final type = item['type'];
+    final id = item['id'];
+    
+    switch (type) {
+      case 'Trip':
+        Get.toNamed(RouteHelper.getTripDetailsRoute(), arguments: id);
+        break;
+      case 'Lead':
+        Get.toNamed(RouteHelper.getLeadDetailsRoute(), arguments: id);
+        break;
+      case 'Vehicle':
+        Get.toNamed(RouteHelper.getVehicleDetailsRoute(), arguments: id);
+        break;
+      case 'Staff':
+        Get.toNamed(RouteHelper.getStaffDetailsRoute(), arguments: id);
+        break;
+      default:
+        Get.snackbar('Feature', 'Detailed view for $type is coming soon.');
+    }
   }
 
   @override
@@ -115,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Iconsax.search_status_1, size: 60, color: AppColors.textColorHint.withValues(alpha: 0.5)),
+          Icon(Iconsax.search_status_1, size: 60, color: AppColors.textColorHint.withOpacity(0.5)),
           const SizedBox(height: 16),
           AppText(
             'Type to search...',
@@ -141,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Iconsax.document_filter, size: 60, color: AppColors.textColorHint.withValues(alpha: 0.5)),
+            Icon(Iconsax.document_filter, size: 60, color: AppColors.textColorHint.withOpacity(0.5)),
             const SizedBox(height: 16),
             AppText(
               'No results found',
@@ -167,10 +192,7 @@ class _SearchScreenState extends State<SearchScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: InkWell(
-            onTap: () {
-              FocusScope.of(context).unfocus();
-              Get.snackbar('Coming Soon', 'Navigation to ${item['type']} details is being implemented.');
-            },
+            onTap: () => _handleNavigation(item),
             borderRadius: BorderRadius.circular(16),
             child: AppCard(
               padding: const EdgeInsets.all(16),
@@ -179,7 +201,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: item['color'].withValues(alpha: 0.1),
+                      color: item['color'].withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(item['icon'], color: item['color'], size: 20),

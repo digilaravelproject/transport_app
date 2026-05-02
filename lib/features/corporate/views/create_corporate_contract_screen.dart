@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/app_validators.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
@@ -53,6 +55,21 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                     label: 'Contract Name',
                     hint: 'e.g. Employee Transport 2024',
                     icon: Icons.assignment_rounded,
+                  ),
+                  const SizedBox(height: 16),
+                  AppInputField(
+                    label: 'Contract Number',
+                    hint: 'Enter 10 digit number',
+                    icon: Iconsax.call,
+                  //  isRequired: true,
+                    validator: AppValidators.validateMobile,
+                    keyboardType: TextInputType.number,
+                   // controller: authController.phoneController,
+                    phoneCode: controller.selectedCountryCode.value,
+                    onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                      context: context,
+                      selectedCode: controller.selectedCountryCode,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(

@@ -7,6 +7,8 @@ class CorporateController extends GetxController {
   final RxString selectedFilter = 'All'.obs;
   final RxList<InvoiceModel> invoices = <InvoiceModel>[].obs;
 
+  var selectedCountryCode = '+91'.obs;
+
   List<CompanyModel> get companies => _companies;
 
   List<CompanyModel> get filteredCompanies {

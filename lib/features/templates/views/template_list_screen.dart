@@ -41,7 +41,7 @@ class TemplateListScreen extends GetView<TemplateController> {
               onChanged: (val) => controller.onSearchChanged(val),
             ),
           ),
-          
+
           const SizedBox(height: 12),
           Obx(() => SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -60,7 +60,7 @@ class TemplateListScreen extends GetView<TemplateController> {
               }).toList(),
             ),
           )),
-          
+
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
@@ -71,7 +71,7 @@ class TemplateListScreen extends GetView<TemplateController> {
                   ),
                 );
               }
-              
+
               if (controller.filteredTemplates.isEmpty) {
                 return const Center(child: AppText('No templates found', style: AppTextStyle.body));
               }
@@ -188,9 +188,9 @@ class _TemplateCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               AppText(
-                'Updated ${template.lastUpdated.day}/${template.lastUpdated.month}/${template.lastUpdated.year}', 
-                style: AppTextStyle.caption, 
-                color: AppColors.textColorHint
+                  'Updated ${template.lastUpdated.day}/${template.lastUpdated.month}/${template.lastUpdated.year}',
+                  style: AppTextStyle.caption,
+                  color: AppColors.textColorHint
               ),
               /*Row(
                 children: [

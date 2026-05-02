@@ -90,7 +90,7 @@ class _StockInScreenState extends State<StockInScreen> {
 
     if (_formKey.currentState!.validate()) {
       final Map<String, dynamic> data = {
-        'quantity': int.tryParse(_quantityController.text) ?? 0,
+        'quantity': double.tryParse(_quantityController.text) ?? 0.0,
         'unit_price': double.tryParse(_priceController.text) ?? 0.0,
         'vendor_name': _vendorController.text,
         'invoice_number': _invoiceController.text,
@@ -119,17 +119,22 @@ class _StockInScreenState extends State<StockInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Add Stock', style: AppTextStyle.subheading, color: AppColors.successColor),
-                  //  const SizedBox(height: 16),
-                    //_buildItemDropdown(),
+                    const SizedBox(height: 16),
+                    _buildItemDropdown(),
                     const SizedBox(height: 16),
                     AppInputField(
                       label: 'Quantity Added',
                       hint: '0',
                       controller: _quantityController,
                       icon: Iconsax.add,
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       isRequired: true,
-                      validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Required';
+                        final qty = double.tryParse(v);
+                        if (qty == null || qty <= 0) return 'Invalid quantity';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     AppInputField(

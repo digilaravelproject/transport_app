@@ -108,7 +108,7 @@ class TemplateDetailsScreen extends StatelessWidget {
                     ],
                   ),
                   if (template.description.isNotEmpty) ...[
-                    const Divider(height: 24),  
+                    const Divider(height: 24),
                     const AppText('Description', style: AppTextStyle.label, color: AppColors.textColorHint),
                     const SizedBox(height: 6),
                     AppText(template.description, style: AppTextStyle.body, color: AppColors.textColorSecondary),

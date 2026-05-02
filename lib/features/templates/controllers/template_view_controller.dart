@@ -9,7 +9,7 @@ import '../../../core/utils/custom_snackbar.dart';
 
 class TemplateViewController extends GetxController {
   late WebViewController webViewController;
-  
+
   final RxString title = 'Template'.obs;
   final RxString url = ''.obs;
   final RxBool isLoading = true.obs;
@@ -51,7 +51,7 @@ class TemplateViewController extends GetxController {
     if (!url.value.startsWith('http://') && !url.value.startsWith('https://')) {
       url.value = 'https://${url.value}';
     }
-    
+
     // Test URL accessibility
     _testUrlAccessibility();
   }
@@ -81,7 +81,7 @@ class TemplateViewController extends GetxController {
       }
 
       webViewController = WebViewController.fromPlatformCreationParams(params);
-      
+
       // Configure WebView settings
       webViewController
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -129,7 +129,7 @@ class TemplateViewController extends GetxController {
             print('WebView started loading: $url');
             isPageLoading.value = true;
             hasError.value = false;
-            
+
             // Set timeout for loading
             loadingTimeout?.cancel();
             loadingTimeout = Timer(const Duration(seconds: 45), () {
@@ -150,7 +150,7 @@ class TemplateViewController extends GetxController {
             isPageLoading.value = false;
             isLoading.value = false;
             loadingTimeout?.cancel();
-            
+
             // Optional: Inject JS to ensure data is visible if needed
             // webViewController.runJavaScript('...');
           },
@@ -158,9 +158,9 @@ class TemplateViewController extends GetxController {
             print('WebView error: ${error.description}, Code: ${error.errorCode}, Type: ${error.errorType}');
             // Only show error for critical failures
             if (error.isForMainFrame == true && (
-                error.errorType == WebResourceErrorType.hostLookup || 
-                error.errorType == WebResourceErrorType.connect ||
-                error.errorType == WebResourceErrorType.timeout)) {
+                error.errorType == WebResourceErrorType.hostLookup ||
+                    error.errorType == WebResourceErrorType.connect ||
+                    error.errorType == WebResourceErrorType.timeout)) {
               hasError.value = true;
               errorMessage.value = 'Error ${error.errorCode}: ${error.description}\nURL: ${this.url.value}';
               isLoading.value = false;
@@ -183,7 +183,7 @@ class TemplateViewController extends GetxController {
       );
 
       print('Loading URL in WebView: ${url.value}');
-      
+
       // Load the URL immediately
       if (!hasError.value) {
         try {
@@ -224,7 +224,7 @@ class TemplateViewController extends GetxController {
     isLoading.value = true;
     isPageLoading.value = false;
     errorMessage.value = '';
-    
+
     // Try with a different URL format if the original fails
     String retryUrl = url.value;
     if (!retryUrl.contains('?')) {
@@ -232,9 +232,9 @@ class TemplateViewController extends GetxController {
     } else {
       retryUrl += '&mobile=1&webview=1';
     }
-    
+
     print('Retrying with URL: $retryUrl');
-    
+
     try {
       // If webViewController hasn't been initialized yet (e.g. initial error),
       // we must initialize it first.

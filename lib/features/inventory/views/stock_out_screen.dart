@@ -89,7 +89,7 @@ class _StockOutScreenState extends State<StockOutScreen> {
     }
 
     if (_formKey.currentState!.validate()) {
-      final quantity = int.tryParse(_quantityController.text) ?? 0;
+      final quantity = double.tryParse(_quantityController.text) ?? 0.0;
       if (quantity > _selectedItem!.currentStock) {
         Get.snackbar('Error', 'Insufficient stock! Current stock: ${_selectedItem!.currentStock}', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
         return;
@@ -125,8 +125,8 @@ class _StockOutScreenState extends State<StockOutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Remove / Use Stock', style: AppTextStyle.subheading, color: AppColors.errorColor),
-                   // const SizedBox(height: 16),
-                   // _buildItemDropdown(),
+                    const SizedBox(height: 16),
+                    _buildItemDropdown(),
                     if (_selectedItem != null) ...[
                       const SizedBox(height: 8),
                       AppText('Current Stock: ${_selectedItem!.currentStock} units', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
@@ -137,11 +137,11 @@ class _StockOutScreenState extends State<StockOutScreen> {
                       hint: '0',
                       controller: _quantityController,
                       icon: Icons.remove_circle_outline_rounded,
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       isRequired: true,
                       validator: (v) {
                         if (v == null || v.isEmpty) return 'Required';
-                        final qty = int.tryParse(v);
+                        final qty = double.tryParse(v);
                         if (qty == null || qty <= 0) return 'Invalid quantity';
                         if (_selectedItem != null && qty > _selectedItem!.currentStock) {
                           return 'Cannot exceed available stock (${_selectedItem!.currentStock})';

@@ -71,12 +71,12 @@ class _AssignRouteScreenState extends State<AssignRouteScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 12),
             child: _buildRouteDropdown(),
           ),
           if (_selectedRoute != null) ...[
              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 1),
                 child: AppSearchBar(
                   hint: 'Search vehicle number...',
                   onChanged: (value) => controller.updateVehicleSearch(value),
@@ -279,7 +279,7 @@ class _AssignRouteScreenState extends State<AssignRouteScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.slate200),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           ),
         ),
       ],

@@ -237,13 +237,8 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
       );
     }
 
-    // Check if operation was successful
-    if (controller.isSuccess.value) {
-      // Wait a bit for the snackbar to show, then navigate back
-      Future.delayed(const Duration(milliseconds: 500), () {
-        Get.back();
-      });
-    }
+    // Navigation is now handled inside the controller methods
+    // to avoid the GetX SnackbarController crash.
   }
 
   String _convertTimeFormat(String time) {
@@ -301,45 +296,50 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: GestureDetector(
-                          onTap: _selectStartTime,
+                        // child: GestureDetector(
+                        //   onTap: _selectStartTime,
                           child: AppInputField(
                             label: 'Start Time',
                             hint: '06:00 AM',
+                            onTap: _selectStartTime,
                             icon: Icons.timer_outlined,
                             controller: _startTimeController,
                             readOnly: true,
                           ),
-                        ),
+                        //),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: GestureDetector(
-                          onTap: _selectEndTime,
+                        // child:
+                        // GestureDetector(
+                         // onTap: _selectEndTime,
                           child: AppInputField(
                             label: 'End Time',
                             hint: '02:00 PM',
+                            onTap: _selectEndTime,
                             icon: Icons.timer_off_outlined,
                             controller: _endTimeController,
                             readOnly: true,
                           ),
                         ),
-                      ),
+                     // ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   _buildDropdown('Shift Type', _shiftType, ['Regular', 'Overtime', 'Special Duty'], (val) => setState(() => _shiftType = val!)),
                   const SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: _selectDate,
-                    child: AppInputField(
+                  // GestureDetector(
+                  //   onTap: _selectDate,
+                  //   child:
+                    AppInputField(
                       label: 'Date',
                       hint: 'DD/MM/YYYY',
+                      onTap: _selectDate ,
                       icon: Iconsax.calendar_1,
                       controller: _dateController,
                       readOnly: true,
                     ),
-                  ),
+                 // ),
                   const SizedBox(height: 16),
                   AppInputField(
                     label: 'Notes / Instructions',

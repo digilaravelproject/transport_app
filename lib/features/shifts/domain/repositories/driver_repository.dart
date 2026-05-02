@@ -164,17 +164,13 @@ class DriverRepositoryImpl implements DriverRepository {
     required int driverId,
   }) async {
     try {
-      final endpoint = '/api/v1/shifts/$shiftId/remove-driver';
-      final body = {
-        'driver_id': driverId,
-      };
+      final endpoint = '/api/v1/shifts/$shiftId/remove-driver/$driverId';
 
       print('Removing driver $driverId from shift $shiftId');
-      print('Request body: $body');
+      print('Endpoint: $endpoint');
 
-      final response = await _apiClient.post(
+      final response = await _apiClient.delete(
         endpoint,
-        data: body,
         handleError: false,
         showToaster: false,
       );

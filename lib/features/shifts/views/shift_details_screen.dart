@@ -91,6 +91,7 @@ class ShiftDetailsScreen extends GetView<ShiftController> {
         }
 
         final displayShift = controller.currentShift.value ?? shift;
+        final bool hasDrivers = (displayShift.driversCount ?? 0) > 0;
 
         return RefreshIndicator(
           onRefresh: () async {
@@ -439,14 +440,6 @@ class ShiftDetailsScreen extends GetView<ShiftController> {
                 
                 if (shift.id != null) {
                   await controller.deleteShift(shift.id!);
-                  
-                  // Check if deletion was successful
-                  if (controller.isSuccess.value) {
-                    // Wait a bit for the snackbar to show, then navigate back
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      Get.back(); // Go back to shift list
-                    });
-                  }
                 }
               },
               style: ElevatedButton.styleFrom(

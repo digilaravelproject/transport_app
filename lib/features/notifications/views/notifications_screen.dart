@@ -7,74 +7,151 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../routes/route_helper.dart';
+import '../controllers/notification_controller.dart';
+import '../domain/models/notification_model.dart';
+import 'package:intl/intl.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // Mock data for notifications
-    final List<Map<String, dynamic>> notifications = [
-      {
-        'title': 'New Lead: Rajesh Kumar',
-        'desc': 'Inquiry for Delhi-Shimla trip on 15th March.',
-        'time': '2m ago',
-        'isUnread': true,
-        'icon': Iconsax.user,
-        'color': AppColors.primaryColor,
-      },
-      {
-        'title': 'Payment Received',
-        'desc': 'Advance payment of ₹5,000 received for trip #TRS-204.',
-        'time': '1h ago',
-        'isUnread': true,
-        'icon': Iconsax.empty_wallet,
-        'color': Colors.green,
-      },
-      {
-        'title': 'Maintenance Reminder',
-        'desc': 'Vehicle DL01-1234 service is due in 2 days.',
-        'time': '3h ago',
-        'isUnread': false,
-        'icon': Icons.build_rounded,
-        'color': Colors.orange,
-      },
-      {
-        'title': 'Trip Started',
-        'desc': 'Trip #TRS-198 to Jaipur has been started by Driver Amar.',
-        'time': '5h ago',
-        'isUnread': false,
-        'icon': Iconsax.bus,
-        'color': AppColors.primaryColor,
-      },
-    ];
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
+}
 
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  final NotificationController controller = Get.put(NotificationController());
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+        if (controller.hasMore && !controller.isMoreLoading.value) {
+          controller.fetchNotifications();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  String _formatTime(String createdAt) {
+    try {
+      final DateTime dateTime = DateTime.parse(createdAt).toLocal();
+      final DateTime now = DateTime.now();
+      final Duration difference = now.difference(dateTime);
+
+      if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}m ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}h ago';
+      } else {
+        return DateFormat('dd MMM, hh:mm a').format(dateTime);
+      }
+    } catch (e) {
+      return createdAt;
+    }
+  }
+
+  IconData _getIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'finance':
+        return Iconsax.empty_wallet;
+      case 'lead':
+        return Iconsax.user;
+      case 'maintenance':
+        return Icons.build_rounded;
+      case 'trip':
+        return Iconsax.bus;
+      default:
+        return Iconsax.notification;
+    }
+  }
+
+  Color _getColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'finance':
+        return Colors.green;
+      case 'lead':
+        return AppColors.primaryColor;
+      case 'maintenance':
+        return Colors.orange;
+      case 'trip':
+        return AppColors.primaryColor;
+      default:
+        return AppColors.textColorSecondary;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
+      appBar: AppHeader(
         title: 'Notifications',
         showBackButton: true,
+        // rightWidget: TextButton(
+        // //  onPressed: () => controller.markAllAsRead(),
+        //   child: const AppText('Mark all read', style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+        // ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: notifications.length,
-        itemBuilder: (context, index) {
-          final item = notifications[index];
-          return _NotificationCard(
-            title: item['title'],
-            desc: item['desc'],
-            time: item['time'],
-            isUnread: item['isUnread'],
-            icon: item['icon'],
-            iconColor: item['color'],
-            onTap: () {
-              Get.toNamed(
-                RouteHelper.getNotificationDetailsRoute(),
-                arguments: item,
-              );
-            },
+      body: Obx(() {
+        if (controller.isLoading.value && controller.notifications.isEmpty) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+        }
+
+        if (controller.notifications.isEmpty) {
+          return RefreshIndicator(
+            onRefresh: () => controller.fetchNotifications(isRefresh: true),
+            child: ListView(
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                const Center(child: AppText('No notifications found', style: AppTextStyle.body)),
+              ],
+            ),
           );
-        },
-      ),
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchNotifications(isRefresh: true),
+          child: ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(16),
+            itemCount: controller.notifications.length + (controller.isMoreLoading.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index < controller.notifications.length) {
+                final NotificationModel item = controller.notifications[index];
+                return _NotificationCard(
+                  title: item.title,
+                  desc: item.message,
+                  time: _formatTime(item.createdAt),
+                  isUnread: !item.isRead,
+                  icon: _getIcon(item.type),
+                  iconColor: _getColor(item.type),
+                  onTap: () {
+                   // controller.markAsRead(item.id);
+                    Get.toNamed(
+                      RouteHelper.getNotificationDetailsRoute(),
+                      arguments: item,
+                    );
+                  },
+                );
+              } else {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryColor),
+                  ),
+                );
+              }
+            },
+          ),
+        );
+      }),
     );
   }
 }
@@ -107,62 +184,64 @@ class _NotificationCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
             ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: AppText(
-                        title,
-                        style: AppTextStyle.subheading,
-                        fontSize: 14,
-                        fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
-                      ),
-                    ),
-                    if (isUnread)
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryColor,
-                          shape: BoxShape.circle,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: AppText(
+                          title,
+                          style: AppTextStyle.subheading,
+                          fontSize: 14,
+                          fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                AppText(
-                  desc,
-                  style: AppTextStyle.caption,
-                  color: AppColors.textColorSecondary,
-                  fontSize: 12,
-                ),
-                const SizedBox(height: 8),
-                AppText(
-                  time,
-                  style: AppTextStyle.caption,
-                  color: AppColors.textColorHint,
-                  fontSize: 11,
-                ),
-              ],
+                      if (isUnread)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  AppText(
+                    desc,
+                    style: AppTextStyle.caption,
+                    color: AppColors.textColorSecondary,
+                    fontSize: 12,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  AppText(
+                    time,
+                    style: AppTextStyle.caption,
+                    color: AppColors.textColorHint,
+                    fontSize: 11,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

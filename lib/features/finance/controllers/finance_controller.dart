@@ -223,9 +223,9 @@ class FinanceController extends GetxController {
       final response = await _addTransactionUseCase.call(request);
       
       if (response.isSuccess) {
+        Get.back();
         CustomSnackbar.showSuccess('Transaction added successfully');
         await refreshFinanceData();
-        Get.back();
         return true;
       } else {
         CustomSnackbar.showError(response.message);

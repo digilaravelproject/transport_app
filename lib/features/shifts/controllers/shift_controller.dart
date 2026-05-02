@@ -44,15 +44,25 @@ class ShiftController extends GetxController {
     }).toList();
   }
 
-  List<ShiftModel> get filteredShifts => _shifts;
+  List<ShiftModel> get filteredShifts {
+    if (searchQuery.value.isEmpty) {
+      return _shifts;
+    }
+    // Local filtering as a supplement to API search for better responsiveness
+    return _shifts.where((shift) {
+      final name = shift.name.toLowerCase();
+      final type = shift.type.toLowerCase();
+      final notes = (shift.notes ?? '').toLowerCase();
+      final query = searchQuery.value.toLowerCase();
+      
+      return name.contains(query) || type.contains(query) || notes.contains(query);
+    }).toList();
+  }
 
   void updateSearch(String query) {
     searchQuery.value = query;
     if (query.isEmpty) {
       isSearchLoading.value = false;
-      _loadShifts();
-    } else {
-      isSearchLoading.value = true;
       _loadShifts();
     }
   }
@@ -77,7 +87,14 @@ class ShiftController extends GetxController {
     super.onInit();
     _initializeRepository();
     _loadShifts();
-    // Don't load drivers on init, load them when needed for specific shift
+    
+    // Debounce search to avoid excessive API calls
+    debounce(searchQuery, (String query) {
+      if (query.isNotEmpty) {
+        isSearchLoading.value = true;
+        _loadShifts();
+      }
+    }, time: const Duration(milliseconds: 500));
   }
 
   void _initializeRepository() {
@@ -150,6 +167,7 @@ class ShiftController extends GetxController {
         _shifts.add(shift);
         isSuccess.value = true;
         print("shift craeted :  successful  "+response.message);
+        Get.back();
         CustomSnackbar.showSuccess(response.message ?? 'Shift created successfully');
       } else {
         isSuccess.value = false;
@@ -191,6 +209,7 @@ class ShiftController extends GetxController {
       if (response.isSuccess) {
         isSuccess.value = true;
         print("shift updated: successful ${response.message}");
+        Get.back();
         CustomSnackbar.showSuccess(response.message ?? 'Shift updated successfully');
         
         // Refresh shift details if we have the updated shift
@@ -245,6 +264,7 @@ class ShiftController extends GetxController {
       if (response.isSuccess) {
         isSuccess.value = true;
         print("shift deleted: successful ${response.message}");
+        Get.back();
         CustomSnackbar.showSuccess(response.message ?? 'Shift deleted successfully');
         
         // Remove shift from local list if it exists

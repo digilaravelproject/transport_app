@@ -6,23 +6,64 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_card.dart';
+import '../domain/models/notification_model.dart';
+import 'package:intl/intl.dart';
 
 class NotificationDetailsScreen extends StatelessWidget {
   const NotificationDetailsScreen({Key? key}) : super(key: key);
 
+  String _formatTime(String createdAt) {
+    try {
+      final DateTime dateTime = DateTime.parse(createdAt).toLocal();
+      return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime);
+    } catch (e) {
+      return createdAt;
+    }
+  }
+
+  IconData _getIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'finance':
+        return Iconsax.empty_wallet;
+      case 'lead':
+        return Iconsax.user;
+      case 'maintenance':
+        return Icons.build_rounded;
+      case 'trip':
+        return Iconsax.bus;
+      default:
+        return Iconsax.notification;
+    }
+  }
+
+  Color _getColor(String type) {
+    switch (type.toLowerCase()) {
+      case 'finance':
+        return Colors.green;
+      case 'lead':
+        return AppColors.primaryColor;
+      case 'maintenance':
+        return Colors.orange;
+      case 'trip':
+        return AppColors.primaryColor;
+      default:
+        return AppColors.textColorSecondary;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get notification data from arguments
-    final Map<String, dynamic> notification = Get.arguments ?? {
-      'title': 'New Lead: Rajesh Kumar',
-      'desc': 'Inquiry for Delhi-Shimla trip on 15th March.',
-      'time': '2m ago',
-      'icon': Iconsax.user,
-      'color': AppColors.primaryColor,
-      'fullMessage': 'Hello Partner,\n\nYou have received a new inquiry from Rajesh Kumar for a round trip from Delhi to Shimla. The customer is looking for a 12-seater Tempo Traveller for a 3-day trip starting from 15th March 2025.\n\nPlease review the details and respond with a quotation as soon as possible.',
-    };
+    final NotificationModel? notification = Get.arguments is NotificationModel ? Get.arguments as NotificationModel : null;
 
-    final Color iconColor = notification['color'] ?? AppColors.primaryColor;
+    if (notification == null) {
+      return const AppScaffold(
+        appBar: AppHeader(title: 'Details', showBackButton: true),
+        body: Center(child: AppText('No notification details found')),
+      );
+    }
+
+    final Color iconColor = _getColor(notification.type);
 
     return AppScaffold(
       appBar: const AppHeader(
@@ -40,10 +81,10 @@ class NotificationDetailsScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.1),
+                    color: iconColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(notification['icon'] ?? Iconsax.notification, color: iconColor, size: 24),
+                  child: Icon(_getIcon(notification.type), color: iconColor, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -51,14 +92,14 @@ class NotificationDetailsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AppText(
-                        notification['title'],
+                        notification.title,
                         style: AppTextStyle.heading,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                       const SizedBox(height: 4),
                       AppText(
-                        notification['time'],
+                        _formatTime(notification.createdAt),
                         style: AppTextStyle.caption,
                         color: AppColors.textColorHint,
                         fontSize: 12,
@@ -70,7 +111,7 @@ class NotificationDetailsScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 24),
-            Divider(color: Colors.black.withValues(alpha: 0.05)),
+            Divider(color: Colors.black.withOpacity(0.05)),
             const SizedBox(height: 24),
             
             // Message Body
@@ -85,7 +126,7 @@ class NotificationDetailsScreen extends StatelessWidget {
             AppCard(
               padding: const EdgeInsets.all(20),
               child: AppText(
-                notification['fullMessage'] ?? notification['desc'],
+                notification.message,
                 style: AppTextStyle.body,
                 fontSize: 15,
                 color: AppColors.textColorPrimary,
@@ -108,26 +149,22 @@ class NotificationDetailsScreen extends StatelessWidget {
               label: 'View Related Details',
               icon: Iconsax.eye,
               onTap: () {
-                // Handle navigation to related feature
-                Get.snackbar('Coming Soon', 'Navigation to details is being implemented.');
+                // Handle navigation based on type and data
+                if (notification.type == 'finance' && notification.data != null) {
+                   Get.snackbar('Finance Detail', 'Navigating to transaction #${notification.data!['entry_id']}');
+                } else if (notification.type == 'lead' && notification.data != null) {
+                   Get.snackbar('Lead Detail', 'Navigating to lead #${notification.data!['lead_id']}');
+                } else {
+                   Get.snackbar('Coming Soon', 'Navigation to details is being implemented.');
+                }
               },
             ),
             const SizedBox(height: 12),
             _ActionButton(
-              label: 'Mark as Read',
-              icon: Iconsax.tick_circle,
+              label: 'Go Back',
+              icon: Iconsax.arrow_left,
               isSecondary: true,
               onTap: () => Get.back(),
-            ),
-            const SizedBox(height: 12),
-            _ActionButton(
-              label: 'Delete Notification',
-              icon: Iconsax.trash,
-              isDanger: true,
-              onTap: () {
-                 Get.back();
-                 Get.snackbar('Deleted', 'Notification has been removed.');
-              },
             ),
           ],
         ),
@@ -164,10 +201,10 @@ class _ActionButton extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSecondary ? Colors.white : color.withValues(alpha: 0.05),
+          color: isSecondary ? Colors.white : color.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSecondary ? Colors.black.withValues(alpha: 0.05) : color.withValues(alpha: 0.1),
+            color: isSecondary ? Colors.black.withOpacity(0.05) : color.withOpacity(0.1),
           ),
         ),
         child: Row(
@@ -176,13 +213,14 @@ class _ActionButton extends StatelessWidget {
             const SizedBox(width: 12),
             AppText(
               label,
+              //label,
               style: AppTextStyle.body,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: color,
             ),
             const Spacer(),
-            Icon(Icons.arrow_forward_ios, color: color.withValues(alpha: 0.3), size: 12),
+            Icon(Icons.arrow_forward_ios, color: color.withOpacity(0.3), size: 12),
           ],
         ),
       ),

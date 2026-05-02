@@ -20,10 +20,10 @@ class ShiftListScreen extends GetView<ShiftController> {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Shifts',
-        rightWidget: IconButton(
-          icon: const Icon(Icons.filter_list_rounded, color: AppColors.textColorPrimary),
-          onPressed: () {},
-        ),
+        // rightWidget: IconButton(
+        //   icon: const Icon(Icons.filter_list_rounded, color: AppColors.textColorPrimary),
+        //   onPressed: () {},
+        // ),
       ),
       floatingActionButton: FloatingActionButton.extended(heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getCreateShiftRoute()),

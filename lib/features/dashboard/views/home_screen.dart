@@ -10,15 +10,51 @@ import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../controllers/home_controller.dart';
+import '../domain/models/home_stats_model.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  HomeScreen({Key? key}) : super(key: key);
+
+  final HomeController controller = Get.put(HomeController());
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good Morning';
     if (hour < 17) return 'Good Afternoon';
     return 'Good Evening';
+  }
+
+  String _formatTime(String createdAt) {
+    try {
+      final DateTime dateTime = DateTime.parse(createdAt).toLocal();
+      final DateTime now = DateTime.now();
+      final Duration difference = now.difference(dateTime);
+
+      if (difference.inMinutes < 60) {
+        return '${difference.inMinutes}m ago';
+      } else if (difference.inHours < 24) {
+        return '${difference.inHours}h ago';
+      } else {
+        return DateFormat('dd MMM, hh:mm a').format(dateTime);
+      }
+    } catch (e) {
+      return createdAt;
+    }
+  }
+
+  IconData _getActivityIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'finance':
+        return Iconsax.wallet_3;
+      case 'lead':
+        return Iconsax.user_search;
+      case 'trip':
+        return Iconsax.bus;
+      default:
+        return Iconsax.notification;
+    }
   }
 
   @override
@@ -30,278 +66,285 @@ class HomeScreen extends StatelessWidget {
       safeArea: false,
       body: Container(
         color: Colors.white,
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
-            children: [
-              SafeArea(
-                bottom: false,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Obx(() {
-                              final userName = authController.currentUser.value?.name ?? 'Partner';
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AppText(
-                                    'Hello',
-                                    style: AppTextStyle.heading,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.textColorPrimary,
-                                  ),
-                                  AppText(
-                                    '$userName!',
-                                    style: AppTextStyle.heading,
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textColorPrimary,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              );
-                            }),
-                          ),
-                          GestureDetector(
-                            onTap: () => Get.toNamed(RouteHelper.getMembershipRoute()),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: RefreshIndicator(
+          onRefresh: () => controller.refreshData(),
+          color: AppColors.primaryColor,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 4, 24, 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Obx(() {
+                                final userName = authController.currentUser.value?.name ?? 'Partner';
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    AppText(
+                                      'Hello',
+                                      style: AppTextStyle.heading,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textColorPrimary,
+                                    ),
+                                    AppText(
+                                      '$userName!',
+                                      style: AppTextStyle.heading,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textColorPrimary,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ),
+                            GestureDetector(
+                              onTap: () => Get.toNamed(RouteHelper.getMembershipRoute()),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Iconsax.crown, color: AppColors.primaryColor, size: 14),
+                                    const SizedBox(width: 4),
+                                    AppText(
+                                      'PRO',
+                                      style: AppTextStyle.caption,
+                                      color: AppColors.primaryColor,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 12,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.primaryColor, width: 1.5),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.black.withOpacity(0.05)),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.03),
+                                    color: Colors.black.withOpacity(0.03),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Iconsax.crown, color: AppColors.primaryColor, size: 14),
-                                  const SizedBox(width: 4),
-                                  AppText(
-                                    'PRO',
-                                    style: AppTextStyle.caption,
-                                    color: AppColors.primaryColor,
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 12,
-                                  ),
-                                ],
+                              child: IconButton(
+                                icon: const Icon(Iconsax.notification, color: AppColors.textColorPrimary, size: 22),
+                                onPressed: () => Get.toNamed(RouteHelper.getNotificationsRoute()),
+                                padding: const EdgeInsets.all(10),
+                                constraints: const BoxConstraints(),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        AppText(
+                          'Keep manage your sales with care.',
+                          style: AppTextStyle.caption,
+                          color: AppColors.textColorSecondary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        // ── Search Bar ──────────────────────────────────────────
+                        GestureDetector(
+                          onTap: () => Get.toNamed(RouteHelper.getSearchRoute()),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(color: Colors.black.withOpacity(0.08)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Iconsax.search_normal, color: AppColors.textColorPrimary, size: 20),
+                                const SizedBox(width: 12),
+                                AppText(
+                                  'Search Update',
+                                  style: AppTextStyle.caption,
+                                  color: AppColors.textColorSecondary,
+                                  fontSize: 16,
                                 ),
                               ],
                             ),
-                            child: IconButton(
-                              icon: const Icon(Iconsax.notification, color: AppColors.textColorPrimary, size: 22),
-                              onPressed: () => Get.toNamed(RouteHelper.getNotificationsRoute()),
-                              padding: const EdgeInsets.all(10),
-                              constraints: const BoxConstraints(),
-                            ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      AppText(
-                        'Keep manage your sales with care.',
-                        style: AppTextStyle.caption,
-                        color: AppColors.textColorSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
-                      const SizedBox(height: 20),
-                      
-                      // ── Search Bar ──────────────────────────────────────────
-                      GestureDetector(
-                        onTap: () => Get.toNamed(RouteHelper.getSearchRoute()),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(100),
-                            border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Iconsax.search_normal, color: AppColors.textColorPrimary, size: 20),
-                              const SizedBox(width: 12),
-                              AppText(
-                                'Search Update',
-                                style: AppTextStyle.caption,
-                                color: AppColors.textColorSecondary,
-                                fontSize: 16,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 16), // Increased top padding from 4 to 24
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Hero Update Card ───────────────────────────────────
-                    _HeroCard(),
-                    const SizedBox(height: 20),
-                    
-                    // ── Stats Grid ──────────────────────────────────────────
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.95, // Increased height for better padding
-                      children: [
-                         _StatCard(
-                          label: 'Today\'s Trips',
-                          value: '08',
-                          trend: '+12% from Yesterday',
-                          isPositive: true,
-                          icon: Iconsax.bus,
-                          color: AppColors.primaryColor,
-                          onTap: () => Get.toNamed('/trip-list'),
-                        ),
-                        _StatCard(
-                          label: 'Daily Revenue',
-                          value: '45.000',
-                          trend: '+24% from Last Week',
-                          isPositive: true,
-                          icon: Iconsax.wallet_3,
-                          color: AppColors.primaryColor,
-                          isCurrency: true,
-                          onTap: () => Get.toNamed('/reports-dashboard'),
-                        ),
-                        _StatCard(
-                          label: 'Pending Leads',
-                          value: '124',
-                          trend: '+5% this Month',
-                          isPositive: true,
-                          icon: Iconsax.user_add,
-                          color: AppColors.primaryColor,
-                          onTap: () => Get.toNamed('/leadList'),
-                        ),
-                        _StatCard(
-                          label: 'Active Vehicles',
-                          value: '42',
-                          trend: 'All systems normal',
-                          isPositive: true,
-                          icon: Iconsax.truck_fast,
-                          color: AppColors.primaryColor,
-                          onTap: () => Get.toNamed('/vehicle-list'),
                         ),
                       ],
                     ),
-
-                    const SizedBox(height: 24),
-
-                    // ── Quick Actions ────────────────────────────────────────
-                    const SectionHeader(
-                      title: 'Quick Actions',
-                      padding: EdgeInsets.only(top: 12, bottom: 12),
-                    ),
-                    const SizedBox(height: 8),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      clipBehavior: Clip.none,
-                      child: Row(
-                        children: [
-                          _QuickAction(
-                            label: 'Create Lead',
-                            icon: Iconsax.user_add,
-                            onTap: () => Get.toNamed(RouteHelper.getCreateLeadRoute()),
-                          ),
-                          _QuickAction(
-                            label: 'Create Trip',
-                            icon: Iconsax.routing_2,
-                            onTap: () => Get.toNamed(RouteHelper.getCreateTripRoute()),
-                          ),
-                          _QuickAction(
-                            label: 'Add Vehicle',
-                            icon: Iconsax.bus,
-                            onTap: () => Get.toNamed(RouteHelper.getAddVehicleRoute()),
-                          ),
-                          _QuickAction(
-                            label: 'Add Driver',
-                            icon: Iconsax.profile_add,
-                            onTap: () => Get.toNamed(RouteHelper.getAddStaffRoute()),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // ── Recent Activity ──────────────────────────────────
-                    const SectionHeader(
-                      title: 'Recent Activity',
-                      actionLabel: 'See all',
-                      padding: EdgeInsets.only(top: 12, bottom: 12),
-                    ),
-                    const SizedBox(height: 8),
-                    _TransactionTile(
-                      title: 'Trip #TRS-204 Started',
-                      subtitle: 'DL01-7890 • Amar Singh • 1h ago',
-                      icon: Iconsax.bus,
-                      status: 'Ongoing',
-                      statusColor: const Color(0xFFF59E0B),
-                      transactionId: 'TRS-204',
-                      onTap: () {},
-                    ),
-                    _TransactionTile(
-                      title: 'Trip #TRS-203 Completed',
-                      subtitle: 'UP16-4421 • Rajesh • 4h ago',
-                      icon: Iconsax.tick_circle,
-                      status: 'Success',
-                      statusColor: const Color(0xFF10B981),
-                      transactionId: 'TRS-203',
-                      onTap: () {},
-                    ),
-                    _TransactionTile(
-                      title: 'New Lead: Rahul Sharma',
-                      subtitle: 'Delhi-Manali • Inquiry • 2h ago',
-                      icon: Iconsax.user_search,
-                      status: 'New',
-                      statusColor: AppColors.primaryColor,
-                      transactionId: 'LED-451',
-                      onTap: () {},
-                    ),
-                    
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Hero Update Card ───────────────────────────────────
+                      _HeroCard(),
+                      const SizedBox(height: 20),
+                      
+                      // ── Stats Grid ──────────────────────────────────────────
+                      Obx(() {
+                        final s = controller.stats.value;
+                        return GridView.count(
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.95,
+                          children: [
+                             _StatCard(
+                              label: 'Today\'s Trips',
+                              value: s != null ? s.todayTrips.toString().padLeft(2, '0') : '--',
+                              trend: s != null ? '+12% from Yesterday' : '',
+                              isPositive: true,
+                              icon: Iconsax.bus,
+                              color: AppColors.primaryColor,
+                              onTap: () => Get.toNamed('/trip-list'),
+                            ),
+                            _StatCard(
+                              label: 'Daily Revenue',
+                              value: s != null ? NumberFormat('#,###').format(s.dailyRevenue) : '--',
+                              trend: s != null ? '+24% from Last Week' : '',
+                              isPositive: true,
+                              icon: Iconsax.wallet_3,
+                              color: AppColors.primaryColor,
+                              isCurrency: true,
+                              onTap: () => Get.toNamed('/reports-dashboard'),
+                            ),
+                            _StatCard(
+                              label: 'Pending Leads',
+                              value: s != null ? s.pendingLeads.toString() : '--',
+                              trend: s != null ? '+5% this Month' : '',
+                              isPositive: true,
+                              icon: Iconsax.user_add,
+                              color: AppColors.primaryColor,
+                              onTap: () => Get.toNamed('/leadList'),
+                            ),
+                            _StatCard(
+                              label: 'Active Vehicles',
+                              value: s != null ? s.activeVehicles.toString() : '--',
+                              trend: 'All systems normal',
+                              isPositive: true,
+                              icon: Iconsax.truck_fast,
+                              color: AppColors.primaryColor,
+                              onTap: () => Get.toNamed('/vehicle-list'),
+                            ),
+                          ],
+                        );
+                      }),
+
+                      const SizedBox(height: 24),
+
+                      // ── Quick Actions ────────────────────────────────────────
+                      const SectionHeader(
+                        title: 'Quick Actions',
+                        padding: EdgeInsets.only(top: 12, bottom: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        clipBehavior: Clip.none,
+                        child: Row(
+                          children: [
+                            _QuickAction(
+                              label: 'Create Lead',
+                              icon: Iconsax.user_add,
+                              onTap: () => Get.toNamed(RouteHelper.getCreateLeadRoute()),
+                            ),
+                            _QuickAction(
+                              label: 'Create Trip',
+                              icon: Iconsax.routing_2,
+                              onTap: () => Get.toNamed(RouteHelper.getCreateTripRoute()),
+                            ),
+                            _QuickAction(
+                              label: 'Add Vehicle',
+                              icon: Iconsax.bus,
+                              onTap: () => Get.toNamed(RouteHelper.getAddVehicleRoute()),
+                            ),
+                            _QuickAction(
+                              label: 'Add Driver',
+                              icon: Iconsax.profile_add,
+                              onTap: () => Get.toNamed(RouteHelper.getAddStaffRoute()),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // ── Recent Activity ──────────────────────────────────
+                      const SectionHeader(
+                        title: 'Recent Activity',
+                        actionLabel: 'See all',
+                        padding: EdgeInsets.only(top: 12, bottom: 12),
+                      ),
+                      const SizedBox(height: 8),
+                      Obx(() {
+                        final s = controller.stats.value;
+                        if (s == null || s.recentActivity.isEmpty) {
+                          return const Center(child: Padding(
+                            padding: EdgeInsets.only(top: 12,bottom: 12),
+                            child: AppText('No recent activity', style: AppTextStyle.caption),
+                          ));
+                        }
+                        
+                        return Column(
+                          children: s.recentActivity.take(5).map((activity) {
+                            return _TransactionTile(
+                              title: activity.title,
+                              subtitle: '${activity.message} • ${_formatTime(activity.createdAt)}',
+                              icon: _getActivityIcon(activity.type),
+                              status: activity.type.toUpperCase(),
+                              statusColor: activity.type == 'finance' ? Colors.green : AppColors.primaryColor,
+                              transactionId: 'ID: ${activity.id}',
+                              onTap: () {
+                                if (activity.type == 'finance' && activity.data != null) {
+                                  // Navigate to transaction if needed
+                                }
+                              },
+                            );
+                          }).toList(),
+                        );
+                      }),
+                      
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -410,7 +453,7 @@ class _HeroCardState extends State<_HeroCard> {
             
             // Date
             AppText(
-              'May 12th 2025',
+              DateFormat('MMMM dd, yyyy').format(DateTime.now()),
               color: const Color(0xFF9CA3AF), // Muted grey
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -473,10 +516,10 @@ Widget _buildFilterOption(String title, IconData icon, bool isSelected, VoidCall
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+        color: isSelected ? AppColors.primaryColor.withOpacity(0.1) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
+          color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : Colors.black.withOpacity(0.05),
         ),
       ),
       child: Row(
@@ -528,7 +571,7 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          border: Border.all(color: Colors.black.withOpacity(0.05)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +582,7 @@ class _StatCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: color.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(icon, color: color, size: 16),
@@ -633,7 +676,7 @@ class _QuickAction extends StatelessWidget {
           border: Border.all(color: const Color(0xFFF1F5F9)),
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withValues(alpha: 0.02),
+              color: AppColors.black.withOpacity(0.02),
               blurRadius: 15,
               offset: const Offset(0, 6),
             ),
@@ -646,8 +689,8 @@ class _QuickAction extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.12),
-                    AppColors.primaryColor.withValues(alpha: 0.04),
+                    AppColors.primaryColor.withOpacity(0.12),
+                    AppColors.primaryColor.withOpacity(0.04),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -702,7 +745,7 @@ class _TransactionTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.03),
+                color: Colors.black.withOpacity(0.03),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: const Color(0xFF062D24), size: 22),
@@ -740,7 +783,7 @@ class _TransactionTile extends StatelessWidget {
                 AppText(
                   transactionId,
                   fontSize: 11,
-                  color: AppColors.textColorSecondary.withValues(alpha: 0.6),
+                  color: AppColors.textColorSecondary.withOpacity(0.6),
                 ),
               ],
             ),

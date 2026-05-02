@@ -21,7 +21,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _currentIndex = 0.obs;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    HomeScreen(),
     const TripListScreen(),
     const VehicleListScreen(),
     const FinanceScreen(),

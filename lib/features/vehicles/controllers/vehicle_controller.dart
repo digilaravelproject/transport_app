@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/service_record_model.dart';
+import '../domain/models/fuel_entry_model.dart';
+import '../domain/models/timeline_record_model.dart';
+import '../../../core/services/network/api_client.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/logger.dart';
+import '../../../core/utils/custom_snackbar.dart';
+import '../../../core/services/network/multipart.dart';
+import 'package:file_picker/file_picker.dart';
 
 class VehicleController extends GetxController {
+  final ApiClient _apiClient = Get.find<ApiClient>();
+  
   final vehicles = <VehicleModel>[].obs;
+  final fuelHistory = <FuelEntryModel>[].obs;
   final filteredVehicles = <VehicleModel>[].obs;
+  final isLoading = false.obs;
+  final totalVehicles = 0.obs;
+  final activeVehicles = 0.obs;
+  final serviceVehicles = 0.obs;
   final searchQuery = ''.obs;
-  final selectedFilter = 'All'.obs;
+  final selectedFilter = 'All'.obs; // Status: All, Active, Maintenance
   final selectedTypeFilter = 'All'.obs;
   final selectedCapacityFilter = 'All'.obs;
   final selectedRepairFilter = 'All'.obs;
@@ -16,27 +32,203 @@ class VehicleController extends GetxController {
   final serviceStartDate = Rxn<DateTime>();
   final serviceEndDate = Rxn<DateTime>();
 
-  final fuelHistory = <FuelEntry>[].obs;
-  final serviceHistory = <ServiceRecord>[].obs;
-  final repairHistory = <ServiceRecord>[].obs; // Using ServiceRecord for repair too or similar model
+  // Fuel Stats
+  final totalFuelExpense = 0.0.obs;
+  final monthlyFuelCost = 0.0.obs;
+  final avgFuelPrice = 0.0.obs;
+
+  // Service Stats
+  final totalServiceAmount = 0.0.obs;
+  final paidServiceAmount = 0.0.obs;
+  final dueServiceAmount = 0.0.obs;
+
+  // Repair Stats
+  final totalRepairAmount = 0.0.obs;
+  final paidRepairAmount = 0.0.obs;
+  final dueRepairAmount = 0.0.obs;
+
+  var serviceHistory = <ServiceRecord>[].obs;
+  var repairHistory = <ServiceRecord>[].obs;
+  var vehicleDocuments = <VehicleDocument>[].obs;
+  var timelineHistory = <TimelineRecord>[].obs;
   final documents = <VehicleDocument>[].obs;
 
   @override
   void onInit() {
     super.onInit();
-    _loadMockVehicles();
-    _loadMockMaintenance();
+    fetchVehicles();
+    fetchVehicleStats();
+    // _loadMockMaintenance();
     
-    debounce(searchQuery, (_) => _filterVehicles(), time: const Duration(milliseconds: 300));
-    ever(selectedFilter, (_) => _filterVehicles());
-    ever(selectedTypeFilter, (_) => _filterVehicles());
-    ever(selectedCapacityFilter, (_) => _filterVehicles());
+    debounce(searchQuery, (_) => fetchVehicles(), time: const Duration(milliseconds: 500));
+    ever(selectedFilter, (_) => fetchVehicles());
+    ever(selectedTypeFilter, (_) => fetchVehicles());
+    ever(selectedCapacityFilter, (_) => fetchVehicles());
+
+    // Service/Repair filter listeners
+    ever(selectedServiceFilter, (_) => _refreshServiceHistory());
+    ever(serviceStartDate, (_) => _refreshServiceHistory());
+    ever(serviceEndDate, (_) => _refreshServiceHistory());
+
+    ever(selectedRepairFilter, (_) => _refreshRepairHistory());
+    ever(repairStartDate, (_) => _refreshRepairHistory());
+    ever(repairEndDate, (_) => _refreshRepairHistory());
+  }
+
+  void _refreshServiceHistory() {
+    final dynamic args = Get.arguments;
+    final id = (args is Map) ? args['vehicle']?.id : (args is VehicleModel ? args.id : null);
+    if (id != null) fetchServiceHistory(id);
+  }
+
+  void _refreshRepairHistory() {
+    final dynamic args = Get.arguments;
+    final id = (args is Map) ? args['vehicle']?.id : (args is VehicleModel ? args.id : null);
+    if (id != null) fetchRepairHistory(id);
+  }
+
+  Future<void> fetchVehicles() async {
+    isLoading.value = true;
+    try {
+      final Map<String, dynamic> queryParams = {
+        'search': searchQuery.value,
+        'per_page': 50,
+      };
+
+      if (selectedFilter.value != 'All') {
+        queryParams['status'] = selectedFilter.value.toLowerCase();
+      }
+
+      if (selectedTypeFilter.value != 'All') {
+        queryParams['type[]'] = [selectedTypeFilter.value];
+      }
+
+      if (selectedCapacityFilter.value != 'All') {
+        if (selectedCapacityFilter.value == '< 30') {
+          queryParams['capacity_range'] = '0-30';
+        } else if (selectedCapacityFilter.value == '30 - 45') {
+          queryParams['capacity_range'] = '30-45';
+        } else if (selectedCapacityFilter.value == '> 45') {
+          queryParams['capacity_range'] = '45-200';
+        }
+      }
+
+      final response = await _apiClient.get(
+        AppConstants.getVehiclesUrl,
+        queryParameters: queryParams,
+      );
+
+      if (response.isSuccess) {
+        final List<dynamic> bodyData = response.body;
+        vehicles.value = bodyData.map((json) => VehicleModel.fromJson(json)).toList();
+        filteredVehicles.assignAll(vehicles);
+      } else {
+        Logger.e('Failed to fetch vehicles: ${response.message}');
+      }
+    } catch (e) {
+      Logger.e('Error fetching vehicles: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleStats() async {
+    try {
+      final response = await _apiClient.get(AppConstants.getVehicleStatsUrl);
+      if (response.isSuccess) {
+        final data = response.body;
+        totalVehicles.value = data['total'] ?? 0;
+        activeVehicles.value = data['active'] ?? 0;
+        serviceVehicles.value = data['service'] ?? 0;
+      }
+    } catch (e) {
+      Logger.e('Error fetching vehicle stats: $e');
+    }
+  }
+
+  Future<bool> addVehicle(Map<String, String> data, List<MultipartDocument> files) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehiclesUrl,
+        data,
+        [],
+        files,
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Vehicle added successfully');
+        fetchVehicles();
+        fetchVehicleStats();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      Logger.e('Error adding vehicle: $e');
+      CustomSnackbar.showError('Something went wrong');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateVehicle(dynamic id, Map<String, String> data, List<MultipartDocument> files) async {
+    isLoading.value = true;
+    try {
+      // For multipart update, we use POST with _method="PUT"
+      data['_method'] = 'PUT';
+      
+      final response = await _apiClient.postMultipartData(
+        AppConstants.updateVehicleUrl(id),
+        data,
+        [],
+        files,
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Vehicle updated successfully');
+        fetchVehicles();
+        fetchVehicleStats();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      Logger.e('Error updating vehicle: $e');
+      CustomSnackbar.showError('Something went wrong');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<VehicleModel?> fetchVehicleDetails(dynamic id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.updateVehicleUrl(id));
+      if (response.isSuccess && response.body != null) {
+        final body = response.body;
+        // The body is already the data object (vehicle map)
+        if (body is Map<String, dynamic>) {
+          return VehicleModel.fromJson(body);
+        }
+      }
+      return null;
+    } catch (e) {
+      Logger.e('Error fetching vehicle details: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void _loadMockMaintenance() {
     fuelHistory.value = [
-      FuelEntry(date: DateTime.now().subtract(const Duration(days: 2)), amount: 4500, quantity: 45.5, station: 'Reliance Petrol Pump'),
-      FuelEntry(date: DateTime.now().subtract(const Duration(days: 10)), amount: 5200, quantity: 50.2, station: 'HP Fuel Station'),
+      FuelEntryModel(vehicleId: 0, date: DateTime.now().subtract(const Duration(days: 2)), amount: 4500, quantity: 45.5, station: 'Reliance Petrol Pump', pricePerUnit: 98.9),
+      FuelEntryModel(vehicleId: 0, date: DateTime.now().subtract(const Duration(days: 10)), amount: 5200, quantity: 50.2, station: 'HP Fuel Station', pricePerUnit: 103.5),
     ];
 
     serviceHistory.value = [
@@ -49,16 +241,6 @@ class VehicleController extends GetxController {
           workshop: 'Tata Authorized Service Center',
           payments: [
             PaymentLog(date: DateTime.now().subtract(const Duration(days: 30)), amount: 12500),
-          ]),
-      ServiceRecord(
-          id: 2,
-          date: DateTime.now().subtract(const Duration(days: 120)),
-          type: 'Oil Change',
-          totalBill: 3500,
-          paidAmount: 2000,
-          workshop: 'Local Workshop',
-          payments: [
-            PaymentLog(date: DateTime.now().subtract(const Duration(days: 120)), amount: 2000),
           ]),
     ];
 
@@ -73,34 +255,14 @@ class VehicleController extends GetxController {
           payments: [
             PaymentLog(date: DateTime.now().subtract(const Duration(days: 5)), amount: 3000),
           ]),
-      ServiceRecord(
-          id: 4,
-          date: DateTime.now().subtract(const Duration(days: 60)),
-          type: 'Tyre Change',
-          totalBill: 18000,
-          paidAmount: 18000,
-          workshop: 'Michelin Store',
-          payments: [
-            PaymentLog(date: DateTime.now().subtract(const Duration(days: 60)), amount: 18000),
-          ]),
     ];
 
     documents.value = [
       VehicleDocument(
-          name: 'Registration Certificate (RC)',
-          uploadDate: DateTime.now().subtract(const Duration(days: 365)),
+          type: 'Registration Certificate (RC)',
+          number: 'MOCK-123',
           expiryDate: DateTime.now().add(const Duration(days: 365 * 10)),
           fileUrl: 'rc.pdf'),
-      VehicleDocument(
-          name: 'Insurance Policy',
-          uploadDate: DateTime.now().subtract(const Duration(days: 200)),
-          expiryDate: DateTime.now().add(const Duration(days: 165)),
-          fileUrl: 'insurance.pdf'),
-      VehicleDocument(
-          name: 'Vehicle Permit',
-          uploadDate: DateTime.now().subtract(const Duration(days: 300)),
-          expiryDate: DateTime.now().add(const Duration(days: 65)),
-          fileUrl: 'permit.pdf'),
     ];
   }
 
@@ -114,137 +276,24 @@ class VehicleController extends GetxController {
 
   double get totalMaintenanceDue => totalMaintenanceSpent - totalMaintenancePaid;
 
-  List<ServiceRecord> get filteredRepairHistory {
-    List<ServiceRecord> list = List.from(repairHistory);
-    
-    // Status Filter
-    if (selectedRepairFilter.value == 'Pending') {
-      list = list.where((r) => r.pendingAmount > 0).toList();
-    } else if (selectedRepairFilter.value == 'Paid') {
-      list = list.where((r) => r.pendingAmount == 0).toList();
-    }
-
-    // Date Filter
-    if (repairStartDate.value != null) {
-      list = list.where((r) => r.date.isAfter(repairStartDate.value!) || r.date.isAtSameMomentAs(repairStartDate.value!)).toList();
-    }
-    if (repairEndDate.value != null) {
-      // Add one day to include the entire end date
-      final end = repairEndDate.value!.add(const Duration(days: 1));
-      list = list.where((r) => r.date.isBefore(end)).toList();
-    }
-    
-    return list;
+  int get activeFiltersCount {
+    int count = 0;
+    if (selectedFilter.value != 'All') count++;
+    if (selectedTypeFilter.value != 'All') count++;
+    if (selectedCapacityFilter.value != 'All') count++;
+    return count;
   }
 
-  List<ServiceRecord> get filteredServiceHistory {
-    List<ServiceRecord> list = List.from(serviceHistory);
-    
-    // Status Filter
-    if (selectedServiceFilter.value == 'Pending') {
-      list = list.where((s) => s.pendingAmount > 0).toList();
-    } else if (selectedServiceFilter.value == 'Paid') {
-      list = list.where((s) => s.pendingAmount == 0).toList();
-    }
+  List<ServiceRecord> get filteredRepairHistory => repairHistory;
 
-    // Date Filter
-    if (serviceStartDate.value != null) {
-      list = list.where((s) => s.date.isAfter(serviceStartDate.value!) || s.date.isAtSameMomentAs(serviceStartDate.value!)).toList();
-    }
-    if (serviceEndDate.value != null) {
-      // Add one day to include the entire end date
-      final end = serviceEndDate.value!.add(const Duration(days: 1));
-      list = list.where((s) => s.date.isBefore(end)).toList();
-    }
-    
-    return list;
-  }
-
-  void _loadMockVehicles() {
-    vehicles.value = [
-      VehicleModel(
-        id: 1,
-        vehicleNumber: 'DL 01 AB 1234',
-        type: 'AC Sleeper',
-        capacity: 36,
-        model: 'Tata Marcopolo',
-        year: '2022',
-        driverName: 'Rajesh Kumar',
-        perKmPrice: 18.0,
-        acPricePerKm: 2.0,
-        lastServiceDate: DateTime.now().subtract(const Duration(days: 15)),
-        status: VehicleStatus.active,
-      ),
-      VehicleModel(
-        id: 2,
-        vehicleNumber: 'RJ 14 PC 5588',
-        type: 'Non-AC Seater',
-        capacity: 42,
-        model: 'Ashok Leyland',
-        year: '2021',
-        driverName: 'Suresh Singh',
-        perKmPrice: 12.0,
-        acPricePerKm: 0.0,
-        lastServiceDate: DateTime.now().subtract(const Duration(days: 45)),
-        status: VehicleStatus.maintenance,
-      ),
-      VehicleModel(
-        id: 3,
-        vehicleNumber: 'UP 80 BD 9900',
-        type: 'Luxury Volvo',
-        capacity: 30,
-        model: 'Volvo 9400 B11R',
-        year: '2023',
-        driverName: 'Amit Sharma',
-        perKmPrice: 25.0,
-        acPricePerKm: 5.0,
-        lastServiceDate: DateTime.now().subtract(const Duration(days: 5)),
-        status: VehicleStatus.active,
-      ),
-    ];
-    filteredVehicles.assignAll(vehicles);
-  }
-
-  void _filterVehicles() {
-    List<VehicleModel> list = List.from(vehicles);
-    
-    // Status Filter
-    if (selectedFilter.value == 'Active') {
-      list = list.where((v) => v.status == VehicleStatus.active).toList();
-    } else if (selectedFilter.value == 'Maintenance') {
-      list = list.where((v) => v.status == VehicleStatus.maintenance).toList();
-    }
-
-    // Type Filter
-    if (selectedTypeFilter.value != 'All') {
-      list = list.where((v) => v.type == selectedTypeFilter.value).toList();
-    }
-
-    // Capacity Filter
-    if (selectedCapacityFilter.value != 'All') {
-      if (selectedCapacityFilter.value == '< 30') {
-        list = list.where((v) => v.capacity < 30).toList();
-      } else if (selectedCapacityFilter.value == '30 - 45') {
-        list = list.where((v) => v.capacity >= 30 && v.capacity <= 45).toList();
-      } else if (selectedCapacityFilter.value == '> 45') {
-        list = list.where((v) => v.capacity > 45).toList();
-      }
-    }
-
-    // Search Filter
-    if (searchQuery.value.isNotEmpty) {
-      list = list.where((v) =>
-          v.vehicleNumber.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          v.type.toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
-    }
-    filteredVehicles.assignAll(list);
-  }
+  List<ServiceRecord> get filteredServiceHistory => serviceHistory;
 
   void resetFilters() {
     selectedFilter.value = 'All';
     selectedTypeFilter.value = 'All';
     selectedCapacityFilter.value = 'All';
     searchQuery.value = '';
+    fetchVehicles();
   }
 
   void updateSearch(String query) {
@@ -255,12 +304,26 @@ class VehicleController extends GetxController {
     selectedFilter.value = filter;
   }
 
+  void setTypeFilter(String type) {
+    selectedTypeFilter.value = type;
+  }
+
+  void setCapacityFilter(String capacity) {
+    selectedCapacityFilter.value = capacity;
+  }
+
   void setRepairFilter(String filter) {
     selectedRepairFilter.value = filter;
+    if (filter == 'All') {
+      clearRepairDateRange();
+    }
   }
 
   void setServiceFilter(String filter) {
     selectedServiceFilter.value = filter;
+    if (filter == 'All') {
+      clearServiceDateRange();
+    }
   }
 
   void setRepairDateRange(DateTime? start, DateTime? end) {
@@ -283,57 +346,387 @@ class VehicleController extends GetxController {
     serviceEndDate.value = null;
   }
 
-  void addRepairEntry(ServiceRecord record) {
-    repairHistory.insert(0, record);
-    Get.snackbar('Success', 'Repair entry added successfully', snackPosition: SnackPosition.BOTTOM);
-  }
-
-  void addPaymentToRepair(int id, double amount, DateTime date, {String? receiptUrl}) {
-    final index = repairHistory.indexWhere((r) => r.id == id);
-    if (index != -1) {
-      final old = repairHistory[index];
-      final newPayments = List<PaymentLog>.from(old.payments);
-      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
-      
-      repairHistory[index] = old.copyWith(
-        paidAmount: old.paidAmount + amount,
-        payments: newPayments,
-      );
-      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
-    }
-  }
-
-  void addServiceEntry(ServiceRecord record) {
-    serviceHistory.insert(0, record);
-    Get.snackbar('Success', 'Service entry added successfully', snackPosition: SnackPosition.BOTTOM);
-  }
-
-  void addPaymentToService(int id, double amount, DateTime date, {String? receiptUrl}) {
-    final index = serviceHistory.indexWhere((s) => s.id == id);
-    if (index != -1) {
-      final old = serviceHistory[index];
-      final newPayments = List<PaymentLog>.from(old.payments);
-      newPayments.add(PaymentLog(date: date, amount: amount, receiptUrl: receiptUrl));
-      
-      serviceHistory[index] = old.copyWith(
-        paidAmount: old.paidAmount + amount,
-        payments: newPayments,
-      );
-      Get.snackbar('Success', 'Payment recorded successfully', snackPosition: SnackPosition.BOTTOM);
-    }
-  }
-
   void updateVehicleStatus(VehicleModel vehicle, VehicleStatus newStatus) {
     final index = vehicles.indexWhere((v) => v.id == vehicle.id);
     if (index != -1) {
       vehicles[index] = vehicle.copyWith(status: newStatus);
-      _filterVehicles();
       Get.snackbar(
         'Status Updated',
         'Vehicle ${vehicle.vehicleNumber} is now ${newStatus.name.capitalizeFirst}',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: Colors.white.withOpacity(0.9),
       );
+    }
+  }
+
+  void addRepairEntry(ServiceRecord record) {
+    repairHistory.insert(0, record);
+    Get.snackbar('Success', 'Repair entry added successfully', snackPosition: SnackPosition.BOTTOM);
+  }
+
+  Future<bool> addPaymentToRepair(dynamic vehicleId, int id, double amount, DateTime date, {String? notes, PlatformFile? receiptFile}) async {
+    isLoading.value = true;
+    try {
+      final Map<String, String> body = {
+        'amount': amount.toString(),
+        'payment_date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+        'notes': notes ?? 'Payment for repair',
+      };
+
+      final List<MultipartDocument> otherFile = [];
+      if (receiptFile != null) {
+        otherFile.add(MultipartDocument('receipt', receiptFile));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleRepairPaymentUrl(vehicleId, id),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchRepairHistory(vehicleId);
+        fetchRepairDetails(vehicleId, id);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> addPaymentToService(dynamic vehicleId, int id, double amount, DateTime date, {String? notes, PlatformFile? receiptFile}) async {
+    isLoading.value = true;
+    try {
+      final Map<String, String> body = {
+        'amount': amount.toString(),
+        'payment_date': '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}',
+        'notes': notes ?? 'Payment for service',
+      };
+
+      final List<MultipartDocument> otherFile = [];
+      if (receiptFile != null) {
+        otherFile.add(MultipartDocument('receipt', receiptFile));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleServicePaymentUrl(vehicleId, id),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchServiceHistory(vehicleId);
+        fetchServiceDetails(vehicleId, id);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Fuel Methods
+  Future<bool> addFuelEntry(dynamic vehicleId, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(
+        AppConstants.vehicleFuelUrl(vehicleId),
+        data: data,
+      );
+      if (response.isSuccess) {
+        fetchFuelHistory(vehicleId); // Refresh history
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> addFuelEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? receiptFile) async {
+    isLoading.value = true;
+    try {
+      final List<MultipartDocument> otherFile = [];
+      if (receiptFile != null && receiptFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt', receiptFile.files.first));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleFuelUrl(vehicleId),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchFuelHistory(vehicleId);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchFuelHistory(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleFuelUrl(vehicleId));
+      if (response.isSuccess && response.json != null) {
+        final json = response.json!;
+        
+        // Update Stats
+        totalFuelExpense.value = (json['total_fuel_expense'] ?? 0).toDouble();
+        monthlyFuelCost.value = (json['monthly_cost'] ?? 0).toDouble();
+        avgFuelPrice.value = (json['avg_ltr_price'] ?? 0).toDouble();
+
+        // Update List
+        final List<dynamic> data = json['data'] ?? [];
+        fuelHistory.value = data.map((e) => FuelEntryModel.fromJson(e)).toList();
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  // Service Methods
+  Future<bool> addServiceEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? billFile) async {
+    isLoading.value = true;
+    try {
+      final List<MultipartDocument> otherFile = [];
+      if (billFile != null && billFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt', billFile.files.first));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleServiceUrl(vehicleId),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchServiceHistory(vehicleId);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchServiceHistory(dynamic vehicleId) async {
+    if (vehicleId == null) return;
+    isLoading.value = true;
+    try {
+      final Map<String, dynamic> queryParams = {
+        'per_page': 20,
+      };
+
+      if (selectedServiceFilter.value != 'All') {
+        queryParams['status'] = selectedServiceFilter.value.toLowerCase();
+      }
+
+      if (serviceStartDate.value != null) {
+        queryParams['start_date'] = '${serviceStartDate.value!.year}-${serviceStartDate.value!.month.toString().padLeft(2, '0')}-${serviceStartDate.value!.day.toString().padLeft(2, '0')}';
+      }
+
+      if (serviceEndDate.value != null) {
+        queryParams['end_date'] = '${serviceEndDate.value!.year}-${serviceEndDate.value!.month.toString().padLeft(2, '0')}-${serviceEndDate.value!.day.toString().padLeft(2, '0')}';
+      }
+
+      final response = await _apiClient.get(
+        AppConstants.vehicleServiceUrl(vehicleId),
+        queryParameters: queryParams,
+      );
+
+      if (response.isSuccess && response.json != null) {
+        final json = response.json!;
+
+        // Update Stats
+        totalServiceAmount.value = (json['total_amount'] ?? 0).toDouble();
+        paidServiceAmount.value = (json['pay_amount'] ?? 0).toDouble();
+        dueServiceAmount.value = (json['due_amount'] ?? 0).toDouble();
+
+        // Update List
+        final List<dynamic> data = json['data'] ?? [];
+        serviceHistory.value = data.map((e) => ServiceRecord.fromJson(e)).toList();
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchServiceDetails(dynamic vehicleId, int serviceId) async {
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleServiceDetailsUrl(vehicleId, serviceId));
+      if (response.isSuccess && response.json != null) {
+        final newRecord = ServiceRecord.fromJson(response.json!['data']);
+        final index = serviceHistory.indexWhere((s) => s.id == serviceId);
+        if (index != -1) {
+          serviceHistory[index] = newRecord;
+        } else {
+          serviceHistory.add(newRecord);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching service details: $e');
+    }
+  }
+
+  Future<void> fetchRepairDetails(dynamic vehicleId, int repairId) async {
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleRepairDetailsUrl(vehicleId, repairId));
+      if (response.isSuccess && response.json != null) {
+        final newRecord = ServiceRecord.fromJson(response.json!['data']);
+        final index = repairHistory.indexWhere((r) => r.id == repairId);
+        if (index != -1) {
+          repairHistory[index] = newRecord;
+        } else {
+          repairHistory.add(newRecord);
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching repair details: $e');
+    }
+  }
+
+  // Repair Methods
+  Future<bool> addRepairEntryMultipart(dynamic vehicleId, Map<String, String> body, FilePickerResult? billFile) async {
+    isLoading.value = true;
+    try {
+      final List<MultipartDocument> otherFile = [];
+      if (billFile != null && billFile.files.isNotEmpty) {
+        otherFile.add(MultipartDocument('receipt', billFile.files.first));
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleRepairUrl(vehicleId),
+        body,
+        [],
+        otherFile,
+      );
+      
+      if (response.isSuccess) {
+        fetchRepairHistory(vehicleId);
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchRepairHistory(dynamic vehicleId) async {
+    if (vehicleId == null) return;
+    isLoading.value = true;
+    try {
+      final Map<String, dynamic> queryParams = {
+        'per_page': 20,
+      };
+
+      if (selectedRepairFilter.value != 'All') {
+        queryParams['status'] = selectedRepairFilter.value.toLowerCase();
+      }
+
+      if (repairStartDate.value != null) {
+        queryParams['start_date'] = '${repairStartDate.value!.year}-${repairStartDate.value!.month.toString().padLeft(2, '0')}-${repairStartDate.value!.day.toString().padLeft(2, '0')}';
+      }
+
+      if (repairEndDate.value != null) {
+        queryParams['end_date'] = '${repairEndDate.value!.year}-${repairEndDate.value!.month.toString().padLeft(2, '0')}-${repairEndDate.value!.day.toString().padLeft(2, '0')}';
+      }
+
+      final response = await _apiClient.get(
+        AppConstants.vehicleRepairUrl(vehicleId),
+        queryParameters: queryParams,
+      );
+
+      if (response.isSuccess && response.json != null) {
+        final json = response.json!;
+
+        // Update Stats
+        totalRepairAmount.value = (json['total_amount'] ?? 0).toDouble();
+        paidRepairAmount.value = (json['pay_amount'] ?? 0).toDouble();
+        dueRepairAmount.value = (json['due_amount'] ?? 0).toDouble();
+
+        // Update List
+        final List<dynamic> data = json['data'] ?? [];
+        repairHistory.value = data.map((e) => ServiceRecord.fromJson(e)).toList();
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleDocuments(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleDocumentsUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        vehicleDocuments.value = data.map((e) => VehicleDocument.fromJson(e)).toList();
+        // Also update 'documents' if it's used elsewhere
+        documents.value = vehicleDocuments;
+      }
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchVehicleTimeline(dynamic vehicleId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.vehicleTimelineUrl(vehicleId));
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body;
+        timelineHistory.value = data.map((e) => TimelineRecord.fromJson(e)).toList();
+      }
+    } catch (e) {
+      Logger.e('Error fetching vehicle timeline: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> uploadDocument({
+    required dynamic vehicleId,
+    required String documentType,
+    required String documentNumber,
+    required DateTime issueDate,
+    required DateTime expiryDate,
+    required PlatformFile file,
+    String notes = 'Registration certificate',
+    int alertBeforeDays = 30,
+  }) async {
+    isLoading.value = true;
+    try {
+      final Map<String, String> body = {
+        'document_type': documentType,
+        'document_number': documentNumber,
+        'issue_date': issueDate.toIso8601String().split('T')[0],
+        'expiry_date': expiryDate.toIso8601String().split('T')[0],
+        'alert_before_days': alertBeforeDays.toString(),
+        'notes': notes,
+      };
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleDocumentsUrl(vehicleId),
+        body,
+        [],
+        [MultipartDocument('file', file)],
+      );
+
+      if (response.isSuccess) {
+        // You might want to refresh documents list here if needed
+        return true;
+      }
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 }

@@ -10,6 +10,7 @@ class UploadBox extends StatelessWidget {
   final String label;
   final String? fileName;
   final String? previewUrl;
+  final String? remoteUrl;
   final String? localPath;
   final VoidCallback onTap;
   final bool isUploaded;
@@ -19,6 +20,7 @@ class UploadBox extends StatelessWidget {
     required this.label,
     this.fileName,
     this.previewUrl,
+    this.remoteUrl,
     this.localPath,
     required this.onTap,
     this.isUploaded = false,
@@ -26,26 +28,44 @@ class UploadBox extends StatelessWidget {
 
   bool _isImage(String? path) {
     if (path == null) return false;
-    final ext = path.toLowerCase();
-    return ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.png') || ext.endsWith('.webp');
+    final p = path.toLowerCase();
+    // Common extensions
+    if (p.endsWith('.jpg') || p.endsWith('.jpeg') || p.endsWith('.png') || p.endsWith('.webp') || p.endsWith('.gif') || p.endsWith('.bmp')) {
+      return true;
+    }
+    // Check if it's a common image URI pattern or has image in the path
+    if (p.contains('image') || p.contains('photo') || p.contains('graph')) {
+       // Avoid matching .pdf even if it has 'image' in name
+       if (p.endsWith('.pdf')) return false;
+       return true;
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool isImageFile = _isImage(localPath ?? previewUrl);
+    final String? effectiveUrl = remoteUrl ?? previewUrl;
+    final String? pathToCheck = localPath ?? effectiveUrl;
+    final bool isImageFile = _isImage(pathToCheck);
+    
+    debugPrint('[UploadBox] label: $label, path: $pathToCheck, isImage: $isImageFile');
     
     return InkWell(
-      onTap: isUploaded && (previewUrl != null || localPath != null)
+      onTap: isUploaded && (effectiveUrl != null || localPath != null)
           ? () {
               if (isImageFile) {
                 AppImagePreview.show(
                   context,
-                  imageUrl: previewUrl,
+                  imageUrl: effectiveUrl,
                   imagePath: localPath,
                   title: label,
                 );
-              } else if (localPath != null) {
-                OpenFilex.open(localPath!);
+              } else {
+                if (localPath != null) {
+                  OpenFilex.open(localPath!);
+                } else if (effectiveUrl != null) {
+                  OpenFilex.open(effectiveUrl);
+                }
               }
             }
           : onTap,
@@ -62,7 +82,7 @@ class UploadBox extends StatelessWidget {
             style: BorderStyle.solid,
           ),
         ),
-        child: isUploaded && (previewUrl != null || localPath != null)
+        child: isUploaded && (effectiveUrl != null || localPath != null)
             ? Row(
                 children: [
                    Container(
@@ -76,7 +96,7 @@ class UploadBox extends StatelessWidget {
                           ? DecorationImage(
                               image: localPath != null
                                   ? FileImage(File(localPath!)) as ImageProvider
-                                  : NetworkImage(previewUrl!),
+                                  : NetworkImage(effectiveUrl!),
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -145,9 +165,9 @@ class UploadBox extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       AppText(
-                        'JPG, PNG, PDF or DOC',
-                        fontSize: 10,
-                        color: AppColors.textColorSecondary.withValues(alpha: 0.6),
+                        'Supports: JPG, PNG, PDF or DOC',
+                        fontSize: 11,
+                        color: AppColors.textColorSecondary,
                       ),
                     ],
                   ),

@@ -10,13 +10,28 @@ import '../../../routes/route_helper.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 
-class VehicleDocumentsScreen extends GetView<VehicleController> {
+class VehicleDocumentsScreen extends StatefulWidget {
   const VehicleDocumentsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final VehicleModel vehicle = Get.arguments ?? controller.vehicles.first;
+  State<VehicleDocumentsScreen> createState() => _VehicleDocumentsScreenState();
+}
 
+class _VehicleDocumentsScreenState extends State<VehicleDocumentsScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  late VehicleModel vehicle;
+
+  @override
+  void initState() {
+    super.initState();
+    vehicle = Get.arguments ?? controller.vehicles.first;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchVehicleDocuments(vehicle.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Documents',
@@ -28,6 +43,9 @@ class VehicleDocumentsScreen extends GetView<VehicleController> {
         child: const Icon(Iconsax.document_upload, color: AppColors.white),
       ),
       body: Obx(() {
+        if (controller.isLoading.value && controller.documents.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
         if (controller.documents.isEmpty) {
           return const Center(child: AppText('No documents uploaded', style: AppTextStyle.body));
         }
@@ -44,7 +62,7 @@ class VehicleDocumentsScreen extends GetView<VehicleController> {
   }
 
   Widget _buildDocumentCard(VehicleDocument doc) {
-    final bool isExpired = doc.expiryDate.isBefore(DateTime.now());
+    final bool isExpired = doc.expiryDate != null && doc.expiryDate!.isBefore(DateTime.now());
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: 16),
@@ -66,12 +84,16 @@ class VehicleDocumentsScreen extends GetView<VehicleController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText(doc.name, style: AppTextStyle.body, fontWeight: FontWeight.w600),
+                AppText(doc.type, style: AppTextStyle.body, fontWeight: FontWeight.w600),
                 const SizedBox(height: 4),
-                AppText('Expires: ${doc.expiryDate.day}/${doc.expiryDate.month}/${doc.expiryDate.year}', 
-                  style: AppTextStyle.caption, 
-                  color: isExpired ? AppColors.errorColor : AppColors.textColorSecondary
-                ),
+                AppText('Number: ${doc.number}', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                if (doc.expiryDate != null) ...[
+                  const SizedBox(height: 2),
+                  AppText('Expires: ${doc.expiryDate!.day}/${doc.expiryDate!.month}/${doc.expiryDate!.year}', 
+                    style: AppTextStyle.caption, 
+                    color: isExpired ? AppColors.errorColor : AppColors.textColorSecondary
+                  ),
+                ],
               ],
             ),
           ),
@@ -79,11 +101,20 @@ class VehicleDocumentsScreen extends GetView<VehicleController> {
             children: [
               IconButton(
                 icon: const Icon(Iconsax.document_download, color: AppColors.primaryColor, size: 20),
-                onPressed: () {},
+                onPressed: () {
+                  if (doc.fileUrl.isNotEmpty) {
+                    Get.snackbar('Download', 'Opening document...', snackPosition: SnackPosition.BOTTOM);
+                    // You can use url_launcher here if needed
+                  }
+                },
               ),
               IconButton(
                 icon: const Icon(Icons.visibility_rounded, color: AppColors.textColorHint, size: 20),
-                onPressed: () {},
+                onPressed: () {
+                   if (doc.fileUrl.isNotEmpty) {
+                    Get.toNamed('/document-preview', arguments: doc.fileUrl);
+                  }
+                },
               ),
             ],
           ),

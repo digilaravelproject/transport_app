@@ -49,6 +49,7 @@ class RoleController extends GetxController {
         roleName: json['name'] ?? '',
         description: json['description'] ?? '',
         assignedUsersCount: json['users_count'] ?? 0,
+        level: json['level'] ?? (json['name']?.toString().toLowerCase().contains('admin') == true ? 'High' : 'Medium'),
         permissions: (json['features'] as List? ?? []).map((f) {
           String val = f.toString().toLowerCase();
           if (val == 'vehicle') return 'Vehicles';
@@ -163,6 +164,7 @@ class RoleController extends GetxController {
         roleName: json['name'] ?? '',
         description: json['description'] ?? '',
         assignedUsersCount: json['users_count'] ?? 0,
+        level: json['level'] ?? (json['name']?.toString().toLowerCase().contains('admin') == true ? 'High' : 'Medium'),
         permissions: (json['features'] as List? ?? []).map((f) {
           String val = f.toString().toLowerCase();
           if (val == 'vehicle') return 'Vehicles';

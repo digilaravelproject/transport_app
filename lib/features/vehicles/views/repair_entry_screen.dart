@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
@@ -9,6 +11,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../domain/models/service_record_model.dart';
 
 class RepairEntryScreen extends StatefulWidget {
   const RepairEntryScreen({Key? key}) : super(key: key);
@@ -16,7 +19,6 @@ class RepairEntryScreen extends StatefulWidget {
   @override
   State<RepairEntryScreen> createState() => _RepairEntryScreenState();
 }
-
 class _RepairEntryScreenState extends State<RepairEntryScreen> {
   final VehicleController controller = Get.find<VehicleController>();
   late VehicleModel vehicle;
@@ -28,6 +30,14 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
   final TextEditingController totalBillController = TextEditingController();
   final TextEditingController paidAmountController = TextEditingController();
   final TextEditingController garageController = TextEditingController();
+  final TextEditingController kmController = TextEditingController();
+  
+  FilePickerResult? receiptFile;
+  
+  String? typeError;
+  String? totalBillError;
+  String? paidAmountError;
+  String? garageError;
 
   @override
   void initState() {
@@ -62,6 +72,69 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
     }
   }
 
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+    );
+    if (result != null) {
+      setState(() => receiptFile = result);
+    }
+  }
+
+  Future<void> _saveEntry() async {
+    setState(() {
+      typeError = null;
+      totalBillError = null;
+      paidAmountError = null;
+      garageError = null;
+    });
+
+    bool hasError = false;
+
+    if (mode != 'payment' && typeController.text.isEmpty) {
+      typeError = 'Please enter repair type';
+      hasError = true;
+    }
+    if (mode != 'payment' && totalBillController.text.isEmpty) {
+      totalBillError = 'Please enter total bill';
+      hasError = true;
+    }
+    if (mode != 'bill' && paidAmountController.text.isEmpty) {
+      paidAmountError = 'Please enter amount paid';
+      hasError = true;
+    }
+    if (mode != 'payment' && garageController.text.isEmpty) {
+      garageError = 'Please enter garage name';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setState(() {});
+      return;
+    }
+
+    final Map<String, String> body = {
+      'activity_date': '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+      'title': typeController.text,
+      'amount': totalBillController.text,
+      'amount_paid': paidAmountController.text,
+      'garage_name': garageController.text,
+      'km_reading': kmController.text,
+    };
+
+    final bool success = await controller.addRepairEntryMultipart(vehicle.id, body, receiptFile);
+    
+    if (success) {
+      Get.back();
+      Get.snackbar('Success', 'Repair entry saved successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.successColor.withOpacity(0.1),
+        colorText: AppColors.successColor,
+      );
+    }
+  }
+
   @override
   void dispose() {
     typeController.dispose();
@@ -78,97 +151,150 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
     if (mode == 'bill') title = 'Add Repair Bill';
 
     return AppScaffold(
-      appBar: AppHeader(title: title),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              child: Column(
-                children: [
-                  _buildDateField(),
-                  const SizedBox(height: 16),
-                  if (mode != 'payment') ...[
-                    _buildTextField('Repair Type / Part', 'e.g. Brake Pad Replacement', typeController),
-                    const SizedBox(height: 16),
-                  ],
-                  Row(
+      appBar: AppHeader(title: title, subtitle: vehicle.vehicleNumber),
+      body: Obx(() => Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                AppCard(
+                  child: Column(
                     children: [
-                      if (mode != 'payment')
-                        Expanded(
-                            child: _buildTextField('Total Bill (₹)', 'e.g. 15000', totalBillController,
-                                keyboardType: TextInputType.number)),
-                      if (mode != 'payment' && mode != 'bill') const SizedBox(width: 12),
-                      if (mode != 'bill')
-                        Expanded(
-                            child: _buildTextField('Amount Paid (₹)', 'e.g. 10000', paidAmountController,
-                                keyboardType: TextInputType.number)),
+                      _buildDateField(),
+                      const SizedBox(height: 16),
+                      if (mode != 'payment') ...[
+                        _buildTextField('Repair Type / Part', 'e.g. Brake Pad Replacement', typeController, errorText: typeError),
+                        const SizedBox(height: 16),
+                      ],
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (mode != 'payment')
+                            Expanded(
+                                child: _buildTextField('Total Bill (₹)', 'e.g. 15000', totalBillController,
+                                    keyboardType: TextInputType.number, errorText: totalBillError)),
+                          if (mode != 'payment' && mode != 'bill') const SizedBox(width: 12),
+                          if (mode != 'bill')
+                            Expanded(
+                                child: _buildTextField('Amount Paid (₹)', 'e.g. 10000', paidAmountController,
+                                    keyboardType: TextInputType.number, errorText: paidAmountError)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (mode != 'payment') ...[
+                        _buildTextField('Garage Name', 'e.g. City Motors', garageController, errorText: garageError),
+                        const SizedBox(height: 16),
+                        _buildTextField('Kilometer Reading (Optional)', 'e.g. 45000', kmController, keyboardType: TextInputType.number),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  if (mode != 'payment')
-                    _buildTextField('Garage Name', 'e.g. City Motors', garageController),
-                ],
-              ),
+                ),
+                const SizedBox(height: 24),
+                
+                // File Upload Section
+                InkWell(
+                  onTap: _pickFile,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: receiptFile != null ? AppColors.primaryColor : AppColors.slate200),
+                    ),
+                    child: receiptFile != null 
+                      ? Column(
+                          children: [
+                            _buildFilePreview(),
+                            const SizedBox(height: 12),
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Iconsax.edit, size: 16, color: AppColors.primaryColor),
+                                SizedBox(width: 8),
+                                AppText('Change Receipt', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                              ],
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          children: [
+                            Icon(Iconsax.document_upload, color: AppColors.primaryColor),
+                            SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText('Upload Receipt Photo (Optional)', style: AppTextStyle.body),
+                                SizedBox(height: 2),
+                                AppText(
+                                  'Supports: JPG, PNG, PDF or DOC',
+                                  fontSize: 11,
+                                  color: AppColors.textColorSecondary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                  ),
+                ),
+                
+                const SizedBox(height: 40),
+                AppButton(
+                  text: mode == 'payment' ? 'Save Payment' : 'Save Entry',
+                  onPressed: _saveEntry,
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+          ),
+          if (controller.isLoading.value)
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.slate50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.slate200),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Iconsax.camera, color: AppColors.primaryColor),
-                  SizedBox(width: 12),
-                  AppText('Upload Receipt Photo', style: AppTextStyle.body),
-                ],
-              ),
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-            const SizedBox(height: 40),
-            AppButton(
-              text: mode == 'payment' ? 'Save Payment' : 'Save Entry',
-              onPressed: () {
-                bool isValid = true;
-                if (mode == 'payment') {
-                  isValid = paidAmountController.text.isNotEmpty;
-                } else {
-                  isValid = typeController.text.isNotEmpty && totalBillController.text.isNotEmpty;
-                }
+        ],
+      )),
+    );
+  }
 
-                if (isValid) {
-                  if (mode == 'payment' && sourceRecord != null) {
-                    controller.addPaymentToRepair(
-                      sourceRecord!.id, 
-                      double.tryParse(paidAmountController.text) ?? 0.0,
-                      selectedDate,
-                    );
-                  } else {
-                    final record = ServiceRecord(
-                      id: DateTime.now().millisecondsSinceEpoch,
-                      date: selectedDate,
-                      type: typeController.text,
-                      totalBill: double.tryParse(totalBillController.text) ?? 0.0,
-                      paidAmount: double.tryParse(paidAmountController.text) ?? 0.0,
-                      workshop: garageController.text.isNotEmpty ? garageController.text : 'Unknown Workshop',
-                    );
-                    controller.addRepairEntry(record);
-                  }
-                  Get.back();
-                } else {
-                  Get.snackbar('Error', 'Please fill in required fields',
-                      snackPosition: SnackPosition.BOTTOM,
-                      backgroundColor: AppColors.errorColor,
-                      colorText: Colors.white);
-                }
-              },
+  Widget _buildFilePreview() {
+    final file = receiptFile!.files.first;
+    final isImage = ['jpg', 'jpeg', 'png'].contains(file.extension?.toLowerCase());
+
+    if (isImage && file.path != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(File(file.path!), height: 150, width: double.infinity, fit: BoxFit.cover),
+      );
+    } else {
+      return Container(
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.slate200),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              file.extension?.toLowerCase() == 'pdf' ? Iconsax.document_text5 : Iconsax.document_code5,
+              color: AppColors.primaryColor,
+              size: 32,
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: AppText(
+                file.name,
+                style: AppTextStyle.body,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildDateField() {
@@ -207,7 +333,7 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, TextEditingController textController, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, TextEditingController textController, {TextInputType? keyboardType, String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -219,15 +345,20 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
+            errorText: errorText,
             filled: true,
             fillColor: AppColors.slate50,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.slate200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: errorText != null ? AppColors.errorColor : AppColors.primaryColor),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

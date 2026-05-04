@@ -35,9 +35,8 @@ import '../features/trips/views/trip_status_update_screen.dart';
 import '../features/trips/views/trip_summary_screen.dart';
 import '../features/trips/controllers/trip_controller.dart';
 import '../features/vehicles/views/vehicle_list_screen.dart';
-import '../features/vehicles/views/add_vehicle_screen.dart';
+import '../features/vehicles/views/vehicle_form_screen.dart';
 import '../features/vehicles/views/vehicle_details_screen.dart';
-import '../features/vehicles/views/edit_vehicle_screen.dart';
 import '../features/vehicles/views/vehicle_documents_screen.dart';
 import '../features/vehicles/views/fuel_entry_screen.dart';
 import '../features/vehicles/views/fuel_history_screen.dart';
@@ -48,9 +47,8 @@ import '../features/vehicles/views/maintenance_history_screen.dart';
 import '../features/vehicles/views/document_upload_screen.dart';
 import '../features/vehicles/controllers/vehicle_controller.dart';
 import '../features/staff/views/staff_list_screen.dart';
-import '../features/staff/views/add_staff_screen.dart';
 import '../features/staff/views/staff_details_screen.dart';
-import '../features/staff/views/edit_staff_screen.dart';
+import '../features/staff/views/staff_form_screen.dart';
 import '../features/staff/views/attendance_screen.dart';
 import '../features/staff/views/attendance_history_screen.dart';
 import '../features/staff/views/duty_hours_screen.dart';
@@ -128,6 +126,10 @@ import '../features/membership/controllers/membership_controller.dart';
 import '../features/notifications/views/notifications_screen.dart';
 import '../features/notifications/views/notification_details_screen.dart';
 import '../features/dashboard/views/search_screen.dart';
+import '../features/vehicles/views/document_viewer_screen.dart';
+import '../features/vehicles/views/vehicle_type_list_screen.dart';
+import '../features/vehicles/views/add_edit_vehicle_type_screen.dart';
+import '../features/vehicles/controllers/vehicle_type_controller.dart';
 import 'app_routes.dart';
 
 class RouteHelper {
@@ -177,6 +179,7 @@ class RouteHelper {
   static String getFollowUpRoute() => AppRoutes.followUp;
   static String getQuotationPreviewRoute() => AppRoutes.quotationPreview;
   static String getPdfViewerRoute() => AppRoutes.pdfViewer;
+  static String getDocumentPreviewRoute() => AppRoutes.documentPreview;
 
   // Staff
   static String getStaffListRoute() => AppRoutes.staffList;
@@ -263,6 +266,9 @@ class RouteHelper {
   static String getNotificationsRoute() => AppRoutes.notifications;
   static String getNotificationDetailsRoute() => AppRoutes.notificationDetails;
   static String getSearchRoute() => AppRoutes.search;
+  static String getVehicleTypeListRoute() => AppRoutes.vehicleTypeList;
+  static String getAddVehicleTypeRoute() => AppRoutes.addVehicleType;
+  static String getEditVehicleTypeRoute() => AppRoutes.editVehicleType;
 
   static final List<GetPage> routes = [
     GetPage(
@@ -421,7 +427,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.addVehicle,
-      page: () => const AddVehicleScreen(),
+      page: () => const VehicleFormScreen(),
     ),
     GetPage(
       name: AppRoutes.vehicleDetails,
@@ -429,7 +435,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.editVehicle,
-      page: () => const EditVehicleScreen(),
+      page: () => const VehicleFormScreen(),
     ),
     GetPage(
       name: AppRoutes.vehicleDocuments,
@@ -471,6 +477,10 @@ class RouteHelper {
       name: AppRoutes.servicePaymentHistory,
       page: () => const ServicePaymentHistoryScreen(),
     ),
+    GetPage(
+      name: AppRoutes.documentPreview,
+      page: () => const DocumentViewerScreen(),
+    ),
 
     GetPage(
       name: AppRoutes.staffList,
@@ -478,7 +488,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.addStaff,
-      page: () => const AddStaffScreen(),
+      page: () => const StaffFormScreen(),
     ),
     GetPage(
       name: AppRoutes.staffDetails,
@@ -486,7 +496,7 @@ class RouteHelper {
     ),
     GetPage(
       name: AppRoutes.editStaff,
-      page: () => const EditStaffScreen(),
+      page: () => const StaffFormScreen(),
     ),
     GetPage(
       name: AppRoutes.attendance,
@@ -855,6 +865,23 @@ class RouteHelper {
       name: AppRoutes.search,
       page: () => const SearchScreen(),
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.vehicleTypeList,
+      page: () => const VehicleTypeListScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(VehicleTypeController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.addVehicleType,
+      page: () => const AddEditVehicleTypeScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.editVehicleType,
+      page: () => const AddEditVehicleTypeScreen(),
+      transition: Transition.rightToLeft,
     ),
   ];
 }

@@ -222,26 +222,26 @@ class ApiClient {
 
       if (otherFile.isNotEmpty) {
         for (MultipartDocument file in otherFile) {
-          if (kIsWeb) {
-            if (fromChat) {
-              PlatformFile platformFile = file.file!.files.first;
-              formData.files.add(MapEntry(
-                'image[]',
-                dio.MultipartFile.fromBytes(platformFile.bytes!, filename: platformFile.name),
-              ));
+          if (file.file != null) {
+            if (kIsWeb) {
+              if (fromChat) {
+                formData.files.add(MapEntry(
+                  'image[]',
+                  dio.MultipartFile.fromBytes(file.file!.bytes!, filename: file.file!.name),
+                ));
+              } else {
+                formData.files.add(MapEntry(
+                  file.key,
+                  dio.MultipartFile.fromBytes(file.file!.bytes!, filename: file.file!.name),
+                ));
+              }
             } else {
-              var fileBytes = file.file!.files.first.bytes!;
+              File other = File(file.file!.path!);
               formData.files.add(MapEntry(
                 file.key,
-                dio.MultipartFile.fromBytes(fileBytes, filename: file.file!.files.first.name),
+                await dio.MultipartFile.fromFile(other.path, filename: basename(other.path)),
               ));
             }
-          } else {
-            File other = File(file.file!.files.single.path!);
-            formData.files.add(MapEntry(
-              file.key,
-              await dio.MultipartFile.fromFile(other.path, filename: basename(other.path)),
-            ));
           }
         }
       }

@@ -55,158 +55,181 @@ class VehicleListScreen extends GetView<VehicleController> {
                   )
                 else
                   const SizedBox(width: 36),
-                InkWell(
+                Obx(() => InkWell(
                   onTap: () => _showFilterBottomSheet(context),
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.slate100,
+                      color: controller.activeFiltersCount > 0 
+                          ? AppColors.primaryColor.withValues(alpha: 0.1) 
+                          : AppColors.slate100,
                       borderRadius: BorderRadius.circular(20),
+                      border: controller.activeFiltersCount > 0 
+                          ? Border.all(color: AppColors.primaryColor.withValues(alpha: 0.2))
+                          : null,
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
-                        SizedBox(width: 4),
-                        AppText('Filter',
-                            color: AppColors.textColorPrimary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600),
+                        Icon(
+                          Iconsax.filter, 
+                          color: controller.activeFiltersCount > 0 ? AppColors.primaryColor : AppColors.textColorPrimary, 
+                          size: 14
+                        ),
+                        const SizedBox(width: 4),
+                        AppText(
+                          controller.activeFiltersCount > 0 
+                              ? 'Filter (${controller.activeFiltersCount})' 
+                              : 'Filter',
+                          color: controller.activeFiltersCount > 0 ? AppColors.primaryColor : AppColors.textColorPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600
+                        ),
                       ],
                     ),
                   ),
-                ),
+                )),
               ],
             ),
           ),
 
-          // Scrollable Content
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Title
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText(
-                          'Vehicles Dashboard',
-                          style: AppTextStyle.heading,
-                          fontSize: 28,
-                          color: AppColors.textColorPrimary,
-                        ),
-                        SizedBox(height: 4),
-                        AppText(
-                          'Manage and monitor your entire fleet',
-                          style: AppTextStyle.body,
-                          color: AppColors.textColorSecondary,
-                        ),
-                      ],
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await Future.wait([
+                  controller.fetchVehicles(),
+                  controller.fetchVehicleStats(),
+                ]);
+              },
+              color: AppColors.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Title
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          AppText(
+                            'Vehicles Dashboard',
+                            style: AppTextStyle.heading,
+                            fontSize: 28,
+                            color: AppColors.textColorPrimary,
+                          ),
+                          SizedBox(height: 4),
+                          AppText(
+                            'Manage and monitor your entire fleet',
+                            style: AppTextStyle.body,
+                            color: AppColors.textColorSecondary,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Stat Cards
-                  Obx(() => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _StatCard(
-                                title: 'Total',
-                                value: controller.vehicles.length.toString(),
-                                color: const Color(0xFF3B82F6),
-                                icon: Iconsax.bus,
+                    // Stat Cards
+                    Obx(() => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _StatCard(
+                                  title: 'Total',
+                                  value: controller.totalVehicles.value.toString(),
+                                  color: const Color(0xFF3B82F6),
+                                  icon: Iconsax.bus,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _StatCard(
-                                title: 'Active',
-                                value: controller.vehicles
-                                    .where((v) => v.status == VehicleStatus.active)
-                                    .length
-                                    .toString(),
-                                color: const Color(0xFF10B981),
-                                icon: Iconsax.tick_circle5,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _StatCard(
+                                  title: 'Active',
+                                  value: controller.activeVehicles.value.toString(),
+                                  color: const Color(0xFF10B981),
+                                  icon: Iconsax.tick_circle5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _StatCard(
-                                title: 'Service',
-                                value: controller.vehicles
-                                    .where((v) => v.status == VehicleStatus.maintenance)
-                                    .length
-                                    .toString(),
-                                color: const Color(0xFFF59E0B),
-                                icon: Iconsax.setting_25,
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _StatCard(
+                                  title: 'Service',
+                                  value: controller.serviceVehicles.value.toString(),
+                                  color: const Color(0xFFF59E0B),
+                                  icon: Iconsax.setting_25,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      )),
-                  const SizedBox(height: 20),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 20),
 
-                  // Search Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: AppSearchBar(
-                      hint: 'Search vehicle number or type...',
-                      onChanged: controller.updateSearch,
+                    // Search Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: AppSearchBar(
+                        hint: 'Search vehicle number or type...',
+                        onChanged: controller.updateSearch,
+                      ),
                     ),
-                  ),
 
-                  // Filter Chips
-                  const SizedBox(height: 12),
-                  Obx(() => SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            AppFilterChip(
-                                label: 'All',
-                                isSelected: controller.selectedFilter.value == 'All',
-                                onTap: () => controller.setFilter('All')),
-                            AppFilterChip(
-                                label: 'Active',
-                                isSelected: controller.selectedFilter.value == 'Active',
-                                onTap: () => controller.setFilter('Active')),
-                            AppFilterChip(
-                                label: 'Maintenance',
-                                isSelected: controller.selectedFilter.value == 'Maintenance',
-                                onTap: () => controller.setFilter('Maintenance')),
-                          ],
-                        ),
-                      )),
-                  const SizedBox(height: 16),
+                    // Filter Chips
+                    const SizedBox(height: 12),
+                    Obx(() => SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            children: [
+                              AppFilterChip(
+                                  label: 'All',
+                                  isSelected: controller.selectedFilter.value == 'All',
+                                  onTap: () => controller.setFilter('All')),
+                              AppFilterChip(
+                                  label: 'Active',
+                                  isSelected: controller.selectedFilter.value == 'Active',
+                                  onTap: () => controller.setFilter('Active')),
+                              AppFilterChip(
+                                  label: 'Maintenance',
+                                  isSelected: controller.selectedFilter.value == 'Maintenance',
+                                  onTap: () => controller.setFilter('Maintenance')),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 16),
 
-                  // Vehicle List
-                  Obx(() {
-                    if (controller.filteredVehicles.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: Center(
-                          child: AppText('No vehicles found', style: AppTextStyle.body),
-                        ),
+                    // Vehicle List
+                    Obx(() {
+                      if (controller.isLoading.value) {
+                        return const Padding(
+                          padding: EdgeInsets.all(100.0),
+                          child: Center(
+                            child: CircularProgressIndicator(color: AppColors.primaryColor),
+                          ),
+                        );
+                      }
+                      if (controller.filteredVehicles.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(40.0),
+                          child: Center(
+                            child: AppText('No vehicles found', style: AppTextStyle.body),
+                          ),
+                        );
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        itemCount: controller.filteredVehicles.length,
+                        itemBuilder: (context, index) {
+                          final vehicle = controller.filteredVehicles[index];
+                          return _VehicleCard(vehicle: vehicle);
+                        },
                       );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                      itemCount: controller.filteredVehicles.length,
-                      itemBuilder: (context, index) {
-                        final vehicle = controller.filteredVehicles[index];
-                        return _VehicleCard(vehicle: vehicle);
-                      },
-                    );
-                  }),
-                ],
+                    }),
+                  ],
+                ),
               ),
             ),
           ),

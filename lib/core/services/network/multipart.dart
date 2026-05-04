@@ -10,7 +10,7 @@ class MultipartBody {
 
 class MultipartDocument {
   String key;
-  FilePickerResult? file;
+  PlatformFile? file;
 
   MultipartDocument(this.key, this.file);
 }

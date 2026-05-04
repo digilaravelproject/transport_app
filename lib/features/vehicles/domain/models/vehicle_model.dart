@@ -8,17 +8,25 @@ class VehicleModel {
   final String type;
   final int capacity;
   final String model;
-  final String year;
+  final int? modelYear;
+  final String year; 
   final String? driverName;
   final double perKmPrice;
   final double acPricePerKm;
   final DateTime? lastServiceDate;
   final String? rcNumber;
   final DateTime? rcExpiry;
+  final String? rcFileUrl;
   final String? insuranceNumber;
   final DateTime? insuranceExpiry;
+  final String? insuranceFileUrl;
   final String? permitNumber;
   final DateTime? permitExpiry;
+  final String? permitFileUrl;
+  final bool isAvailable;
+  final bool isActive;
+  final int tripsCount;
+  final DateTime? createdAt;
   final VehicleStatus status;
 
   VehicleModel({
@@ -26,7 +34,8 @@ class VehicleModel {
     required this.vehicleNumber,
     required this.type,
     required this.capacity,
-    required this.model,
+    this.model = '',
+    this.modelYear,
     required this.year,
     this.driverName,
     this.perKmPrice = 0.0,
@@ -34,12 +43,63 @@ class VehicleModel {
     this.lastServiceDate,
     this.rcNumber,
     this.rcExpiry,
+    this.rcFileUrl,
     this.insuranceNumber,
     this.insuranceExpiry,
+    this.insuranceFileUrl,
     this.permitNumber,
     this.permitExpiry,
+    this.permitFileUrl,
+    this.isAvailable = true,
+    this.isActive = true,
+    this.tripsCount = 0,
+    this.createdAt,
     required this.status,
   });
+
+  factory VehicleModel.fromJson(Map<String, dynamic> json) {
+    // Some APIs wrap the object in a 'data' or 'vehicle' key
+    final Map<String, dynamic> data = json.containsKey('data') ? json['data'] : (json.containsKey('vehicle') ? json['vehicle'] : json);
+    
+    return VehicleModel(
+      id: data['id'] ?? data['vehicle_id'],
+      vehicleNumber: data['registration_number'] ?? '',
+      type: data['type'] ?? '',
+      capacity: data['seating_capacity'] ?? 0,
+      modelYear: data['model_year'],
+      year: (data['model_year'] ?? '').toString(),
+      model: (data['model'] ?? '').toString(),
+      perKmPrice: double.tryParse(data['per_km_price']?.toString() ?? '0') ?? 0.0,
+      acPricePerKm: double.tryParse(data['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
+      rcNumber: data['rc_number'],
+      rcExpiry: _parseDate(data['rc_expiry']),
+      rcFileUrl: data['rc_file_url'],
+      insuranceNumber: data['insurance_number'],
+      insuranceExpiry: _parseDate(data['insurance_expiry']),
+      insuranceFileUrl: data['insurance_file_url'],
+      permitNumber: data['permit_number'],
+      permitExpiry: _parseDate(data['permit_expiry']),
+      permitFileUrl: data['permit_file_url'],
+      isAvailable: data['is_available'] ?? true,
+      isActive: data['is_active'] ?? true,
+      tripsCount: data['trips_count'] ?? 0,
+      createdAt: _parseDate(data['created_at']),
+      status: data['is_active'] == true ? VehicleStatus.active : VehicleStatus.inactive,
+    );
+  }
+
+  static DateTime? _parseDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return null;
+    }
+  }
 
   VehicleModel copyWith({
     int? id,
@@ -47,6 +107,7 @@ class VehicleModel {
     String? type,
     int? capacity,
     String? model,
+    int? modelYear,
     String? year,
     String? driverName,
     double? perKmPrice,
@@ -54,10 +115,17 @@ class VehicleModel {
     DateTime? lastServiceDate,
     String? rcNumber,
     DateTime? rcExpiry,
+    String? rcFileUrl,
     String? insuranceNumber,
     DateTime? insuranceExpiry,
+    String? insuranceFileUrl,
     String? permitNumber,
     DateTime? permitExpiry,
+    String? permitFileUrl,
+    bool? isAvailable,
+    bool? isActive,
+    int? tripsCount,
+    DateTime? createdAt,
     VehicleStatus? status,
   }) {
     return VehicleModel(
@@ -66,6 +134,7 @@ class VehicleModel {
       type: type ?? this.type,
       capacity: capacity ?? this.capacity,
       model: model ?? this.model,
+      modelYear: modelYear ?? this.modelYear,
       year: year ?? this.year,
       driverName: driverName ?? this.driverName,
       perKmPrice: perKmPrice ?? this.perKmPrice,
@@ -73,101 +142,57 @@ class VehicleModel {
       lastServiceDate: lastServiceDate ?? this.lastServiceDate,
       rcNumber: rcNumber ?? this.rcNumber,
       rcExpiry: rcExpiry ?? this.rcExpiry,
+      rcFileUrl: rcFileUrl ?? this.rcFileUrl,
       insuranceNumber: insuranceNumber ?? this.insuranceNumber,
       insuranceExpiry: insuranceExpiry ?? this.insuranceExpiry,
+      insuranceFileUrl: insuranceFileUrl ?? this.insuranceFileUrl,
       permitNumber: permitNumber ?? this.permitNumber,
       permitExpiry: permitExpiry ?? this.permitExpiry,
+      permitFileUrl: permitFileUrl ?? this.permitFileUrl,
+      isAvailable: isAvailable ?? this.isAvailable,
+      isActive: isActive ?? this.isActive,
+      tripsCount: tripsCount ?? this.tripsCount,
+      createdAt: createdAt ?? this.createdAt,
       status: status ?? this.status,
-    );
-  }
-}
-
-class FuelEntry {
-  final int? id;
-  final DateTime date;
-  final double amount;
-  final double quantity;
-  final String station;
-  final String? receiptUrl;
-
-  FuelEntry({
-    this.id,
-    required this.date,
-    required this.amount,
-    required this.quantity,
-    required this.station,
-    this.receiptUrl,
-  });
-}
-
-class PaymentLog {
-  final DateTime date;
-  final double amount;
-  final String? note;
-  final String? receiptUrl;
-
-  PaymentLog({
-    required this.date,
-    required this.amount,
-    this.note,
-    this.receiptUrl,
-  });
-}
-
-class ServiceRecord {
-  final int id; // Added ID for referencing
-  final DateTime date;
-  final String type;
-  final double totalBill;
-  final double paidAmount;
-  final String workshop;
-  final String? billUrl;
-  final List<PaymentLog> payments;
-
-  ServiceRecord({
-    required this.id,
-    required this.date,
-    required this.type,
-    required this.totalBill,
-    required this.paidAmount,
-    required this.workshop,
-    this.billUrl,
-    this.payments = const [],
-  });
-
-  double get pendingAmount => totalBill - paidAmount;
-  double get cost => totalBill;
-  bool get isFullPaid => pendingAmount <= 0;
-
-  ServiceRecord copyWith({
-    double? paidAmount,
-    List<PaymentLog>? payments,
-  }) {
-    return ServiceRecord(
-      id: id,
-      date: date,
-      type: type,
-      totalBill: totalBill,
-      paidAmount: paidAmount ?? this.paidAmount,
-      workshop: workshop,
-      billUrl: billUrl,
-      payments: payments ?? this.payments,
     );
   }
 }
 
 class VehicleDocument {
   final int? id;
-  final String name;
-  final DateTime uploadDate;
-  final DateTime expiryDate;
+  final String type;
+  final String number;
+  final DateTime? expiryDate;
   final String fileUrl;
 
   VehicleDocument({
     this.id,
-    required this.name,
-    required this.uploadDate,
-    required this.expiryDate,
+    required this.type,
+    required this.number,
+    this.expiryDate,
     required this.fileUrl,
   });
+
+  factory VehicleDocument.fromJson(Map<String, dynamic> json) {
+    return VehicleDocument(
+      id: json['id'],
+      type: json['type'] ?? '',
+      number: json['number'] ?? '',
+      expiryDate: _parseDate(json['expiry_date']),
+      fileUrl: json['file_url'] ?? '',
+    );
+  }
+
+  static DateTime? _parseDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return null;
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3 && parts[2].length == 4) {
+        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      }
+      return DateTime.parse(dateStr);
+    } catch (e) {
+      return null;
+    }
+  }
 }

@@ -8,6 +8,9 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../domain/models/vehicle_model.dart';
+import '../controllers/vehicle_controller.dart';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
 
 class FuelEntryScreen extends StatefulWidget {
   const FuelEntryScreen({Key? key}) : super(key: key);
@@ -17,54 +20,215 @@ class FuelEntryScreen extends StatefulWidget {
 }
 
 class _FuelEntryScreenState extends State<FuelEntryScreen> {
+  final VehicleController controller = Get.find<VehicleController>();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _stationController = TextEditingController();
   DateTime selectedDate = DateTime.now();
+  late VehicleModel vehicle;
+  FilePickerResult? receiptFile;
+  
+  String? amountError;
+  String? quantityError;
+
+  @override
+  void initState() {
+    super.initState();
+    vehicle = Get.arguments as VehicleModel;
+  }
+
+  Future<void> _pickFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+    );
+    if (result != null) {
+      setState(() => receiptFile = result);
+    }
+  }
+
+  Future<void> _saveFuelEntry() async {
+    setState(() {
+      amountError = null;
+      quantityError = null;
+    });
+
+    bool hasError = false;
+
+    // Validation
+    if (_amountController.text.isEmpty) {
+      setState(() => amountError = 'Please enter fuel amount');
+      hasError = true;
+    }
+    if (_quantityController.text.isEmpty) {
+      setState(() => quantityError = 'Please enter fuel quantity');
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    final double? amount = double.tryParse(_amountController.text);
+    if (amount == null || amount <= 0) {
+      setState(() => amountError = 'Invalid amount');
+      return;
+    }
+
+    final double? quantity = double.tryParse(_quantityController.text);
+    if (quantity == null || quantity <= 0) {
+      setState(() => quantityError = 'Invalid quantity');
+      return;
+    }
+
+    final double pricePerUnit = amount / quantity;
+
+    final Map<String, String> body = {
+      'activity_date': '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+      'amount': amount.toString(),
+      'quantity': quantity.toString(),
+      'price_per_unit': pricePerUnit.toStringAsFixed(2),
+      'station_name': _stationController.text,
+    };
+
+    final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptFile);
+    if (success) {
+      Get.back();
+      // Only use snackbar for success as the screen is being closed
+      Get.snackbar('Success', 'Fuel entry saved successfully', 
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: AppColors.successColor.withOpacity(0.1),
+        colorText: AppColors.successColor,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(title: 'Add Fuel Entry'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              child: Column(
-                children: [
-                  _buildDateField(),
-                  const SizedBox(height: 16),
-                  _buildTextField('Fuel Amount (₹)', 'e.g. 5000', keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', keyboardType: TextInputType.number),
-                  const SizedBox(height: 16),
-                  _buildTextField('Station Name', 'e.g. HP Petrol Pump'),
-                ],
-              ),
+      appBar: AppHeader(title: 'Add Fuel Entry', subtitle: vehicle.vehicleNumber),
+      body: Obx(() => Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                AppCard(
+                  child: Column(
+                    children: [
+                      _buildDateField(),
+                      const SizedBox(height: 16),
+                      _buildTextField('Fuel Amount (₹)', 'e.g. 5000', controller: _amountController, keyboardType: TextInputType.number, errorText: amountError),
+                      const SizedBox(height: 16),
+                      _buildTextField('Quantity (Ltrs)', 'e.g. 50.5', controller: _quantityController, keyboardType: TextInputType.number, errorText: quantityError),
+                      const SizedBox(height: 16),
+                      _buildTextField('Station Name', 'e.g. HP Petrol Pump', controller: _stationController),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // File Upload & Preview
+                InkWell(
+                  onTap: _pickFile,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.slate200),
+                    ),
+                    child: receiptFile != null 
+                      ? Column(
+                          children: [
+                            _buildFilePreview(),
+                            const SizedBox(height: 12),
+                            const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Iconsax.edit, size: 16, color: AppColors.primaryColor),
+                                SizedBox(width: 8),
+                                AppText('Change Document', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                              ],
+                            ),
+                          ],
+                        )
+                      : const Row(
+                          children: [
+                            Icon(Iconsax.document_upload, color: AppColors.primaryColor),
+                            SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText('Upload Receipt (Optional)', style: AppTextStyle.body),
+                                SizedBox(height: 2),
+                                AppText(
+                                  'Supports: JPG, PNG, PDF or DOC',
+                                  fontSize: 11,
+                                  color: AppColors.textColorSecondary,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                  ),
+                ),
+                
+                const SizedBox(height: 40),
+                AppButton(
+                  text: 'Save Fuel Entry',
+                  onPressed: _saveFuelEntry,
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
+          ),
+          if (controller.isLoading.value)
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.slate50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.slate200),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Iconsax.camera, color: AppColors.primaryColor),
-                  const SizedBox(width: 12),
-                  AppText('Upload Receipt Photo', style: AppTextStyle.body),
-                ],
-              ),
+              color: Colors.black12,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-            const SizedBox(height: 40),
-            AppButton(
-              text: 'Save Fuel Entry',
-              onPressed: () => Get.back(),
+        ],
+      )),
+    );
+  }
+
+  Widget _buildFilePreview() {
+    final file = receiptFile!.files.first;
+    final isImage = ['jpg', 'jpeg', 'png'].contains(file.extension?.toLowerCase());
+
+    if (isImage && file.path != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(File(file.path!), height: 150, width: double.infinity, fit: BoxFit.cover),
+      );
+    } else {
+      return Container(
+        height: 80,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.slate200),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              file.extension?.toLowerCase() == 'pdf' ? Iconsax.document_text5 : Iconsax.document_code5,
+              color: AppColors.primaryColor,
+              size: 32,
+            ),
+            const SizedBox(width: 12),
+            Flexible(
+              child: AppText(
+                file.name,
+                style: AppTextStyle.body,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
   }
 
   Widget _buildDateField() {
@@ -103,26 +267,41 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, {TextInputType? keyboardType}) {
+  Widget _buildTextField(String label, String hint, {TextEditingController? controller, TextInputType? keyboardType, String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
         const SizedBox(height: 8),
         TextField(
+          controller: controller,
           keyboardType: keyboardType,
+          onChanged: (_) {
+            if (errorText != null) {
+              setState(() {
+                if (label.contains('Amount')) amountError = null;
+                if (label.contains('Quantity')) quantityError = null;
+              });
+            }
+          },
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: AppColors.textColorHint, fontSize: 14),
             filled: true,
             fillColor: AppColors.slate50,
+            errorText: errorText,
+            errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.slate200),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.primaryColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           ),

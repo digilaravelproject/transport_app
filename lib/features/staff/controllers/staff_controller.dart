@@ -1,4 +1,10 @@
 import 'package:get/get.dart';
+import 'package:dio/dio.dart' as dio;
+import 'package:flutter/material.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/services/network/api_client.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/staff_model.dart';
 
 class StaffController extends GetxController {
@@ -12,6 +18,9 @@ class StaffController extends GetxController {
   final advanceHistory = <AdvancePayment>[].obs;
   final staffDocuments = <StaffDocument>[].obs;
   final selectedCountryCode = '+91'.obs;
+  final isLoading = false.obs;
+  
+  final ApiClient _apiClient = Get.find<ApiClient>();
   
   // Salary Filtering
   final selectedSalaryMonth = 'All'.obs;
@@ -24,7 +33,7 @@ class StaffController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadMockStaff();
+    fetchStaff();
     _loadMockRecords();
     _loadAttendanceForDate(selectedDate.value);
     
@@ -41,6 +50,7 @@ class StaffController extends GetxController {
         email: 'rahul@agency.com',
         address: 'Sector 15, Gurgaon',
         role: StaffRole.driver,
+        roleName: 'Driver',
         licenseNumber: 'DL-123456789',
         licenseExpiry: DateTime.now().add(const Duration(days: 400)),
         assignedVehicleNumber: 'DL 01 AB 1234',
@@ -61,6 +71,7 @@ class StaffController extends GetxController {
         email: 'amit@agency.com',
         address: 'MG Road, Delhi',
         role: StaffRole.driver,
+        roleName: 'Driver',
         licenseNumber: 'DL-987654321',
         licenseExpiry: DateTime.now().add(const Duration(days: 150)),
         assignedVehicleNumber: 'RJ 14 PC 5588',
@@ -81,6 +92,7 @@ class StaffController extends GetxController {
         email: 'suresh@agency.com',
         address: 'Noida City Center',
         role: StaffRole.manager,
+        roleName: 'Manager',
         status: StaffStatus.active,
         joiningDate: DateTime(2022, 10, 10),
         aadharNumber: '5566 7788 9900',
@@ -125,16 +137,16 @@ class StaffController extends GetxController {
   void _filterStaff() {
     List<StaffModel> list = List.from(staffList);
     if (selectedFilter.value == 'Driver') {
-      list = list.where((s) => s.role == StaffRole.driver).toList();
+      list = list.where((s) => s.roleName?.toLowerCase() == 'driver').toList();
     } else if (selectedFilter.value == 'Manager') {
-      list = list.where((s) => s.role == StaffRole.manager).toList();
+      list = list.where((s) => s.roleName?.toLowerCase() == 'manager').toList();
     } else if (selectedFilter.value == 'Helper') {
-      list = list.where((s) => s.role == StaffRole.helper).toList();
+      list = list.where((s) => s.roleName?.toLowerCase() == 'helper').toList();
     }
     if (searchQuery.value.isNotEmpty) {
       list = list.where((s) =>
           s.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          s.role.name.toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
+          (s.roleName ?? '').toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
     }
     filteredStaff.assignAll(list);
   }
@@ -154,20 +166,14 @@ class StaffController extends GetxController {
   }
 
   void _loadAttendanceForDate(DateTime date) {
-    // In a real app, this would fetch from a database
-    // For now, we'll mock daily attendance
     final map = <int, String>{};
-    
-    // Check if the date is today
     final now = DateTime.now();
     bool isTodayDate = date.year == now.year && date.month == now.month && date.day == now.day;
 
     for (var staff in staffList) {
       if (isTodayDate) {
-        // Today's attendance starts empty
         map[staff.id] = '';
       } else {
-        // Mocking some data for past/future for variety
         if (staff.id % 2 == 0) {
           map[staff.id] = 'Present';
         } else {
@@ -187,5 +193,148 @@ class StaffController extends GetxController {
     return selectedDate.value.year == now.year &&
            selectedDate.value.month == now.month &&
            selectedDate.value.day == now.day;
+  }
+
+  Future<void> fetchStaff() async {
+    isLoading.value = true;
+    Map<String, dynamic> queryParams = {};
+    if (searchQuery.value.isNotEmpty) {
+      queryParams['search'] = searchQuery.value;
+    }
+    
+    // Activity filter
+    if (selectedFilter.value == 'Active') {
+      queryParams['is_active'] = 1;
+    } else if (selectedFilter.value == 'Inactive') {
+      queryParams['is_active'] = 0;
+    }
+
+    final response = await _apiClient.get(AppConstants.getStaffUrl, queryParameters: queryParams);
+    if (response.isSuccess && response.json != null) {
+      final List<dynamic> data = response.json?['data'] ?? [];
+      staffList.value = data.map((json) => StaffModel.fromJson(json)).toList();
+      _filterStaff();
+    } else {
+      // Fallback to mock data for now if API fails or is empty
+      if (staffList.isEmpty) _loadMockStaff();
+    }
+    isLoading.value = false;
+  }
+
+  Future<bool> addStaff(Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final formData = dio.FormData.fromMap({
+        'name': data['name'],
+        'phone': data['phone'],
+        'email': data['email'],
+        'staff_type': data['staff_type'],
+        'salary_type': data['salary_type'],
+        'basic_salary': data['basic_salary'],
+        'work_shift': data['work_shift'], // Kept as work_shift as per curl, but if 500 persists, try work_shift_id
+        'date_of_joining': data['date_of_joining'],
+        'address': data['address'],
+        'aadhar_number': data['aadhar_number'],
+        'pan_number': data['pan_number'],
+        'dl_number': data['dl_number'],
+        'dl_expiry': data['dl_expiry'],
+        'badge_number': data['badge_number'],
+        'badge_expiry': data['badge_expiry'],
+      });
+
+      // Add files
+      if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty) {
+        formData.files.add(MapEntry('aadhar_file', await dio.MultipartFile.fromFile(data['aadhar_file'])));
+      }
+      if (data['pan_file'] != null && data['pan_file'].isNotEmpty) {
+        formData.files.add(MapEntry('pan_file', await dio.MultipartFile.fromFile(data['pan_file'])));
+      }
+      if (data['dl_file'] != null && data['dl_file'].isNotEmpty) {
+        formData.files.add(MapEntry('dl_file', await dio.MultipartFile.fromFile(data['dl_file'])));
+      }
+      if (data['badge_file'] != null && data['badge_file'].isNotEmpty) {
+        formData.files.add(MapEntry('badge_file', await dio.MultipartFile.fromFile(data['badge_file'])));
+      }
+      if (data['passbook_file'] != null && data['passbook_file'].isNotEmpty) {
+        formData.files.add(MapEntry('passbook_file', await dio.MultipartFile.fromFile(data['passbook_file'])));
+      }
+      if (data['photo_file'] != null && data['photo_file'].isNotEmpty) {
+        formData.files.add(MapEntry('photo_file', await dio.MultipartFile.fromFile(data['photo_file'])));
+      }
+
+      final response = await _apiClient.post(AppConstants.createStaffUrl, data: formData);
+
+      if (response.isSuccess) {
+        fetchStaff();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to add staff: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> updateStaff(dynamic id, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final formData = dio.FormData.fromMap({
+        '_method': 'PUT',
+        'name': data['name'],
+        'phone': data['phone'],
+        'email': data['email'],
+        'staff_type': data['staff_type'],
+        'salary_type': data['salary_type'],
+        'basic_salary': data['basic_salary'],
+        'work_shift': data['work_shift'],
+        'date_of_joining': data['date_of_joining'],
+        'address': data['address'],
+        'aadhar_number': data['aadhar_number'],
+        'pan_number': data['pan_number'],
+        'dl_number': data['dl_number'],
+        'dl_expiry': data['dl_expiry'],
+        'badge_number': data['badge_number'],
+        'badge_expiry': data['badge_expiry'],
+      });
+
+      // Add files if new paths are provided
+      if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty && !data['aadhar_file'].startsWith('http')) {
+        formData.files.add(MapEntry('aadhar_file', await dio.MultipartFile.fromFile(data['aadhar_file'])));
+      }
+      if (data['pan_file'] != null && data['pan_file'].isNotEmpty && !data['pan_file'].startsWith('http')) {
+        formData.files.add(MapEntry('pan_file', await dio.MultipartFile.fromFile(data['pan_file'])));
+      }
+      if (data['dl_file'] != null && data['dl_file'].isNotEmpty && !data['dl_file'].startsWith('http')) {
+        formData.files.add(MapEntry('dl_file', await dio.MultipartFile.fromFile(data['dl_file'])));
+      }
+      if (data['badge_file'] != null && data['badge_file'].isNotEmpty && !data['badge_file'].startsWith('http')) {
+        formData.files.add(MapEntry('badge_file', await dio.MultipartFile.fromFile(data['badge_file'])));
+      }
+      if (data['passbook_file'] != null && data['passbook_file'].isNotEmpty && !data['passbook_file'].startsWith('http')) {
+        formData.files.add(MapEntry('passbook_file', await dio.MultipartFile.fromFile(data['passbook_file'])));
+      }
+      if (data['photo_file'] != null && data['photo_file'].isNotEmpty && !data['photo_file'].startsWith('http')) {
+        formData.files.add(MapEntry('photo_file', await dio.MultipartFile.fromFile(data['photo_file'])));
+      }
+
+      final response = await _apiClient.post(AppConstants.updateStaffUrl(id), data: formData);
+
+      if (response.isSuccess) {
+        fetchStaff();
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to update staff: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 }

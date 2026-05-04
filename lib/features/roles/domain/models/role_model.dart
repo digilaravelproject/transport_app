@@ -5,6 +5,7 @@ class RoleModel {
   final int assignedUsersCount;
   final List<String> permissions;
   final bool isActive;
+  final String level;
 
   RoleModel({
     required this.id,
@@ -13,5 +14,6 @@ class RoleModel {
     required this.assignedUsersCount,
     required this.permissions,
     this.isActive = true,
+    this.level = 'Medium',
   });
 }

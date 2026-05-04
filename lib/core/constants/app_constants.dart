@@ -100,9 +100,10 @@ class AppConstants
   static String getRouteByIdUrl(dynamic id) => '/api/v1/routes/$id';
 
 
-  
-  
-  
-  
-  
+
+    // Vehicle Type Endpoints
+    static const String vehicleTypesUrl = '/api/v1/vehicle-types';
+    static const String getVehicleTypesUrl = '/api/v1/vehicle-types';
+    static String updateVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
+    static String deleteVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
 }

@@ -31,6 +31,7 @@ class MoreScreen extends StatelessWidget {
       _ModuleItem('Reports', Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
       _ModuleItem('Templates', Iconsax.document_copy5, AppColors.secondaryColor, route: RouteHelper.getTemplateListRoute()),
       _ModuleItem('Role Management', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
+      _ModuleItem('Vehicle Types', Iconsax.bus, AppColors.primaryColor, route: RouteHelper.getVehicleTypeListRoute()),
       _ModuleItem('Membership', Iconsax.medal_star5, AppColors.warningColor, route: RouteHelper.getMembershipRoute()),
       _ModuleItem('Profile', Iconsax.profile_circle5, AppColors.primaryColor, route: RouteHelper.getProfileRoute()),
     ];

@@ -130,4 +130,7 @@ class AppRoutes {
   static const String notificationDetails = '/notification-details';
   static const String search = '/search';
   static const String documentPreview = '/document-preview';
+  static const String vehicleTypeList = '/vehicle-type-list';
+  static const String addVehicleType = '/add-vehicle-type';
+  static const String editVehicleType = '/edit-vehicle-type';
 }

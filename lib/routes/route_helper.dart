@@ -127,6 +127,9 @@ import '../features/notifications/views/notifications_screen.dart';
 import '../features/notifications/views/notification_details_screen.dart';
 import '../features/dashboard/views/search_screen.dart';
 import '../features/vehicles/views/document_viewer_screen.dart';
+import '../features/vehicles/views/vehicle_type_list_screen.dart';
+import '../features/vehicles/views/add_edit_vehicle_type_screen.dart';
+import '../features/vehicles/controllers/vehicle_type_controller.dart';
 import 'app_routes.dart';
 
 class RouteHelper {
@@ -263,6 +266,9 @@ class RouteHelper {
   static String getNotificationsRoute() => AppRoutes.notifications;
   static String getNotificationDetailsRoute() => AppRoutes.notificationDetails;
   static String getSearchRoute() => AppRoutes.search;
+  static String getVehicleTypeListRoute() => AppRoutes.vehicleTypeList;
+  static String getAddVehicleTypeRoute() => AppRoutes.addVehicleType;
+  static String getEditVehicleTypeRoute() => AppRoutes.editVehicleType;
 
   static final List<GetPage> routes = [
     GetPage(
@@ -859,6 +865,23 @@ class RouteHelper {
       name: AppRoutes.search,
       page: () => const SearchScreen(),
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.vehicleTypeList,
+      page: () => const VehicleTypeListScreen(),
+      binding: BindingsBuilder(() {
+        Get.put(VehicleTypeController());
+      }),
+    ),
+    GetPage(
+      name: AppRoutes.addVehicleType,
+      page: () => const AddEditVehicleTypeScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.editVehicleType,
+      page: () => const AddEditVehicleTypeScreen(),
+      transition: Transition.rightToLeft,
     ),
   ];
 }

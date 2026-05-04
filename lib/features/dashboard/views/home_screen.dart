@@ -1,3 +1,4 @@
+import 'package:credit_debit/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
@@ -305,9 +306,10 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // ── Recent Activity ──────────────────────────────────
-                      const SectionHeader(
+                      SectionHeader(
                         title: 'Recent Activity',
                         actionLabel: 'See all',
+                        onActionPressed:() => Get.toNamed(RouteHelper.getNotificationsRoute()),
                         padding: EdgeInsets.only(top: 12, bottom: 12),
                       ),
                       const SizedBox(height: 8),
@@ -330,9 +332,13 @@ class HomeScreen extends StatelessWidget {
                               statusColor: activity.type == 'finance' ? Colors.green : AppColors.primaryColor,
                               transactionId: 'ID: ${activity.id}',
                               onTap: () {
-                                if (activity.type == 'finance' && activity.data != null) {
+                                Get.toNamed(
+                                  RouteHelper.getNotificationDetailsRoute(),
+                                  arguments: activity,
+                                );
+                               // if (activity.type == 'finance' && activity.data != null) {
                                   // Navigate to transaction if needed
-                                }
+                               // }
                               },
                             );
                           }).toList(),

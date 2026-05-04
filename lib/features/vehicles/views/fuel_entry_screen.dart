@@ -11,6 +11,7 @@ import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
+import '../../../core/utils/custom_snackbar.dart';
 
 class FuelEntryScreen extends StatefulWidget {
   const FuelEntryScreen({Key? key}) : super(key: key);
@@ -91,13 +92,8 @@ class _FuelEntryScreenState extends State<FuelEntryScreen> {
 
     final success = await controller.addFuelEntryMultipart(vehicle.id, body, receiptFile);
     if (success) {
-      Get.back();
-      // Only use snackbar for success as the screen is being closed
-      Get.snackbar('Success', 'Fuel entry saved successfully', 
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.successColor.withOpacity(0.1),
-        colorText: AppColors.successColor,
-      );
+      Navigator.pop(context);
+      CustomSnackbar.showSuccess('Fuel entry saved successfully');
     }
   }
 

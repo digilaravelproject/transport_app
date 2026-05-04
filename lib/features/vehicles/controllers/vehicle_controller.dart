@@ -10,6 +10,7 @@ import '../../../core/utils/logger.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../../../core/services/network/multipart.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:dio/dio.dart';
 
 class VehicleController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
@@ -62,8 +63,6 @@ class VehicleController extends GetxController {
     
     debounce(searchQuery, (_) => fetchVehicles(), time: const Duration(milliseconds: 500));
     ever(selectedFilter, (_) => fetchVehicles());
-    ever(selectedTypeFilter, (_) => fetchVehicles());
-    ever(selectedCapacityFilter, (_) => fetchVehicles());
 
     // Service/Repair filter listeners
     ever(selectedServiceFilter, (_) => _refreshServiceHistory());
@@ -124,6 +123,7 @@ class VehicleController extends GetxController {
         filteredVehicles.assignAll(vehicles);
       } else {
         Logger.e('Failed to fetch vehicles: ${response.message}');
+        CustomSnackbar.showError(response.message);
       }
     } catch (e) {
       Logger.e('Error fetching vehicles: $e');
@@ -692,6 +692,7 @@ class VehicleController extends GetxController {
     }
   }
 
+/*
   Future<bool> uploadDocument({
     required dynamic vehicleId,
     required String documentType,
@@ -705,6 +706,7 @@ class VehicleController extends GetxController {
     isLoading.value = true;
     try {
       final Map<String, String> body = {
+        'vehicle_id': vehicleId.toString(),
         'document_type': documentType,
         'document_number': documentNumber,
         'issue_date': issueDate.toIso8601String().split('T')[0],
@@ -721,9 +723,65 @@ class VehicleController extends GetxController {
       );
 
       if (response.isSuccess) {
-        // You might want to refresh documents list here if needed
+        fetchVehicleDocuments(vehicleId);
         return true;
       }
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+*/
+
+
+  Future<bool> uploadDocument({
+    required int vehicleId, // 🔥 dynamic hata ke proper type use karo
+    required String documentType,
+    required String documentNumber,
+    required DateTime issueDate,
+    required DateTime expiryDate,
+    required PlatformFile file,
+    String notes = 'Registration certificate',
+    int alertBeforeDays = 30,
+  }) async {
+    isLoading.value = true;
+
+    try {
+      final Map<String, String> body = {
+        'document_type': documentType,
+        'document_number': documentNumber,
+        'issue_date': issueDate.toIso8601String().split('T').first,
+        'expiry_date': expiryDate.toIso8601String().split('T').first,
+        'alert_before_days': alertBeforeDays.toString(),
+        'notes': notes,
+      };
+
+      // 🔥 File null/bytes check
+      if (file.bytes == null && file.path == null) {
+        throw Exception('Invalid file selected');
+      }
+
+      final response = await _apiClient.postMultipartData(
+        AppConstants.vehicleDocumentsUrl(vehicleId),
+        body,
+        [],
+        [
+          MultipartDocument(
+            'file',
+            file,
+          ),
+        ],
+      );
+
+      if (response.isSuccess) {
+        await fetchVehicleDocuments(vehicleId); // 🔥 await add karo
+        return true;
+      } else {
+        debugPrint('Upload failed: ${response.message}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Upload error: $e');
       return false;
     } finally {
       isLoading.value = false;

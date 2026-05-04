@@ -12,6 +12,7 @@ import '../../../core/widgets/app_input_field.dart';
 import '../widgets/upload_box.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 
 
@@ -200,16 +201,10 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
       );
 
       if (success) {
-        Get.back(result: true);
-        Get.snackbar('Success', 'Document uploaded successfully',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.green,
-          colorText: Colors.white);
+        Navigator.pop(context, true);
+        CustomSnackbar.showSuccess('Document uploaded successfully');
       } else {
-        Get.snackbar('Error', 'Failed to upload document',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white);
+        CustomSnackbar.showError('Failed to upload document');
       }
     }
   }

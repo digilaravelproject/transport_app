@@ -301,10 +301,14 @@ class VehicleListScreen extends GetView<VehicleController> {
                   }).toList(),
                 )),
             const SizedBox(height: 32),
-            AppButton(
+            Obx(() => AppButton(
               text: 'Apply Filters',
-              onPressed: () => Get.back(),
-            ),
+              isLoading: controller.isLoading.value,
+              onPressed: () async {
+                await controller.fetchVehicles();
+                Get.back();
+              },
+            )),
             const SizedBox(height: 16),
           ],
         ),

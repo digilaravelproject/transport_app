@@ -12,6 +12,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../vehicles/widgets/upload_box.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/staff_controller.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/staff_model.dart';
 import '../../roles/controllers/role_controller.dart';
 import '../../roles/domain/models/role_model.dart';
@@ -318,11 +319,11 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
 
   void _handleSubmit() async {
     if (_selectedRole == null) {
-      Get.snackbar('Error', 'Please select a role', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+      CustomSnackbar.showError('Please select a role');
       return;
     }
     if (_selectedShift == null) {
-      Get.snackbar('Error', 'Please select a work shift', backgroundColor: AppColors.errorColor, colorText: Colors.white);
+      CustomSnackbar.showError('Please select a work shift');
       return;
     }
 
@@ -358,8 +359,8 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
     }
 
     if (success) {
-      Get.back();
-      Get.snackbar('Success', _isEdit ? 'Staff updated successfully' : 'Staff added successfully', backgroundColor: AppColors.successColor, colorText: Colors.white);
+      Navigator.pop(context);
+      CustomSnackbar.showSuccess(_isEdit ? 'Staff updated successfully' : 'Staff added successfully');
     }
   }
 

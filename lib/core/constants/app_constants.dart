@@ -56,6 +56,7 @@ class AppConstants {
 
   // Route Endpoints
   static const String routesUrl = '/api/v1/routes';
+  static const String createVendorUrl = '/api/v1/vendors';
   static const String getRoutesUrl = '/api/v1/routes';
   static const String createRouteUrl = '/api/v1/routes';
   static String searchRoutesUrl(String query) => '/api/v1/routes/search?query=$query';
@@ -68,4 +69,49 @@ class AppConstants {
   static String inventoryStocksUrl(int id) => '/api/v1/inventories/$id/stocks';
   static String stockInUrl(int id) => '/api/v1/inventories/$id/stock-in';
   static String stockOutUrl(int id) => '/api/v1/inventories/$id/stock-out';
+
+
+
+
+  static const String staffUrl = '/api/v1/staff';
+  static const String getStaffUrl = '/api/v1/staff';
+  static const String createStaffUrl = '/api/v1/staff';
+  static String updateStaffUrl(dynamic id) => '/api/v1/staff/$id';
+  static String getStaffDetailsUrl(dynamic id) => '/api/v1/staff/$id';
+
+  // Vehicle Endpoints
+  static const String vehiclesUrl = '/api/v1/vehicles';
+  static const String getVehiclesUrl = '/api/v1/vehicles';
+  static const String getVehicleStatsUrl = '/api/v1/vehicles/stats';
+  static String updateVehicleUrl(dynamic id) => '/api/v1/vehicles/$id';
+  static String deleteVehicleUrl(dynamic id) => '/api/v1/vehicles/$id';
+
+  // Vehicle Activity Endpoints (Fuel, Service, Repair)
+  static String vehicleFuelUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/fuel';
+  static String vehicleServiceUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/service';
+  static String vehicleRepairUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/activity/repair';
+  static String vehicleDocumentsUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/documents';
+  static String vehicleTimelineUrl(dynamic vehicleId) => '/api/v1/vehicles/$vehicleId/timeline';
+  static String vehicleServiceDetailsUrl(dynamic vehicleId, dynamic serviceId) => '/api/v1/vehicles/$vehicleId/activity/service/$serviceId';
+  static String vehicleRepairDetailsUrl(dynamic vehicleId, dynamic repairId) => '/api/v1/vehicles/$vehicleId/activity/repair/$repairId';
+  static String vehicleServicePaymentUrl(dynamic vehicleId, dynamic serviceId) => '/api/v1/vehicles/$vehicleId/activity/service/$serviceId/payment';
+  static String vehicleRepairPaymentUrl(dynamic vehicleId, dynamic repairId) => '/api/v1/vehicles/$vehicleId/activity/repair/$repairId/payment';
+
+  static String getFileUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    return '$baseUrl/storage/$path';
+  }
+
+
+
+
+
+  // Vehicle Type Endpoints
+  static const String vehicleTypesUrl = '/api/v1/vehicle-types';
+  static const String getVehicleTypesUrl = '/api/v1/vehicle-types';
+  static String updateVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
+  static String deleteVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
+
+
 }

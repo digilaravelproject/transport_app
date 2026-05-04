@@ -128,47 +128,50 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
   }
 
   Widget _buildFuelCard(FuelEntryModel entry) {
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppText('${entry.date.day}/${entry.date.month}/${entry.date.year}', 
-                style: AppTextStyle.body, fontWeight: FontWeight.bold),
-              const SizedBox(height: 4),
-              AppText(entry.station, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-            ],
-          ),
-          Row(
-            children: [
-              if (entry.receiptPath != null && entry.receiptPath!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    onTap: () => Get.toNamed('/document-preview', arguments: entry.receiptPath),
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withOpacity(0.1),
-                        shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () => Get.toNamed('/document-preview', arguments: entry.receiptPath),
+      child: AppCard(
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText('${entry.date.day}/${entry.date.month}/${entry.date.year}',
+                  style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                const SizedBox(height: 4),
+                AppText(entry.station, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+              ],
+            ),
+            Row(
+              children: [
+                if (entry.receiptPath != null && entry.receiptPath!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: InkWell(
+                      onTap: () => Get.toNamed('/document-preview', arguments: entry.receiptPath),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Iconsax.eye, size: 16, color: Colors.orange),
                       ),
-                      child: const Icon(Iconsax.eye, size: 16, color: Colors.orange),
                     ),
                   ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AppText('₹ ${entry.amount.toStringAsFixed(1)}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
+                    AppText('${entry.quantity.toStringAsFixed(1)} Ltr', style: AppTextStyle.caption),
+                  ],
                 ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AppText('₹ ${entry.amount.toStringAsFixed(1)}', style: AppTextStyle.body, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
-                  AppText('${entry.quantity.toStringAsFixed(1)} Ltr', style: AppTextStyle.caption),
-                ],
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

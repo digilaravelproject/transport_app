@@ -11,6 +11,7 @@ import '../../../core/widgets/app_input_field.dart';
 import '../controllers/finance_controller.dart';
 import '../domain/models/transaction_request_model.dart';
 import 'package:intl/intl.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 class CashInEntryScreen extends StatefulWidget {
   const CashInEntryScreen({Key? key}) : super(key: key);
@@ -50,7 +51,7 @@ class _CashInEntryScreenState extends State<CashInEntryScreen> {
     if (_formKey.currentState!.validate()) {
       final amount = double.tryParse(_amountController.text);
       if (amount == null || amount <= 0) {
-        Get.snackbar('Error', 'Please enter a valid amount', snackPosition: SnackPosition.BOTTOM);
+        CustomSnackbar.showError('Please enter a valid amount');
         return;
       }
       
@@ -66,7 +67,7 @@ class _CashInEntryScreenState extends State<CashInEntryScreen> {
 
       await controller.saveTransaction(request);
     } else {
-      Get.snackbar('Error', 'Please fill in all required fields', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.redAccent, colorText: Colors.white);
+      CustomSnackbar.showError('Please fill in all required fields');
     }
   }
 

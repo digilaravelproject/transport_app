@@ -1,12 +1,11 @@
 import 'dart:io';
-import 'package:dio/dio.dart' hide FormData, MultipartFile;
-import 'package:dio/dio.dart' as dio;
+import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:credit_debit/core/constants/app_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart';
-import 'package:get/get.dart';
+import 'package:get/get.dart' hide MultipartFile, FormData;
 import '../../utils/logger.dart';
 import '../storage/token_manger.dart';
 import 'api_checker.dart';
@@ -27,7 +26,6 @@ class ApiClient {
       baseUrl: AppConstants.baseUrl,
       connectTimeout: const Duration(milliseconds: 30000),
       receiveTimeout: const Duration(milliseconds: 30000),
-      contentType: 'application/json',
       validateStatus: (status) => status! < 500,
     );
 
@@ -39,7 +37,6 @@ class ApiClient {
           token = AppConstants.apiToken;
         }
         options.headers["Authorization"] = "Bearer $token";
-        options.headers["Content-Type"] = "application/json";
         options.headers["Accept"] = "application/json";
 
         // Detailed request logging
@@ -192,59 +189,60 @@ class ApiClient {
     try {
       Logger.d('ApiClient() => POST Multipart request: $path');
 
-      dio.FormData formData = dio.FormData();
-
-      body.forEach((key, value) {
-        formData.fields.add(MapEntry(key, value));
-      });
+      Map<String, dynamic> formDataMap = {};
+      body.forEach((key, value) => formDataMap[key] = value);
 
       for (MultipartBody multipart in multipartBody) {
         if (multipart.file != null) {
           if (kIsWeb) {
             List<int> bytes = await multipart.file!.readAsBytes();
-            formData.files.add(MapEntry(
-              multipart.key,
-              dio.MultipartFile.fromBytes(
-                bytes,
-                filename: basename(multipart.file!.path),
-                contentType: MediaType('image', 'jpg'),
-              ),
-            ));
+            formDataMap[multipart.key] = MultipartFile.fromBytes(
+              bytes,
+              filename: basename(multipart.file!.path),
+              contentType: MediaType('image', 'jpg'),
+            );
           } else {
-            File file = File(multipart.file!.path);
-            formData.files.add(MapEntry(
-              multipart.key,
-              await dio.MultipartFile.fromFile(file.path, filename: basename(file.path)),
-            ));
+            formDataMap[multipart.key] = await MultipartFile.fromFile(
+              multipart.file!.path,
+              filename: basename(multipart.file!.path),
+            );
           }
         }
       }
 
-      if (otherFile.isNotEmpty) {
-        for (MultipartDocument file in otherFile) {
-          if (file.file != null) {
-            if (kIsWeb) {
-              if (fromChat) {
-                formData.files.add(MapEntry(
-                  'image[]',
-                  dio.MultipartFile.fromBytes(file.file!.bytes!, filename: file.file!.name),
-                ));
-              } else {
-                formData.files.add(MapEntry(
-                  file.key,
-                  dio.MultipartFile.fromBytes(file.file!.bytes!, filename: file.file!.name),
-                ));
-              }
+      for (MultipartDocument doc in otherFile) {
+        if (doc.file != null) {
+          if (kIsWeb) {
+            if (fromChat) {
+              formDataMap['image[]'] = MultipartFile.fromBytes(doc.file!.bytes!, filename: doc.file!.name);
             } else {
-              File other = File(file.file!.path!);
-              formData.files.add(MapEntry(
-                file.key,
-                await dio.MultipartFile.fromFile(other.path, filename: basename(other.path)),
-              ));
+              formDataMap[doc.key] = MultipartFile.fromBytes(doc.file!.bytes!, filename: doc.file!.name);
             }
+          } else if (doc.file!.path != null) {
+            String fileName = doc.file!.name;
+            String extension = fileName.split('.').last.toLowerCase();
+            MediaType contentType;
+            
+            if (extension == 'pdf') {
+              contentType = MediaType('application', 'pdf');
+            } else if (extension == 'png') {
+              contentType = MediaType('image', 'png');
+            } else if (extension == 'jpg' || extension == 'jpeg') {
+              contentType = MediaType('image', 'jpeg');
+            } else {
+              contentType = MediaType('application', 'octet-stream');
+            }
+
+            formDataMap[doc.key] = await MultipartFile.fromFile(
+              doc.file!.path!,
+              filename: fileName,
+              contentType: contentType,
+            );
           }
         }
       }
+
+      FormData formData = FormData.fromMap(formDataMap);
 
       final response = await _dio.post(
         path,

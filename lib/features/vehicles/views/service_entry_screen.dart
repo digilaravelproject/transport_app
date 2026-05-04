@@ -12,6 +12,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/vehicle_controller.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 class ServiceEntryScreen extends StatefulWidget {
   const ServiceEntryScreen({Key? key}) : super(key: key);
@@ -126,12 +127,8 @@ class _ServiceEntryScreenState extends State<ServiceEntryScreen> {
     final bool success = await controller.addServiceEntryMultipart(vehicle.id, body, billFile);
     
     if (success) {
-      Get.back();
-      Get.snackbar('Success', 'Service entry saved successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.successColor.withOpacity(0.1),
-        colorText: AppColors.successColor,
-      );
+      Navigator.pop(context);
+      CustomSnackbar.showSuccess('Service entry saved successfully');
     }
   }
 

@@ -488,51 +488,34 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
       ? filePath 
       : 'https://beige-stingray-620454.hostingersite.com/storage/$filePath';
 
-    Get.dialog(
-      Dialog(
+    Get.to(() => Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Align(
-              alignment: Alignment.topRight,
-              child: IconButton(
-                onPressed: () => Get.back(),
-                icon: const Icon(Icons.close, color: Colors.white, size: 30),
-              ),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const AppText('Image Preview', color: Colors.white, fontSize: 16),
+      ),
+      body: Center(
+        child: InteractiveViewer(
+          panEnabled: true,
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) => const Center(
+              child: AppText('Failed to load image', style: AppTextStyle.body, color: Colors.white),
             ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: AppText('Failed to load image', style: AppTextStyle.body),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    );
+    ));
   }
 }

@@ -12,6 +12,7 @@ import '../../../core/widgets/app_button.dart';
 import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 import '../domain/models/service_record_model.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 class RepairEntryScreen extends StatefulWidget {
   const RepairEntryScreen({Key? key}) : super(key: key);
@@ -126,12 +127,8 @@ class _RepairEntryScreenState extends State<RepairEntryScreen> {
     final bool success = await controller.addRepairEntryMultipart(vehicle.id, body, receiptFile);
     
     if (success) {
-      Get.back();
-      Get.snackbar('Success', 'Repair entry saved successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.successColor.withOpacity(0.1),
-        colorText: AppColors.successColor,
-      );
+      Navigator.pop(context);
+      CustomSnackbar.showSuccess('Repair entry saved successfully');
     }
   }
 

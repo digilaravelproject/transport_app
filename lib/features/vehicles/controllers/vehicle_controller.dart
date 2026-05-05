@@ -706,7 +706,6 @@ class VehicleController extends GetxController {
     isLoading.value = true;
     try {
       final Map<String, String> body = {
-        'vehicle_id': vehicleId.toString(),
         'document_type': documentType,
         'document_number': documentNumber,
         'issue_date': issueDate.toIso8601String().split('T')[0],

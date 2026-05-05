@@ -10,6 +10,8 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
 
+import '../domain/models/vehicle_model.dart';
+
 class DocumentViewerScreen extends StatefulWidget {
   const DocumentViewerScreen({Key? key}) : super(key: key);
 
@@ -18,6 +20,7 @@ class DocumentViewerScreen extends StatefulWidget {
 }
 
 class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
+  VehicleDocument? document;
   late String fileUrl;
   late String fileName;
   bool isImage = false;
@@ -27,10 +30,23 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   @override
   void initState() {
     super.initState();
-    fileUrl = Get.arguments as String;
-    fileName = fileUrl.split('/').last;
-    final ext = fileName.split('.').last.toLowerCase();
-    isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+    final dynamic args = Get.arguments;
+    if (args is VehicleDocument) {
+      document = args;
+      fileUrl = document!.fileUrl;
+    } else if (args is String) {
+      fileUrl = args;
+    } else {
+      fileUrl = '';
+    }
+
+    if (fileUrl.isNotEmpty) {
+      fileName = fileUrl.split('/').last;
+      final ext = fileName.split('.').last.toLowerCase();
+      isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+    } else {
+      fileName = 'Unknown File';
+    }
   }
 
   Future<void> _downloadAndOpenFile() async {
@@ -71,7 +87,8 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'View Document',
+        title: document?.type ?? 'View Document',
+        subtitle: document?.number,
         trailing: IconButton(
           icon: isDownloading 
             ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(value: downloadProgress, strokeWidth: 2, color: AppColors.primaryColor))

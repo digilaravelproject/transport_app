@@ -162,33 +162,49 @@ class VehicleDocument {
   final int? id;
   final String type;
   final String number;
+  final DateTime? issueDate;
   final DateTime? expiryDate;
   final String fileUrl;
+  final int alertBeforeDays;
+  final String notes;
 
   VehicleDocument({
     this.id,
     required this.type,
     required this.number,
+    this.issueDate,
     this.expiryDate,
     required this.fileUrl,
+    this.alertBeforeDays = 30,
+    this.notes = '',
   });
 
   factory VehicleDocument.fromJson(Map<String, dynamic> json) {
     return VehicleDocument(
       id: json['id'],
-      type: json['type'] ?? '',
-      number: json['number'] ?? '',
+      type: json['type'] ?? json['document_type'] ?? '',
+      number: json['number'] ?? json['document_number'] ?? '',
+      issueDate: _parseDate(json['issue_date']),
       expiryDate: _parseDate(json['expiry_date']),
-      fileUrl: json['file_url'] ?? '',
+      fileUrl: json['file_url'] ?? json['document_path'] ?? '',
+      alertBeforeDays: int.tryParse(json['alert_before_days']?.toString() ?? '30') ?? 30,
+      notes: json['notes'] ?? '',
     );
   }
 
   static DateTime? _parseDate(String? dateStr) {
     if (dateStr == null || dateStr.isEmpty) return null;
     try {
+      if (dateStr.contains('T')) {
+        return DateTime.parse(dateStr);
+      }
       final parts = dateStr.split('-');
-      if (parts.length == 3 && parts[2].length == 4) {
-        return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+      if (parts.length == 3) {
+        if (parts[0].length == 4) {
+          return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+        } else if (parts[2].length == 4) {
+          return DateTime(int.parse(parts[2]), int.parse(parts[1]), int.parse(parts[0]));
+        }
       }
       return DateTime.parse(dateStr);
     } catch (e) {

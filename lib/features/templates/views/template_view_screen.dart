@@ -7,6 +7,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/template_view_controller.dart';
 
+/*
 class TemplateViewScreen extends GetView<TemplateViewController> {
   const TemplateViewScreen({Key? key}) : super(key: key);
 
@@ -198,6 +199,88 @@ class TemplateViewScreen extends GetView<TemplateViewController> {
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
                   minHeight: 3,
                 ),
+              ),
+          ],
+        );
+      }),
+    );
+  }
+}*/
+
+
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/app_scaffold.dart';
+import '../../../core/widgets/app_header.dart';
+import '../controllers/template_view_controller.dart';
+
+class TemplateViewScreen extends GetView<TemplateViewController> {
+  const TemplateViewScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      appBar: Obx(
+            () => AppHeader(
+          title: controller.title.value,
+          subtitle: 'Template Preview',
+          showBackButton: true,
+          trailing: IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: controller.refreshWebView,
+          ),
+        ),
+      ),
+
+      body: Obx(() {
+        /// ERROR UI
+        if (controller.hasError.value) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 60, color: AppColors.errorColor),
+                const SizedBox(height: 10),
+                Text(controller.errorMessage.value),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: controller.retryLoad,
+                  child: const Text("Retry"),
+                ),
+              ],
+            ),
+          );
+        }
+
+        /// WEBVIEW ALWAYS BUILD (IMPORTANT FIX)
+        return Stack(
+          children: [
+            WebViewWidget(
+              controller: controller.webViewController,
+            ),
+
+            /// FULL SCREEN LOADER (first load only)
+            if (controller.isLoading.value)
+              Container(
+                color: Colors.white,
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+
+            /// TOP PROGRESS BAR (page loading)
+            if (controller.isPageLoading.value &&
+                !controller.isLoading.value)
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: LinearProgressIndicator(minHeight: 3),
               ),
           ],
         );

@@ -7,6 +7,7 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
 import '../../../core/utils/custom_snackbar.dart';
 
+/*
 class TemplateViewController extends GetxController {
   late WebViewController webViewController;
 
@@ -281,5 +282,128 @@ class TemplateViewController extends GetxController {
     } catch (e) {
       CustomSnackbar.showError('Cannot go forward');
     }
+  }
+}*/
+
+
+
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
+
+import '../../../core/utils/custom_snackbar.dart';
+
+class TemplateViewController extends GetxController {
+  late WebViewController webViewController;
+
+  final RxString title = 'Template'.obs;
+  final RxString url = ''.obs;
+
+  final RxBool isLoading = true.obs;
+  final RxBool isPageLoading = false.obs;
+  final RxBool hasError = false.obs;
+  final RxString errorMessage = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initFromArgs();
+  }
+
+  void _initFromArgs() {
+    final args = Get.arguments;
+
+    if (args is Map<String, dynamic>) {
+      title.value = args['title'] ?? 'Template';
+      url.value = args['url'] ?? '';
+    } else if (args is String) {
+      url.value = args;
+    }
+
+    if (url.value.isEmpty) {
+      hasError.value = true;
+      errorMessage.value = "URL not provided";
+      isLoading.value = false;
+      return;
+    }
+
+    url.value = url.value.trim();
+
+    if (!url.value.startsWith('http')) {
+      url.value = 'https://${url.value}';
+    }
+
+    _initWebView();
+  }
+
+  void _initWebView() {
+    try {
+      late final PlatformWebViewControllerCreationParams params;
+
+      if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+        params = WebKitWebViewControllerCreationParams(
+          allowsInlineMediaPlayback: true,
+        );
+      } else {
+        params = const PlatformWebViewControllerCreationParams();
+      }
+
+      webViewController =
+          WebViewController.fromPlatformCreationParams(params);
+
+      webViewController
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(Colors.white)
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onPageStarted: (url) {
+              isPageLoading.value = true;
+              hasError.value = false;
+            },
+            onProgress: (progress) {
+              if (progress == 100) {
+                isLoading.value = false;
+              }
+            },
+            onPageFinished: (url) {
+              isLoading.value = false;
+              isPageLoading.value = false;
+            },
+            onWebResourceError: (error) {
+              hasError.value = true;
+              errorMessage.value = error.description;
+              isLoading.value = false;
+              isPageLoading.value = false;
+            },
+          ),
+        );
+
+      // Android fixes
+      if (webViewController.platform is AndroidWebViewController) {
+        final android = webViewController.platform as AndroidWebViewController;
+        android.setMediaPlaybackRequiresUserGesture(false);
+      }
+
+      // LOAD URL
+      webViewController.loadRequest(Uri.parse(url.value));
+    } catch (e) {
+      hasError.value = true;
+      errorMessage.value = e.toString();
+      isLoading.value = false;
+    }
+  }
+
+  void refreshWebView() {
+    webViewController.reload();
+  }
+
+  void retryLoad() {
+    hasError.value = false;
+    isLoading.value = true;
+    isPageLoading.value = false;
+    _initWebView();
   }
 }

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:credit_debit/core/constants/app_constants.dart';
@@ -222,19 +224,38 @@ class ApiClient {
             String fileName = doc.file!.name;
             String extension = fileName.split('.').last.toLowerCase();
             MediaType contentType;
+            String uploadPath = doc.file!.path!;
             
             if (extension == 'pdf') {
               contentType = MediaType('application', 'pdf');
-            } else if (extension == 'png') {
-              contentType = MediaType('image', 'png');
-            } else if (extension == 'jpg' || extension == 'jpeg') {
-              contentType = MediaType('image', 'jpeg');
+            } else if (extension == 'png' || extension == 'jpg' || extension == 'jpeg') {
+              contentType = extension == 'png' ? MediaType('image', 'png') : MediaType('image', 'jpeg');
+              
+              // Compress image
+              try {
+                final tempDir = await getTemporaryDirectory();
+                final targetPath = '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.$extension';
+                
+                final compressedFile = await FlutterImageCompress.compressAndGetFile(
+                  doc.file!.path!,
+                  targetPath,
+                  quality: 70,
+                  format: extension == 'png' ? CompressFormat.png : CompressFormat.jpeg,
+                );
+                
+                if (compressedFile != null) {
+                  uploadPath = compressedFile.path;
+                  Logger.d('ApiClient() => Image compressed: ${doc.file!.path} -> $uploadPath');
+                }
+              } catch (e) {
+                Logger.e('ApiClient() => Image compression failed: $e');
+              }
             } else {
               contentType = MediaType('application', 'octet-stream');
             }
 
             formDataMap[doc.key] = await MultipartFile.fromFile(
-              doc.file!.path!,
+              uploadPath,
               filename: fileName,
               contentType: contentType,
             );
@@ -245,6 +266,7 @@ class ApiClient {
       FormData formData = FormData.fromMap(formDataMap);
 
       final response = await _dio.post(
+
         path,
         data: formData,
         queryParameters: queryParameters,

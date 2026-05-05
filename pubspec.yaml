@@ -84,6 +84,8 @@ dependencies:
   flutter_launcher_icons: ^0.14.4
   iconsax: ^0.0.8
   razorpay_flutter: ^1.4.4
+  flutter_image_compress: ^2.3.0
+
 
 dev_dependencies:
   flutter_test:

@@ -112,7 +112,7 @@ class _VehicleDocumentsScreenState extends State<VehicleDocumentsScreen> {
                 icon: const Icon(Icons.visibility_rounded, color: AppColors.textColorHint, size: 20),
                 onPressed: () {
                    if (doc.fileUrl.isNotEmpty) {
-                    Get.toNamed('/document-preview', arguments: doc.fileUrl);
+                    Get.toNamed('/document-preview', arguments: doc);
                   }
                 },
               ),

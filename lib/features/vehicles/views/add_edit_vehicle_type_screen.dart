@@ -35,15 +35,31 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
   @override
   void initState() {
     super.initState();
-    if (Get.arguments is VehicleTypeModel) {
-      _editingType = Get.arguments as VehicleTypeModel;
-      _nameController.text = _editingType!.name;
-      _descriptionController.text = _editingType!.description ?? '';
-      _capacityController.text = _editingType!.capacity.toString();
-      _perKmPriceController.text = _editingType!.perKmPrice.toString();
-      _acPricePerKmController.text = _editingType!.acPricePerKm.toString();
-      _isActive = _editingType!.isActive;
+    // Determine if arguments contain a VehicleTypeModel (already passed) or an ID integer
+    final args = Get.arguments;
+    if (args is VehicleTypeModel) {
+      _editingType = args;
+      _populateFields(_editingType!);
+    } else if (args is int) {
+      // Fetch vehicle type details from API
+      _controller.fetchVehicleTypeById(args);
+      // Listen for when data becomes available
+      ever(_controller.selectedVehicle, (VehicleTypeModel? type) {
+        if (type != null) {
+          _editingType = type;
+          _populateFields(type);
+        }
+      });
     }
+  }
+
+  void _populateFields(VehicleTypeModel type) {
+    _nameController.text = type.name;
+    _descriptionController.text = type.description ?? '';
+    _capacityController.text = type.capacity.toString();
+    _perKmPriceController.text = type.perKmPrice.toString();
+    _acPricePerKmController.text = type.acPricePerKm.toString();
+    _isActive = type.isActive;
   }
 
   @override
@@ -62,8 +78,8 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
         'name': _nameController.text.trim(),
         'description': _descriptionController.text.trim().isEmpty ? null : _descriptionController.text.trim(),
         'capacity': int.tryParse(_capacityController.text.trim()) ?? 0,
-        'per_km_price': double.tryParse(_perKmPriceController.text.trim()) ?? 0.0,
-        'ac_price_per_km': double.tryParse(_acPricePerKmController.text.trim()) ?? 0.0,
+        'price_per_km': double.tryParse(_perKmPriceController.text.trim()) ?? 0.0,
+        'ac_extra_price': double.tryParse(_acPricePerKmController.text.trim()) ?? 0.0,
         'is_active': _isActive ? 1 : 0,
       };
 
@@ -137,10 +153,11 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                         ),
                         const SizedBox(height: 16),
                         AppInputField(
-                          label: 'AC Extra Price/KM',
+                          label: 'AC Extra Price/KM * ',
                           controller: _acPricePerKmController,
                           hint: '0.0',
                           icon: Iconsax.flash,
+                          validator: (val) => val == null || val.isEmpty ? 'Price is required' : null,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         ),
                       ],

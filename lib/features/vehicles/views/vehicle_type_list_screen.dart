@@ -13,15 +13,37 @@ import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_type_model.dart';
 import '../../../routes/route_helper.dart';
 
-class VehicleTypeListScreen extends GetView<VehicleTypeController> {
+class VehicleTypeListScreen extends StatefulWidget {
   const VehicleTypeListScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<VehicleTypeController>()) {
-      Get.put(VehicleTypeController());
-    }
+  State<VehicleTypeListScreen> createState() => _VehicleTypeListScreenState();
+}
 
+class _VehicleTypeListScreenState extends State<VehicleTypeListScreen> {
+  final controller = Get.find<VehicleTypeController>();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      controller.fetchVehicleTypes(isRefresh: false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: const AppHeader(
@@ -34,58 +56,70 @@ class VehicleTypeListScreen extends GetView<VehicleTypeController> {
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Iconsax.add, color: Colors.white),
       ),
-      body: RefreshIndicator(
-        onRefresh: () => controller.fetchVehicleTypes(),
-        color: AppColors.primaryColor,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: AppSearchBar(
-                  hint: 'Search vehicle types...',
-                  onChanged: (val) => controller.updateSearch(val),
-                ),
-              ),
-              const SizedBox(height: 16),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: AppSearchBar(
+              hint: 'Search vehicle types...',
+              onChanged: (val) => controller.updateSearch(val),
+            ),
+          ),
+          const SizedBox(height: 16),
 
-              // List
-              Obx(() {
+          // List
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => controller.fetchVehicleTypes(),
+              color: AppColors.primaryColor,
+              child: Obx(() {
                 if (controller.isLoading.value && controller.vehicleTypes.isEmpty) {
                   return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: 5,
                     itemBuilder: (context, index) => const _VehicleTypeShimmer(),
                   );
                 }
-                if (controller.filteredVehicleTypes.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(40.0),
-                    child: Center(
-                      child: AppText('No vehicle types found', style: AppTextStyle.body),
-                    ),
+
+                if (controller.vehicleTypes.isEmpty) {
+                  return ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.all(40.0),
+                        child: Center(
+                          child: AppText('No vehicle types found', style: AppTextStyle.body),
+                        ),
+                      ),
+                    ],
                   );
                 }
+
                 return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  itemCount: controller.filteredVehicleTypes.length,
+                  itemCount: controller.vehicleTypes.length + 1,
                   itemBuilder: (context, index) {
-                    final type = controller.filteredVehicleTypes[index];
+                    if (index == controller.vehicleTypes.length) {
+                      return controller.isLoadingMore.value
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              child: Center(child: CircularProgressIndicator(color: AppColors.primaryColor)),
+                            )
+                          : const SizedBox();
+                    }
+                    final type = controller.vehicleTypes[index];
                     return _VehicleTypeCard(type: type);
                   },
                 );
               }),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

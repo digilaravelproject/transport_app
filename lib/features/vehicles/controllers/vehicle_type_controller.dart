@@ -8,44 +8,88 @@ import '../../../core/utils/custom_snackbar.dart';
 class VehicleTypeController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
 
+  final selectedVehicle = Rxn<VehicleTypeModel>();
   final vehicleTypes = <VehicleTypeModel>[].obs;
-  final filteredVehicleTypes = <VehicleTypeModel>[].obs;
   final isLoading = false.obs;
+  final isLoadingMore = false.obs;
   final searchQuery = ''.obs;
+
+  int _currentPage = 1;
+  bool _hasNextPage = true;
 
   @override
   void onInit() {
     super.onInit();
     fetchVehicleTypes();
-    debounce(searchQuery, (_) => _filterVehicleTypes(), time: const Duration(milliseconds: 500));
+    // Debounce search to avoid too many API calls
+    debounce(searchQuery, (_) => fetchVehicleTypes(isRefresh: true), time: const Duration(milliseconds: 600));
   }
 
-  Future<void> fetchVehicleTypes() async {
-    isLoading.value = true;
+  Future<void> fetchVehicleTypes({bool isRefresh = true}) async {
+    if (isRefresh) {
+      _currentPage = 1;
+      _hasNextPage = true;
+      if (searchQuery.value.isEmpty) {
+        isLoading.value = true;
+      }
+    } else {
+      if (!_hasNextPage || isLoadingMore.value) return;
+      isLoadingMore.value = true;
+    }
+
     try {
-      final response = await _apiClient.get(AppConstants.getVehicleTypesUrl);
-      if (response.isSuccess) {
-        final List<dynamic> bodyData = response.body;
-        final fetchedTypes = bodyData.map((json) => VehicleTypeModel.fromJson(json)).toList();
-        
-        if (fetchedTypes.isEmpty) {
-          vehicleTypes.value = _getDefaultVehicleTypes();
-        } else {
-          vehicleTypes.value = fetchedTypes;
-        }
-        _filterVehicleTypes();
+      String url;
+      if (searchQuery.value.isNotEmpty) {
+        url = AppConstants.searchVehicleTypesUrl(searchQuery.value, _currentPage);
       } else {
-        // If API fails, show defaults as fallback
-        vehicleTypes.value = _getDefaultVehicleTypes();
-        _filterVehicleTypes();
+        url = AppConstants.getVehicleTypesPagedUrl(_currentPage);
+      }
+
+      final response = await _apiClient.get(url);
+
+      if (response.isSuccess) {
+        // Handle Laravel pagination structure: response.body['data']
+        final dynamic responseData = response.body;
+        List<dynamic> dataList = [];
+
+        if (responseData is Map && responseData.containsKey('data')) {
+          dataList = responseData['data'];
+
+          // Update pagination state from meta
+          final meta = responseData['meta'];
+          if (meta != null) {
+            _currentPage = (meta['current_page'] ?? _currentPage) + 1;
+            _hasNextPage = (meta['current_page'] ?? 1) < (meta['last_page'] ?? 1);
+          } else {
+            _hasNextPage = false;
+          }
+        } else if (responseData is List) {
+          // Fallback for simple list response
+          dataList = responseData;
+          _hasNextPage = false;
+        }
+
+        final fetchedTypes = dataList.map((json) => VehicleTypeModel.fromJson(json)).toList();
+
+        if (isRefresh) {
+          vehicleTypes.assignAll(fetchedTypes);
+        } else {
+          vehicleTypes.addAll(fetchedTypes);
+        }
+      } else {
+        if (isRefresh && searchQuery.value.isEmpty) {
+          vehicleTypes.value = _getDefaultVehicleTypes();
+        }
         Logger.e('Failed to fetch vehicle types: ${response.message}');
       }
     } catch (e) {
-      vehicleTypes.value = _getDefaultVehicleTypes();
-      _filterVehicleTypes();
+      if (isRefresh && searchQuery.value.isEmpty) {
+        vehicleTypes.value = _getDefaultVehicleTypes();
+      }
       Logger.e('Error fetching vehicle types: $e');
     } finally {
       isLoading.value = false;
+      isLoadingMore.value = false;
     }
   }
 
@@ -59,21 +103,21 @@ class VehicleTypeController extends GetxController {
     ];
   }
 
-  void _filterVehicleTypes() {
-    if (searchQuery.value.isEmpty) {
-      filteredVehicleTypes.assignAll(vehicleTypes);
-    } else {
-      filteredVehicleTypes.assignAll(
-        vehicleTypes.where((type) => 
-          type.name.toLowerCase().contains(searchQuery.value.toLowerCase()) ||
-          (type.description?.toLowerCase().contains(searchQuery.value.toLowerCase()) ?? false)
-        ).toList(),
-      );
+  Future<void> fetchVehicleTypeById(int id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get('${AppConstants.vehicleTypesUrl}/$id');
+      if (response.isSuccess) {
+        final data = response.body['data'];
+        selectedVehicle.value = VehicleTypeModel.fromJson(data);
+      } else {
+        Logger.e('Failed to fetch vehicle type: "+response.message');
+      }
+    } catch (e) {
+      Logger.e('Error fetching vehicle type: $e');
+    } finally {
+      isLoading.value = false;
     }
-  }
-
-  void updateSearch(String query) {
-    searchQuery.value = query;
   }
 
   Future<bool> addVehicleType(Map<String, dynamic> data) async {
@@ -148,5 +192,10 @@ class VehicleTypeController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  // Update search query and trigger debounce fetch
+  void updateSearch(String query) {
+    searchQuery.value = query;
   }
 }

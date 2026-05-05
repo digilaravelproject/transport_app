@@ -110,6 +110,8 @@ class AppConstants {
   // Vehicle Type Endpoints
   static const String vehicleTypesUrl = '/api/v1/vehicle-types';
   static const String getVehicleTypesUrl = '/api/v1/vehicle-types';
+  static String getVehicleTypesPagedUrl(int page) => '/api/v1/vehicle-types?page=$page&per_page=10';
+  static String searchVehicleTypesUrl(String query, int page) => '/api/v1/vehicle-types/search?q=$query&page=$page&per_page=10';
   static String updateVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
   static String deleteVehicleTypeUrl(dynamic id) => '/api/v1/vehicle-types/$id';
 

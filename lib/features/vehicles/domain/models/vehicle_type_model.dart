@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class VehicleTypeModel {
   final int? id;
+  final int? tenant_id;
   final String name;
   final String? description;
   final int capacity;
@@ -12,6 +13,7 @@ class VehicleTypeModel {
 
   VehicleTypeModel({
     this.id,
+    this.tenant_id,
     required this.name,
     this.description,
     this.capacity = 0,
@@ -24,15 +26,18 @@ class VehicleTypeModel {
   factory VehicleTypeModel.fromJson(Map<String, dynamic> json) {
     return VehicleTypeModel(
       id: json['id'],
+      tenant_id: json['tenant_id'],
       name: json['name'] ?? '',
       description: json['description'],
       capacity: int.tryParse(json['capacity']?.toString() ?? '0') ?? 0,
-      perKmPrice: double.tryParse(json['per_km_price']?.toString() ?? '0') ?? 0.0,
-      acPricePerKm: double.tryParse(json['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
+      perKmPrice: double.tryParse(json['price_per_km']?.toString() ?? '0') ?? 0.0,
+      acPricePerKm: double.tryParse(json['ac_extra_price']?.toString() ?? '0') ?? 0.0,
       isActive: json['is_active'] == 1 || json['is_active'] == true,
       createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
     );
   }
+
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -40,8 +45,8 @@ class VehicleTypeModel {
       'name': name,
       'description': description,
       'capacity': capacity,
-      'per_km_price': perKmPrice,
-      'ac_price_per_km': acPricePerKm,
+      'price_per_km': perKmPrice,
+      'ac_extra_price': acPricePerKm,
       'is_active': isActive ? 1 : 0,
     };
   }

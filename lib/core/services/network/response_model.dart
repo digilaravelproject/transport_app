@@ -15,7 +15,6 @@ class ResponseModel {
     this.json,
   });
 
-  /// Factory method to create ResponseModel from JSON
   factory ResponseModel.fromJson(Map<String, dynamic> json, {int? statusCode}) {
     // Check for success in multiple ways
     final res = json['res']?.toString().toLowerCase();
@@ -28,6 +27,9 @@ class ResponseModel {
       success = successValue;
     } else if (successValue != null) {
       success = successValue.toString().toLowerCase() == 'true';
+    } else if (statusCode == 200 || statusCode == 201 || statusCode == 204) {
+      // If no explicit success flag, but HTTP status is OK, consider it a success
+      success = true;
     }
 
     // Parse errors - handle both List and Map formats
@@ -85,7 +87,7 @@ class ResponseModel {
                    (success ? 'Success' : 'Something went wrong');
 
     return ResponseModel(
-      isSuccess: success && (statusCode == 200 || statusCode == 201 || statusCode == null),
+      isSuccess: success,
       message: message,
       body: bodyData,
       statusCode: statusCode,

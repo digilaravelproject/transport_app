@@ -5,6 +5,7 @@ import '../features/auth/views/signup_screen.dart';
 import '../features/auth/views/otp_screen.dart';
 import '../features/auth/views/forgot_password_screen.dart';
 import '../features/auth/views/reset_password_screen.dart';
+import '../features/corporate/views/assign_driver.dart';
 import '../features/intro/views/intro_screen.dart';
 import '../features/intro/controllers/intro_controller.dart';
 import '../features/inventory/controllers/inventory_stocks_controller.dart';
@@ -206,6 +207,7 @@ class RouteHelper {
   static String getAssignVehicleToContractRoute() => AppRoutes.assignVehicleToContract;
   static String getCorporateDutyTrackingRoute() => AppRoutes.corporateDutyTracking;
   static String getCorporateInvoiceRoute() => AppRoutes.corporateInvoice;
+  static String getAssignDriverToContractRoute() => AppRoutes.assignDriverToContract;
 
   // Finance
   static String getCashbookDashboardRoute() => AppRoutes.cashbookDashboard;
@@ -569,6 +571,11 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.assignVehicleToContract,
       page: () => const AssignVehicleToContractScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.assignDriverToContract,
+      page: () => const AssignDriverToContractScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

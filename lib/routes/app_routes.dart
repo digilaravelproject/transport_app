@@ -69,6 +69,7 @@ class AppRoutes {
   static const String assignVehicleToContract = '/assign-vehicle-to-contract';
   static const String corporateDutyTracking = '/corporate-duty-tracking';
   static const String corporateInvoice = '/corporate-invoice';
+  static const String assignDriverToContract = '/assign_vehical';
 
   // Finance
   static const String cashbookDashboard = '/cashbook-dashboard';

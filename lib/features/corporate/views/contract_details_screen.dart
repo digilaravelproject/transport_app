@@ -64,6 +64,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
               _buildSectionHeader('Assigned Vehicles', () => Get.toNamed(RouteHelper.getAssignVehicleToContractRoute(), arguments: vendor.id)),
               _buildAssignedVehicles(),
               const SizedBox(height: 24),
+              _buildSectionHeader('Assigned Driver', () => Get.toNamed(RouteHelper.getAssignDriverToContractRoute(), arguments: vendor.id)),
+              _buildAssignedDriver(),
+              const SizedBox(height: 24),
               _buildSectionHeader('Billing History', () => _showAddBillModal(context)),
               _buildBillingHistory(),
             ],
@@ -334,6 +337,119 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
       );
     });
   }
+
+
+  Widget _buildAssignedDriver() {
+    return Obx(() {
+      final vendor = controller.selectedVendor.value ?? company;
+
+      final List<Map<String, dynamic>> drivers = [
+        {
+          "name": "Ravi Kumar",
+          "registration_number": "UP32 AB 1234",
+          "type": "Truck Driver",
+        },
+        {
+          "name": "Amit Singh",
+          "registration_number": "UP32 XY 5678",
+          "type": "Mini Truck Driver",
+        },
+        {
+          "name": "Suresh Yadav",
+          "registration_number": "UP32 MN 9999",
+          "type": "Heavy Driver",
+        },
+      ];
+
+      if (drivers.isEmpty) {
+        return const AppCard(
+          padding: EdgeInsets.all(20),
+          child: Center(
+            child: AppText(
+              'No drivers available',
+              style: AppTextStyle.caption,
+            ),
+          ),
+        );
+      }
+
+      return AppCard(
+        child: Column(
+          children: drivers.asMap().entries.map((entry) {
+            final idx = entry.key;
+            final driver = entry.value;
+
+            return Column(
+              children: [
+                ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primaryLight,
+                    child: const Icon(
+                      Icons.person,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+
+                  title: Text(
+                    driver['name'] ?? 'Unknown',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(
+                        driver['type'] ?? '',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        driver['registration_number'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // 🔴 REMOVE BUTTON
+                  trailing: IconButton(
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      // TODO: remove logic yaha handle kar
+                      drivers.removeAt(idx);
+
+                      // agar controller use kar raha hai to:
+                      // controller.removeDriver(idx);
+                    },
+                  ),
+                ),
+
+                if (idx < drivers.length - 1)
+                  const Divider(height: .5,color: Colors.grey,),
+              ],
+            );
+          }).toList(),
+        ),
+      );
+    });
+  }
+
+
+
 
   Widget _buildVehicleItem(String vehicleNo, String type, String vehicleId, String vId, {bool isLast = false}) {
     return Padding(

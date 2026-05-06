@@ -49,6 +49,6 @@ class IntroController extends GetxController {
   }
 
   void getStarted() {
-    Get.offAllNamed(RouteHelper.getSignupRoute());
+    Get.offAllNamed(RouteHelper.getLoginRoute());
   }
 }

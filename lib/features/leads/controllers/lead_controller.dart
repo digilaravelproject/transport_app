@@ -25,7 +25,8 @@ class LeadController extends GetxController {
   
   final selectedDate = DateTime.now().obs;
   final selectedDuration = '1 Day'.obs;
-  final selectedVehicleType = 'Sedan (4 Seater)'.obs;
+  final selectedVehicleType = ''.obs;
+  final selectedVehicleTypeId = Rxn<int>();
   final vehicleCount = 1.obs;
   final destinationPoints = <String>[].obs;
   final selectedDateFilter = 'All'.obs;
@@ -219,7 +220,8 @@ class LeadController extends GetxController {
     pickupAddressController.clear();
     selectedDate.value = DateTime.now();
     selectedDuration.value = '1 Day';
-    selectedVehicleType.value = 'Sedan';
+    selectedVehicleType.value = '';
+    selectedVehicleTypeId.value = null;
     vehicleCount.value = 1;
     destinationPoints.clear();
     selectedCountryCode.value = '+91';

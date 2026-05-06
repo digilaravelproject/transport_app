@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/section_header.dart';
+import '../../../core/widgets/vehicle_type_dropdown.dart';
 import '../../../routes/route_helper.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/lead_controller.dart';
@@ -93,10 +94,11 @@ class CreateLeadScreen extends GetView<LeadController> {
                     children: [
                       Expanded(
                         flex: 2,
-                        child: _DropdownField(
-                          label: 'Vehicle Type',
-                          value: controller.selectedVehicleType,
-                          items: const ['Sedan (4 Seater)', 'SUV (7 Seater)', 'Innova (7 Seater)', 'Tempo Traveller (12 Seater)', 'Mini Bus (25 Seater)', 'Luxury Bus (45 Seater)'],
+                        child: VehicleTypeDropdown(
+                          selectedId: controller.selectedVehicleTypeId,
+                          onChanged: (id, displayName) {
+                            controller.selectedVehicleType.value = displayName;
+                          },
                         ),
                       ),
                       const SizedBox(width: 16),

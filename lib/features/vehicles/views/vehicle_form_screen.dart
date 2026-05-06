@@ -10,6 +10,7 @@ import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/vehicle_type_dropdown.dart';
 import '../widgets/upload_box.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
@@ -336,6 +337,12 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         onChanged: (_) => setState(() => regNoError = null),
                       ),
                       const SizedBox(height: 16),
+                      VehicleTypeDropdown(
+                        selectedId: controller.selectedVehicleTypeId,
+                        onChanged: (id, displayName) {
+                          controller.selectedVehicleType.value = displayName;
+                        },
+                      ),
                       _buildDropdown('Vehicle Type', vehicleTypes, selectedType, (val) {
                         setState(() {
                           selectedType = val;

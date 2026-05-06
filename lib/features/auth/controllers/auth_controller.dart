@@ -181,7 +181,7 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       print('❌ Error in register: $e');
-      CustomSnackbar.showError('Something went wrong. Please try again.');
+      //CustomSnackbar.showError('Something went wrong. Please try again.');
     } finally {
       isLoading.value = false;
     }

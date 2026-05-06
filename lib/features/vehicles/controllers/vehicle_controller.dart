@@ -32,6 +32,10 @@ class VehicleController extends GetxController {
   final repairEndDate = Rxn<DateTime>();
   final serviceStartDate = Rxn<DateTime>();
   final serviceEndDate = Rxn<DateTime>();
+  final selectedVehicleTypeId = Rxn<int>();
+  final selectedVehicleType = ''.obs;
+
+
 
   // Fuel Stats
   final totalFuelExpense = 0.0.obs;
@@ -293,6 +297,9 @@ class VehicleController extends GetxController {
     selectedTypeFilter.value = 'All';
     selectedCapacityFilter.value = 'All';
     searchQuery.value = '';
+    selectedVehicleTypeId.value = null;
+    selectedVehicleType.value = '';
+
     fetchVehicles();
   }
 

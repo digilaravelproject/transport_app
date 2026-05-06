@@ -227,7 +227,7 @@ class _CompanyCard extends StatelessWidget {
                       children: [
                         _buildInfoItem(Iconsax.user, 'Contact', company.contactPerson ?? 'N/A'),
                         const Spacer(),
-                        _buildInfoItem(Iconsax.call, 'Phone', company.contractNumber.toString()),
+                        _buildInfoItem(Iconsax.call, 'Phone', company.phone.toString()),
                         const Spacer(),
                        // _buildInfoItem(Iconsax.money, 'Amount', '₹${company.monthlyAmount ?? '0'}'),
                       ],

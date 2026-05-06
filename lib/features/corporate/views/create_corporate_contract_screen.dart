@@ -11,6 +11,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/vehicle_type_dropdown.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/corporate_contract_request_model.dart';
 
@@ -34,8 +35,11 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
   final TextEditingController _monthlyAmountController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
+  final selectedVehicleType = ''.obs;
+  final selectedVehicleTypeId = Rxn<int>();
+
   String _dutyType = 'Daily Commute';
-  String _vehicleType = 'Bus (50 Seater)';
+  //String _vehicleType = 'Bus (50 Seater)';
 
   @override
   void dispose() {
@@ -78,6 +82,14 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
 
   void _saveContract() async {
     if (_formKey.currentState!.validate()) {
+      if (selectedVehicleTypeId.value == null) {
+        Get.snackbar('Error', 'Please select a vehicle type',
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.red,
+            colorText: Colors.white);
+        return;
+      }
+
       final request = CorporateContractRequestModel(
         name: _contractNameController.text.trim(),
         vendorName: _vendorNameController.text.trim(),
@@ -85,7 +97,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
         startDate: _startDateController.text,
         endDate: _endDateController.text,
         dutyType: _dutyType,
-        vehicleType: _vehicleType,
+        vehicleType: selectedVehicleTypeId.value ?? 0,
         quantity: int.tryParse(_quantityController.text) ?? 0,
         monthlyAmount: double.tryParse(_monthlyAmountController.text) ?? 0.0,
         notes: _notesController.text.trim(),
@@ -184,9 +196,16 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+
                         Expanded(
                           flex: 2,
-                          child: _buildDropdown('Vehicle Type', _vehicleType, ['Bus (50 Seater)', 'Mini Bus (30 Seater)', 'Tempo Traveller', 'Bus'], (val) => setState(() => _vehicleType = val!)),
+                          child: VehicleTypeDropdown(
+                            selectedId: selectedVehicleTypeId,
+                            errorText: null, // You can manage error text with another Rx if needed
+                            onChanged: (id, displayName) {
+                              selectedVehicleType.value = displayName;
+                            },
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(

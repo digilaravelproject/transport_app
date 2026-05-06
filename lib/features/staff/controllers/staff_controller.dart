@@ -337,4 +337,27 @@ class StaffController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<bool> deleteStaff(dynamic id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.delete(AppConstants.deleteStaffUrl(id));
+
+      if (response.isSuccess) {
+        staffList.removeWhere((s) => s.id == id);
+        _filterStaff();
+        CustomSnackbar.showSuccess('Staff deleted successfully.');
+        Get.back(); // Back from details screen or dialog
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to delete staff: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

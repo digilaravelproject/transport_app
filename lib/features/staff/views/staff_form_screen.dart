@@ -252,6 +252,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
               () => _pickDocument('aadhar'),
               noController: _aadharNoController,
               noLabel: 'Aadhar Number',
+              keyboardType: TextInputType.number,
               previewUrl: _isEdit ? staff!.photoUrl : null,
             ),
             const SizedBox(height: 12),
@@ -349,8 +350,10 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'address': _addressController.text,
       'aadhar_number': _aadharNoController.text,
       'pan_number': _panNoController.text,
-      'dl_number': _licenseNoController.text,
-      'dl_expiry': _licenseExpiryController.text,
+     // 'dl_number': _licenseNoController.text,
+      'license_number': _licenseNoController.text,
+     // 'dl_expiry': _licenseExpiryController.text,
+      'license_expiry': _licenseExpiryController.text,
       'badge_number': _badgeNoController.text,
       'badge_expiry': _badgeExpiryController.text,
       'aadhar_file': aadharFile?.path,
@@ -359,6 +362,16 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'badge_file': badgeFile?.path,
       'passbook_file': passbookFile?.path,
       'photo_file': photoFile?.path,
+
+      // --form 'date_of_birth=" 1990-05-15"' \
+      // --form 'emergency_contact=" 9222222222"' \
+      // --form 'emergency_contact_name=" Sohan Kumar"' \
+      // --form 'license_type=" Heavy Vehicle"' \
+      // --form 'da_per_day=" 300"' \
+      // --form 'hra=" 2000"' \
+      // --form 'bank_name=" SBI"' \
+      // --form 'bank_account=" 1234567890"' \
+      // --form 'bank_ifsc=" SBIN0001234"' \
     };
 
     data.forEach((key, value) {
@@ -553,7 +566,7 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
     }
   }
 
-  Widget _buildStaffDocumentSection(
+ /* Widget _buildStaffDocumentSection(
     String label,
     PlatformFile? file,
     VoidCallback onUpload, {
@@ -608,6 +621,94 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
               readOnly: true,
               icon: Iconsax.calendar_1,
               onTap: () => _selectDate(context, expiryController),
+            ),
+          ],
+        ],
+      ),
+    );
+  }*/
+
+
+
+  Widget _buildStaffDocumentSection(
+      String label,
+      PlatformFile? file,
+      VoidCallback onUpload, {
+        TextEditingController? expiryController,
+        TextEditingController? noController,
+        String? noLabel,
+        String? previewUrl,
+        String? fileName,
+        TextInputType? keyboardType, // ✅ ADDED
+      }) {
+    return AppCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Iconsax.document_text,
+                  size: 18,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              AppText(
+                label,
+                style: AppTextStyle.subheading,
+                fontSize: 14,
+                color: AppColors.textColorPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          UploadBox(
+            label: 'Photo Copy',
+            isUploaded: file != null ||
+                (previewUrl != null && previewUrl.isNotEmpty),
+            previewUrl: previewUrl,
+            fileName: file?.name ?? fileName,
+            onTap: onUpload,
+          ),
+
+          /// =========================
+          /// DOCUMENT NUMBER FIELD
+          /// =========================
+          if (noController != null) ...[
+            const SizedBox(height: 16),
+            AppInputField(
+              label: noLabel ?? 'Document Number',
+              hint: 'Enter Number',
+              controller: noController,
+              icon: Iconsax.hashtag,
+              keyboardType: keyboardType ?? TextInputType.text, // ✅ SAFE DEFAULT
+            ),
+          ],
+
+          /// =========================
+          /// EXPIRY DATE FIELD
+          /// =========================
+          if (expiryController != null) ...[
+            const SizedBox(height: 16),
+            AppInputField(
+              label: 'Expiry Date',
+              hint: 'YYYY-MM-DD',
+              controller: expiryController,
+              readOnly: true,
+              icon: Iconsax.calendar_1,
+              onTap: () => _selectDate(context, expiryController),
+              keyboardType: TextInputType.none, // ✅ NO KEYBOARD
             ),
           ],
         ],

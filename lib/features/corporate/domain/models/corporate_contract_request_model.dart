@@ -5,7 +5,7 @@ class CorporateContractRequestModel {
   final String startDate;
   final String endDate;
   final String dutyType;
-  final String vehicleType;
+  final int vehicleType;
   final int quantity;
   final double monthlyAmount;
   final String notes;

@@ -233,7 +233,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText(vendor.contractNumber ?? 'No Contract No.', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+              AppText(vendor.phone ?? 'No Contract No.', style: AppTextStyle.subheading, color: AppColors.primaryColor),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -248,13 +248,23 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
           const Divider(height: 1),
           const SizedBox(height: 16),
           _buildInfoRow('Vendor', vendor.name),
-          _buildInfoRow('Period', '${vendor.startDate?.split('T').first ?? 'N/A'} to ${vendor.endDate?.split('T').first ?? 'N/A'}'),
+          _buildInfoRow(
+            'Period',
+            '${formatDate(vendor.startDate)} to ${formatDate(vendor.endDate)}',
+          ),
+       //   _buildInfoRow('Period', '${vendor.startDate?.split('T').first ?? 'N/A'} to ${vendor.endDate?.split('T').first ?? 'N/A'}'),
           _buildInfoRow('Duty Type', vendor.dutyType ?? 'N/A'),
-          _buildInfoRow('Vehicle Type', vendor.vehicleType ?? 'N/A'),
+          _buildInfoRow('Vehicle Type', vendor.vehicleTypeName ?? 'N/A'),
           _buildInfoRow('Monthly Amount', '₹ ${vendor.monthlyAmount ?? '0.00'}', isAmount: true),
         ],
       ),
     );
+  }
+
+
+  String formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
   Widget _buildInfoRow(String label, String value, {bool isAmount = false}) {

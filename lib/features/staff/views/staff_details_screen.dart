@@ -33,6 +33,18 @@ class StaffDetailsScreen extends GetView<StaffController> {
         appBar: AppHeader(
           title: 'Staff Details',
           subtitle: staff.name,
+          trailing: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
+                onPressed: () => Get.toNamed(RouteHelper.getEditStaffRoute(), arguments: staff),
+              ),
+              IconButton(
+                icon: const Icon(Iconsax.profile_delete, color: AppColors.errorColor),
+                onPressed: () => _showDeleteConfirmation(context, staff),
+              ),
+            ],
+          ),
         ),
         body: RefreshIndicator(
           onRefresh: () async {
@@ -197,6 +209,28 @@ class StaffDetailsScreen extends GetView<StaffController> {
         AppText('$label: ', style: AppTextStyle.body, fontWeight: FontWeight.w500),
         Expanded(child: AppText(value, style: AppTextStyle.body, color: AppColors.textColorSecondary)),
       ],
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, StaffModel staff) {
+    Get.dialog(
+      AlertDialog(
+        title: const AppText('Delete Staff', style: AppTextStyle.subheading, fontSize: 18),
+        content: AppText('Are you sure you want to delete ${staff.name}?', style: AppTextStyle.body),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteStaff(staff.id);
+            },
+            child: const AppText('Delete', color: AppColors.errorColor, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     );
   }
 }

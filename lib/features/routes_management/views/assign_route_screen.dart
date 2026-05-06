@@ -262,16 +262,22 @@ class _AssignRouteScreenState extends State<AssignRouteScreen> {
       children: [
         AppText('Select Route', style: AppTextStyle.label),
         const SizedBox(height: 8),
-        DropdownButtonFormField<RouteModel>(
-          value: _selectedRoute,
+        DropdownButtonFormField<String>(
+          value: _selectedRoute?.id,
           hint: const Text('Choose a route to assign'),
           items: controller.routes.map((route) {
-            return DropdownMenuItem(
-              value: route,
+            return DropdownMenuItem<String>(
+              value: route.id,
               child: Text(route.routeName),
             );
           }).toList(),
-          onChanged: (val) => setState(() => _selectedRoute = val),
+          onChanged: (val) {
+            if (val != null) {
+              setState(() {
+                _selectedRoute = controller.routes.firstWhere((r) => r.id == val);
+              });
+            }
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.slate50,

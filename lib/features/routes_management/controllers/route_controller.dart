@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../../core/utils/custom_snackbar.dart';
 import 'package:flutter/material.dart';
 import '../domain/models/route_model.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../staff/domain/models/staff_model.dart';
 import '../domain/repositories/vehicle_repository.dart';
 import '../domain/services/vehicle_service.dart';
 
@@ -27,6 +29,12 @@ class RouteController extends GetxController {
   final RxString vehicleSearchQuery = ''.obs;
   final RxBool isVehiclesLoading = false.obs;
   final Rxn<VehicleModel> selectedVehicle = Rxn<VehicleModel>();
+
+  // Driver-related observables
+  final RxList<StaffModel> _availableDrivers = <StaffModel>[].obs;
+  final RxString driverSearchQuery = ''.obs;
+  final RxBool isDriversLoading = false.obs;
+  final Rxn<StaffModel> selectedDriver = Rxn<StaffModel>();
 
   // Vehicle repository and use case
   late VehicleRepository _vehicleRepository;
@@ -53,6 +61,16 @@ class RouteController extends GetxController {
       return vehicle.registrationNumber.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase()) ||
              vehicle.make.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase()) ||
              vehicle.model.toLowerCase().contains(vehicleSearchQuery.value.toLowerCase());
+    }).toList();
+  }
+
+  List<StaffModel> get filteredDrivers {
+    if (driverSearchQuery.value.isEmpty) {
+      return _availableDrivers;
+    }
+    return _availableDrivers.where((driver) {
+      return driver.name.toLowerCase().contains(driverSearchQuery.value.toLowerCase()) ||
+             driver.phone.toLowerCase().contains(driverSearchQuery.value.toLowerCase());
     }).toList();
   }
 
@@ -83,6 +101,63 @@ class RouteController extends GetxController {
 
   void clearVehicleSelection() {
     selectedVehicle.value = null;
+  }
+
+  void updateDriverSearch(String query) {
+    driverSearchQuery.value = query;
+  }
+
+  void selectDriver(StaffModel driver) {
+    selectedDriver.value = driver;
+  }
+
+  void clearDriverSelection() {
+    selectedDriver.value = null;
+  }
+
+  Future<void> loadAvailableDrivers(int routeId) async {
+    try {
+      isDriversLoading.value = true;
+      final response = await _apiClient.get('/api/v1/routes/$routeId/available-drivers');
+      if (response.isSuccess && response.json != null) {
+        final List<dynamic> data = response.json?['data'] ?? [];
+        _availableDrivers.assignAll(data.map((e) => StaffModel.fromJson(e)).toList());
+      } else {
+        _availableDrivers.clear();
+      }
+    } catch (e) {
+      _availableDrivers.clear();
+    } finally {
+      isDriversLoading.value = false;
+    }
+  }
+
+  Future<void> assignDriverToRoute(int routeId, int driverId, DateTime assignedFrom, DateTime assignedTo) async {
+    try {
+      isLoading.value = true;
+      final body = {
+        'driver_ids': [driverId],
+        'assigned_from': DateFormat('yyyy-MM-dd').format(assignedFrom),
+        'assigned_to': DateFormat('yyyy-MM-dd').format(assignedTo),
+      };
+      final response = await _apiClient.post('/api/v1/routes/$routeId/assign-drivers', data: body);
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Driver assigned successfully');
+        clearDriverSelection();
+        await fetchRoutes();
+        if (selectedRouteDetails.value != null) {
+          await fetchRouteDetails(routeId);
+        }
+        Future.delayed(const Duration(milliseconds: 500), () => Get.back());
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to assign driver');
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error assigning driver: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> loadVehicles() async {
@@ -395,6 +470,8 @@ class RouteController extends GetxController {
         if (e is Map) return Map<String, dynamic>.from(e);
         return <String, dynamic>{'name': e.toString(), 'type': 'stop'};
       }).toList(),
+      assignedVehicles: (json['vehicles'] as List? ?? []).map((e) => VehicleModel.fromJson(e)).toList(),
+      assignedDrivers: (json['drivers'] as List? ?? []).map((e) => StaffModel.fromJson(e)).toList(),
     );
   }
 

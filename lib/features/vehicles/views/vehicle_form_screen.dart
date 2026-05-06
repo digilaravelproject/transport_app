@@ -14,6 +14,7 @@ import '../../../core/widgets/vehicle_type_dropdown.dart';
 import '../widgets/upload_box.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
+import '../controllers/vehicle_type_controller.dart';
 import '../../../core/utils/file_converter.dart';
 import '../../../core/services/network/multipart.dart';
 
@@ -29,9 +30,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   late VehicleModel? vehicle;
   bool isEdit = false;
 
-  final List<String> vehicleTypes = ['AC Sleeper', 'Non-AC Sleeper', 'AC Seater', 'Non-AC Seater', 'Luxury Volvo'];
-  String? selectedType;
-  
+  // Error state for vehicle type selection
+  String? vehicleTypeError;
+
   PlatformFile? rcFile;
   PlatformFile? insuranceFile;
   PlatformFile? permitFile;
@@ -56,7 +57,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
   // Error States
   String? regNoError;
-  String? typeError;
   String? capacityError;
   String? yearError;
   String? priceError;
@@ -70,11 +70,42 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   String? insuranceFileError;
   String? permitFileError;
 
+  // Vehicle type selection handler
+  void _onVehicleTypeSelected(int? id, String displayName) {
+    if (id != null) {
+      // Find the selected vehicle type
+      final vehicleTypeController = Get.find<VehicleTypeController>();
+      final selectedType = vehicleTypeController.vehicleTypes.firstWhereOrNull(
+        (type) => type.id == id
+      );
+      
+      if (selectedType != null) {
+        // Update the controller's selected vehicle type
+        controller.selectedVehicleTypeId.value = id;
+        controller.selectedVehicleType.value = displayName;
+        
+        // Auto-fill the capacity, per km price, and AC price fields
+        _capacityController.text = selectedType.capacity.toString();
+        _perKmPriceController.text = selectedType.perKmPrice.toString();
+        _acPriceController.text = selectedType.acPricePerKm.toString();
+        
+        // Clear any existing errors
+        setState(() {
+          capacityError = null;
+          priceError = null;
+        });
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     vehicle = Get.arguments;
     isEdit = vehicle != null;
+    
+    // Ensure VehicleTypeController is available
+    VehicleTypeDropdown.ensureController();
     
     if (isEdit) {
       _fillForm(vehicle!);
@@ -86,24 +117,40 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
   void _fillForm(VehicleModel v) {
     _regNoController.text = v.vehicleNumber;
-    selectedType = vehicleTypes.contains(v.type) ? v.type : v.type;
-    _capacityController.text = v.capacity.toString();
     _yearController.text = v.year;
+
+    // Pre-select vehicle type using ID from model (preferred)
+    // Falls back to name-matching if API returns type name instead of ID
+    if (v.vehicleTypeId != null) {
+      controller.selectedVehicleTypeId.value = v.vehicleTypeId;
+    } else if (v.type.isNotEmpty) {
+      final vehicleTypeController = Get.find<VehicleTypeController>();
+      final matchingType = vehicleTypeController.vehicleTypes.firstWhereOrNull(
+        (t) => t.name.toLowerCase() == v.type.toLowerCase(),
+      );
+      if (matchingType != null) {
+        controller.selectedVehicleTypeId.value = matchingType.id;
+        controller.selectedVehicleType.value = matchingType.name;
+      }
+    }
+
+    // Fill capacity/price fields from vehicle model values
+    _capacityController.text = v.capacity.toString();
     _perKmPriceController.text = v.perKmPrice.toString();
     _acPriceController.text = v.acPricePerKm.toString();
-    
+
     _rcNoController.text = v.rcNumber ?? '';
     if (v.rcExpiry != null) {
       rcExpiry = v.rcExpiry;
       _rcExpiryController.text = DateFormat('dd-MM-yyyy').format(rcExpiry!);
     }
-    
+
     _insNoController.text = v.insuranceNumber ?? '';
     if (v.insuranceExpiry != null) {
       insExpiry = v.insuranceExpiry;
       _insExpiryController.text = DateFormat('dd-MM-yyyy').format(insExpiry!);
     }
-    
+
     _permitNoController.text = v.permitNumber ?? '';
     if (v.permitExpiry != null) {
       permitExpiry = v.permitExpiry;
@@ -181,7 +228,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   Future<void> _handleSave() async {
     setState(() {
       regNoError = null;
-      typeError = null;
+      vehicleTypeError = null;
       capacityError = null;
       yearError = null;
       priceError = null;
@@ -202,8 +249,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       setState(() => regNoError = 'Vehicle number is required');
       hasError = true;
     }
-    if (selectedType == null) {
-      setState(() => typeError = 'Please select vehicle type');
+    if (controller.selectedVehicleTypeId.value == null || controller.selectedVehicleTypeId.value == 0) {
+      setState(() => vehicleTypeError = 'Please select vehicle type');
       hasError = true;
     }
     if (_capacityController.text.isEmpty) {
@@ -261,7 +308,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
     final Map<String, String> data = {
       'registration_number': _regNoController.text,
-      'type': selectedType ?? '',
+      'vehicle_type_id': controller.selectedVehicleTypeId.value.toString(),
       'seating_capacity': _capacityController.text,
       'model_year': _yearController.text,
       'per_km_price': _perKmPriceController.text,
@@ -339,16 +386,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                       const SizedBox(height: 16),
                       VehicleTypeDropdown(
                         selectedId: controller.selectedVehicleTypeId,
-                        onChanged: (id, displayName) {
-                          controller.selectedVehicleType.value = displayName;
-                        },
+                        onChanged: _onVehicleTypeSelected,
+                        errorText: vehicleTypeError,
                       ),
-                      _buildDropdown('Vehicle Type', vehicleTypes, selectedType, (val) {
-                        setState(() {
-                          selectedType = val;
-                          typeError = null;
-                        });
-                      }, errorText: typeError),
                       const SizedBox(height: 16),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,6 +400,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                               controller: _capacityController,
                               keyboardType: TextInputType.number,
                               errorText: capacityError,
+                              readOnly: true,
                               onChanged: (_) => setState(() => capacityError = null),
                             ),
                           ),
@@ -390,6 +431,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         controller: _perKmPriceController,
                         keyboardType: TextInputType.number,
                         errorText: priceError,
+                        readOnly: true,
                         onChanged: (_) => setState(() => priceError = null),
                       ),
                       const SizedBox(height: 16),
@@ -398,6 +440,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                         hint: 'e.g. 2.00',
                         controller: _acPriceController,
                         keyboardType: TextInputType.number,
+                        readOnly: true,
                       ),
                     ],
                   ),

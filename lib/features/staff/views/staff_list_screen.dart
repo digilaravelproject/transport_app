@@ -122,7 +122,7 @@ class _StaffCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                AppText(staff.role.name.capitalizeFirst!, style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                AppText(staff.roleName.toString(), style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                 const SizedBox(height: 8),
                 Row(
                   children: [

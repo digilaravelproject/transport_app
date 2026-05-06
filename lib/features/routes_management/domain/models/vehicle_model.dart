@@ -5,6 +5,7 @@ class VehicleModel {
   final int seatingCapacity;
   final String make;
   final String model;
+  final int modelYear;
   final String fuelType;
   final String currentKm;
   final bool isAvailable;
@@ -19,6 +20,7 @@ class VehicleModel {
     required this.seatingCapacity,
     required this.make,
     required this.model,
+    required this.modelYear,
     required this.fuelType,
     required this.currentKm,
     required this.isAvailable,
@@ -35,6 +37,7 @@ class VehicleModel {
       seatingCapacity: json['seating_capacity'] ?? 0,
       make: json['make'] ?? '',
       model: json['model'] ?? '',
+      modelYear: json['model_year'] ?? 0,
       fuelType: json['fuel_type'] ?? '',
       currentKm: json['current_km']?.toString() ?? '0',
       isAvailable: json['is_available'] ?? false,
@@ -52,6 +55,7 @@ class VehicleModel {
       'seating_capacity': seatingCapacity,
       'make': make,
       'model': model,
+      'model_year': modelYear,
       'fuel_type': fuelType,
       'current_km': currentKm,
       'is_available': isAvailable,

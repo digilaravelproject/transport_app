@@ -41,6 +41,14 @@ class _AddDutyRecordScreenState extends State<AddDutyRecordScreen> {
                     hint: 'DD/MM/YYYY',
                     icon: Iconsax.calendar_1,
                   ),
+                  AppInputField(
+                    label: 'Joining Date',
+                    hint: 'YYYY-MM-DD',
+                   // controller: _joiningDateController,
+                    icon: Iconsax.calendar_1,
+                   // onTap: () => _selectDate(context, _joiningDateController),
+                    readOnly: true,
+                  ),
                   const SizedBox(height: 16),
                   const AppInputField(
                     label: 'Trip / Purpose',

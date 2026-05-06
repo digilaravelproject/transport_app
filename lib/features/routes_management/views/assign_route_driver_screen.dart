@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
@@ -34,9 +34,14 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
     // Pre-select if navigated from route details
     if (Get.arguments is RouteModel) {
       _selectedRoute = Get.arguments;
+      final routeId = int.tryParse(_selectedRoute!.id);
+      if (routeId != null) {
+        // Fetch drivers for this specific route
+        controller.loadAvailableDrivers(routeId);
+      }
     }
-    // Clear previous vehicle selection
-    controller.clearVehicleSelection();
+    // Clear previous selection
+    controller.clearDriverSelection();
   }
 
   @override
@@ -45,11 +50,11 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
       appBar: const AppHeader(
         title: 'Assign Route Driver',
       ),
-      floatingActionButton: Obx(() => controller.selectedVehicle.value != null && _selectedRoute != null
+      floatingActionButton: Obx(() => controller.selectedDriver.value != null && _selectedRoute != null
           ? FloatingActionButton.extended(
         heroTag: null,
         onPressed: () async {
-          final vehicle = controller.selectedVehicle.value!;
+          final driver = controller.selectedDriver.value!;
           final route = _selectedRoute!;
 
           // Convert route ID to int
@@ -59,11 +64,11 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
             return;
           }
 
-          // Call the assign vehicle API
-          await controller.assignVehicleToRoute(routeId, vehicle.id);
+          // Show bottom sheet for dates
+          _showAssignDriverBottomSheet(context, routeId, driver.id);
         },
         backgroundColor: AppColors.primaryColor,
-        label: AppText(
+        label: const AppText(
           'Assign Driver',
           style: AppTextStyle.body,
           color: Colors.white,
@@ -81,27 +86,12 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: AppSearchBar(
                 hint: 'Search driver...',
-                onChanged: (value) => controller.updateVehicleSearch(value),
+                onChanged: (value) => controller.updateDriverSearch(value),
               ),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            //   child: Row(
-            //     children: [
-            //       const AppText('Select Vehicle', style: AppTextStyle.subheading),
-            //       const Spacer(),
-            //       Obx(() => AppText(
-            //         controller.selectedVehicle.value != null ? '1 selected' : '0 selected',
-            //         style: AppTextStyle.caption,
-            //         color: AppColors.primaryColor,
-            //         fontWeight: FontWeight.bold,
-            //       )),
-            //     ],
-            //   ),
-            // ),
             Expanded(
               child: Obx(() {
-                if (controller.isVehiclesLoading.value) {
+                if (controller.isDriversLoading.value) {
                   return const Center(
                     child: CircularProgressIndicator(
                       color: AppColors.primaryColor,
@@ -109,47 +99,47 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                   );
                 }
 
-                final vehicles = controller.filteredVehicles;
+                final drivers = controller.filteredDrivers;
 
-                if (vehicles.isEmpty) {
+                if (drivers.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
-                          Iconsax.bus,
+                          Iconsax.user,
                           size: 64,
                           color: AppColors.textColorSecondary,
                         ),
                         const SizedBox(height: 16),
                         AppText(
-                          controller.vehicleSearchQuery.value.isNotEmpty
-                              ? 'No vehicles found for "${controller.vehicleSearchQuery.value}"'
-                              : 'No vehicles available',
+                          controller.driverSearchQuery.value.isNotEmpty
+                              ? 'No drivers found for "${controller.driverSearchQuery.value}"'
+                              : 'No drivers available',
                           style: AppTextStyle.body,
                           color: AppColors.textColorSecondary,
                         ),
-                        // const SizedBox(height: 16),
-                        // AppButton(
-                        //   text: 'Refresh',
-                        //   onPressed: () => controller.refreshVehicles(),
-                        // ),
                       ],
                     ),
                   );
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () => controller.refreshVehicles(),
+                  onRefresh: () async {
+                    final routeId = int.tryParse(_selectedRoute!.id);
+                    if (routeId != null) {
+                      await controller.loadAvailableDrivers(routeId);
+                    }
+                  },
                   color: AppColors.primaryColor,
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount: vehicles.length,
+                    itemCount: drivers.length,
                     itemBuilder: (context, index) {
-                      final vehicle = vehicles[index];
+                      final driver = drivers[index];
                       return Obx(() {
-                        final isSelected = controller.selectedVehicle.value?.id == vehicle.id;
+                        final isSelected = controller.selectedDriver.value?.id == driver.id;
                         return AppCard(
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
@@ -157,7 +147,7 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                             color: isSelected ? AppColors.primaryColor : Colors.transparent,
                             width: 2,
                           ),
-                          onTap: () => controller.selectVehicle(vehicle),
+                          onTap: () => controller.selectDriver(driver),
                           child: Row(
                             children: [
                               Container(
@@ -180,15 +170,14 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     AppText(
-                                      "Rajesh",
+                                      driver.name,
                                       style: AppTextStyle.body,
                                       fontWeight: FontWeight.bold,
                                       color: isSelected ? AppColors.primaryColor : AppColors.textColorPrimary,
                                     ),
                                     const SizedBox(height: 4),
                                     AppText(
-                                      "9651017054",
-                                    //  '${vehicle.make} ${vehicle.model} • ${vehicle.seatingCapacity} Seater',
+                                      driver.phone,
                                       style: AppTextStyle.caption,
                                       color: AppColors.textColorSecondary,
                                     ),
@@ -198,28 +187,25 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: vehicle.isAvailable
-                                                ? AppColors.successColor.withOpacity(0.1)
-                                                : AppColors.errorColor.withOpacity(0.1),
+                                            color: AppColors.successColor.withOpacity(0.1),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
-                                          child: AppText(
-                                            vehicle.isAvailable ? 'Available' : 'Not Available',
+                                          child: const AppText(
+                                            'Available',
                                             fontSize: 10,
-                                            color: vehicle.isAvailable
-                                                ? AppColors.successColor
-                                                : AppColors.errorColor,
+                                            color: AppColors.successColor,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                        const SizedBox(width: 8),
-                                        AppText(
-                                          "5 year experience",
-                                         // '${vehicle.fuelType.toUpperCase()} • ${vehicle.currentKm} km',
-                                          fontSize: 10,
-                                          color: AppColors.textColorSecondary,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        if (driver.shiftName != null) ...[
+                                          const SizedBox(width: 8),
+                                          AppText(
+                                            driver.shiftName!,
+                                            fontSize: 10,
+                                            color: AppColors.textColorSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ],
                                       ],
                                     ),
                                   ],
@@ -228,7 +214,7 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
                               if (isSelected)
                                 Container(
                                   padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: AppColors.primaryColor,
                                     shape: BoxShape.circle,
                                   ),
@@ -260,4 +246,131 @@ class _AssignRouteScreenState extends State<AssignRouteDriverScreen> {
     );
   }
 
+  void _showAssignDriverBottomSheet(BuildContext context, int routeId, int driverId) {
+    DateTime? fromDate;
+    DateTime? toDate;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const AppText(
+                    'Assign Driver',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 20),
+                  // From Date
+                  AppText('From Date', style: AppTextStyle.label),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    readOnly: true,
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: fromDate ?? DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          fromDate = date;
+                          if (toDate != null && toDate!.isBefore(fromDate!)) {
+                            toDate = null; // reset if invalid
+                          }
+                        });
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: fromDate != null 
+                          ? DateFormat('yyyy-MM-dd').format(fromDate!) 
+                          : 'Select From Date',
+                      suffixIcon: const Icon(Iconsax.calendar),
+                      filled: true,
+                      fillColor: AppColors.slate50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.slate200),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // To Date
+                  AppText('To Date', style: AppTextStyle.label),
+                  const SizedBox(height: 8),
+                  TextFormField(
+                    readOnly: true,
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: toDate ?? (fromDate ?? DateTime.now()),
+                        firstDate: fromDate ?? DateTime.now(),
+                        lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+                      );
+                      if (date != null) {
+                        setState(() => toDate = date);
+                      }
+                    },
+                    decoration: InputDecoration(
+                      hintText: toDate != null 
+                          ? DateFormat('yyyy-MM-dd').format(toDate!) 
+                          : 'Select To Date',
+                      suffixIcon: const Icon(Iconsax.calendar),
+                      filled: true,
+                      fillColor: AppColors.slate50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.slate200),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Obx(() => ElevatedButton(
+                      onPressed: controller.isLoading.value ? null : () async {
+                        if (fromDate == null || toDate == null) {
+                          CustomSnackbar.showError('Please select both from and to dates');
+                          return;
+                        }
+                        Navigator.pop(context); // Close bottom sheet
+                        await controller.assignDriverToRoute(routeId, driverId, fromDate!, toDate!);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: controller.isLoading.value 
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const AppText('Assign Driver', color: Colors.white, fontWeight: FontWeight.bold),
+                    )),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }

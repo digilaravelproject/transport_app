@@ -1,3 +1,6 @@
+import 'vehicle_model.dart';
+import '../../../staff/domain/models/staff_model.dart';
+
 class RouteModel {
   final String id;
   final String routeName;
@@ -9,6 +12,8 @@ class RouteModel {
   final bool isActive;
   final List<Map<String, dynamic>> schedules;
   final List<Map<String, dynamic>> points;
+  final List<VehicleModel> assignedVehicles;
+  final List<StaffModel> assignedDrivers;
 
   RouteModel({
     required this.id,
@@ -21,5 +26,7 @@ class RouteModel {
     this.isActive = true,
     this.schedules = const [],
     this.points = const [],
+    this.assignedVehicles = const [],
+    this.assignedDrivers = const [],
   });
 }

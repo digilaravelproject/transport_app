@@ -33,8 +33,8 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
   final _roleController = Get.isRegistered<RoleController>() ? Get.find<RoleController>() : Get.put(RoleController());
   final _shiftController = Get.isRegistered<ShiftController>() ? Get.find<ShiftController>() : Get.put(ShiftController());
 
-  RoleModel? _selectedRole;
-  ShiftModel? _selectedShift;
+  String? _selectedRoleId;
+  int? _selectedShiftId;
   SalaryType _selectedSalaryType = SalaryType.monthly;
 
   final TextEditingController _nameController = TextEditingController();
@@ -58,7 +58,10 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
   PlatformFile? photoFile;
 
   bool get _isEdit => staff != null;
-  bool get _isDriver => _selectedRole?.roleName.toLowerCase() == 'driver';
+  bool get _isDriver {
+    final role = _roleController.roles.firstWhereOrNull((r) => r.id == _selectedRoleId);
+    return role?.roleName.toLowerCase() == 'driver';
+  }
 
   @override
   void initState() {
@@ -91,18 +94,25 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
 
     await _roleController.fetchRoles();
     if (_isEdit && staff!.roleId != null) {
-      _selectedRole = _roleController.roles.firstWhereOrNull((r) => r.id == staff!.roleId || r.roleName.toLowerCase() == staff!.roleId!.toLowerCase());
+      final matchedRole = _roleController.roles.firstWhereOrNull(
+        (r) => r.id == staff!.roleId || r.roleName.toLowerCase() == staff!.roleId!.toLowerCase(),
+      );
+      _selectedRoleId = matchedRole?.id;
     } else if (!_isEdit && _roleController.roles.isNotEmpty) {
       // Default to Driver for new staff if available
-      _selectedRole = _roleController.roles.firstWhereOrNull((r) => r.roleName.toLowerCase() == 'driver') ?? _roleController.roles.first;
+      final driverRole = _roleController.roles.firstWhereOrNull((r) => r.roleName.toLowerCase() == 'driver')
+          ?? _roleController.roles.first;
+      _selectedRoleId = driverRole.id;
     }
 
     await _shiftController.refreshShifts();
     if (_isEdit) {
       if (staff!.shiftId != null) {
-        _selectedShift = _shiftController.shifts.firstWhereOrNull((s) => s.id.toString() == staff!.shiftId);
+        final matchedShift = _shiftController.shifts.firstWhereOrNull((s) => s.id.toString() == staff!.shiftId);
+        _selectedShiftId = matchedShift?.id;
       } else if (staff!.shiftName != null) {
-        _selectedShift = _shiftController.shifts.firstWhereOrNull((s) => s.name.toLowerCase() == staff!.shiftName!.toLowerCase());
+        final matchedShift = _shiftController.shifts.firstWhereOrNull((s) => s.name.toLowerCase() == staff!.shiftName!.toLowerCase());
+        _selectedShiftId = matchedShift?.id;
       }
     }
 
@@ -318,11 +328,11 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
   }
 
   void _handleSubmit() async {
-    if (_selectedRole == null) {
+    if (_selectedRoleId == null) {
       CustomSnackbar.showError('Please select a role');
       return;
     }
-    if (_selectedShift == null) {
+    if (_selectedShiftId == null) {
       CustomSnackbar.showError('Please select a work shift');
       return;
     }
@@ -331,10 +341,10 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'name': _nameController.text,
       'phone': '${_staffController.selectedCountryCode.value}${_phoneController.text}',
       'email': _emailController.text,
-      'staff_type': _selectedRole!.id,
+      'staff_type': _selectedRoleId,
       'salary_type': _selectedSalaryType.name,
       'basic_salary': _salaryController.text,
-      'work_shift': _selectedShift!.id,
+      'work_shift': _selectedShiftId,
       'date_of_joining': _joiningDateController.text,
       'address': _addressController.text,
       'aadhar_number': _aadharNoController.text,
@@ -350,6 +360,10 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       'passbook_file': passbookFile?.path,
       'photo_file': photoFile?.path,
     };
+
+    data.forEach((key, value) {
+      print('$key : $value');
+    });
 
     bool success;
     if (_isEdit) {
@@ -370,26 +384,40 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       children: [
         const AppText('Select Role', style: AppTextStyle.label),
         const SizedBox(height: 8),
-        Obx(() => DropdownButtonFormField<RoleModel>(
-          value: _selectedRole,
-          hint: const Text('Select Role'),
-          items: _roleController.roles.map((role) {
-            return DropdownMenuItem(
-              value: role,
-              child: Text(role.roleName),
-            );
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedRole = val),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.slate50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+        Obx(() {
+          // Deduplicate roles by ID to avoid Flutter dropdown assertion crash
+          final uniqueRoles = <String, RoleModel>{};
+          for (final role in _roleController.roles) {
+            uniqueRoles[role.id] = role;
+          }
+          final roleList = uniqueRoles.values.toList();
+
+          // Ensure selectedId exists in the current list
+          final validId = roleList.any((r) => r.id == _selectedRoleId)
+              ? _selectedRoleId
+              : null;
+
+          return DropdownButtonFormField<String>(
+            value: validId,
+            hint: const Text('Select Role'),
+            items: roleList.map((role) {
+              return DropdownMenuItem<String>(
+                value: role.id,
+                child: Text(role.roleName),
+              );
+            }).toList(),
+            onChanged: (val) => setState(() => _selectedRoleId = val),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.slate50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.slate200),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-          ),
-        )),
+          );
+        }),
       ],
     );
   }
@@ -400,27 +428,41 @@ class _StaffFormScreenState extends State<StaffFormScreen> {
       children: [
         const AppText('Work Shift', style: AppTextStyle.label),
         const SizedBox(height: 8),
-        Obx(() => DropdownButtonFormField<ShiftModel>(
-          value: _selectedShift,
-          hint: const Text('Select Work Shift'),
-          items: _shiftController.shifts.map((shift) {
-            return DropdownMenuItem(
-              value: shift,
-              child: Text(shift.name),
-            );
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedShift = val),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.slate50,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.slate200),
+        Obx(() {
+          // Deduplicate shifts by ID
+          final uniqueShifts = <int, ShiftModel>{};
+          for (final shift in _shiftController.shifts) {
+            if (shift.id != null) uniqueShifts[shift.id!] = shift;
+          }
+          final shiftList = uniqueShifts.values.toList();
+
+          // Ensure selectedId exists in the current list
+          final validId = shiftList.any((s) => s.id == _selectedShiftId)
+              ? _selectedShiftId
+              : null;
+
+          return DropdownButtonFormField<int>(
+            value: validId,
+            hint: const Text('Select Work Shift'),
+            items: shiftList.map((shift) {
+              return DropdownMenuItem<int>(
+                value: shift.id,
+                child: Text(shift.name),
+              );
+            }).toList(),
+            onChanged: (val) => setState(() => _selectedShiftId = val),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.slate50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.slate200),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              prefixIcon: const Icon(Iconsax.clock, size: 20),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            prefixIcon: const Icon(Iconsax.clock, size: 20),
-          ),
-        )),
+          );
+        }),
       ],
     );
   }

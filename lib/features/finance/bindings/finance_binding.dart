@@ -3,6 +3,7 @@ import '../../../core/services/network/api_client.dart';
 import '../controllers/finance_controller.dart';
 import '../domain/repositories/finance_repository.dart';
 import '../domain/services/finance_service.dart';
+import '../domain/services/finance_service.dart' as finance_service;
 
 class FinanceBinding extends Bindings {
   @override

@@ -11,18 +11,40 @@ import '../controllers/route_controller.dart';
 import '../domain/models/route_model.dart';
 import '../../../routes/route_helper.dart';
 
-class RouteDetailsScreen extends GetView<RouteController> {
+class RouteDetailsScreen extends StatefulWidget {
   const RouteDetailsScreen({Key? key}) : super(key: key);
 
   @override
+  State<RouteDetailsScreen> createState() => _RouteDetailsScreenState();
+}
+
+class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
+  final RouteController controller = Get.find<RouteController>();
+  late String routeId;
+
+  @override
+  void initState() {
+    super.initState();
+    routeId = (Get.arguments as RouteModel?)?.id ?? '';
+    if (routeId.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.fetchRouteDetails(routeId);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final String routeId = (Get.arguments as RouteModel?)?.id ?? '';
-    
     return AppScaffold(
       appBar: AppHeader(
         title: 'Route Details',
         rightWidget: Obx(() {
-          final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
+          final route = controller.selectedRouteDetails.value?.id == routeId 
+              ? controller.selectedRouteDetails.value! 
+              : controller.routes.firstWhere(
+                  (r) => r.id == routeId, 
+                  orElse: () => Get.arguments as RouteModel
+                );
           return IconButton(
             icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
             onPressed: () => Get.toNamed(RouteHelper.getCreateRouteRoute(), arguments: route),
@@ -46,13 +68,19 @@ class RouteDetailsScreen extends GetView<RouteController> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final route = controller.routes.firstWhere(
-          (r) => r.id == routeId, 
-          orElse: () => Get.arguments as RouteModel
-        );
+        final route = controller.selectedRouteDetails.value?.id == routeId 
+            ? controller.selectedRouteDetails.value! 
+            : controller.routes.firstWhere(
+                (r) => r.id == routeId, 
+                orElse: () => Get.arguments as RouteModel
+              );
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+        return RefreshIndicator(
+          onRefresh: () async => await controller.fetchRouteDetails(routeId),
+          color: AppColors.primaryColor,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -294,261 +322,273 @@ class RouteDetailsScreen extends GetView<RouteController> {
               
               const SizedBox(height: 24),
 
-              // --- Assigned Bus Card ---
-              AppCard(
-                margin: const EdgeInsets.symmetric(horizontal: 0),
-                borderRadius: 0,
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const AppText('Assigned Bus', fontSize: 16, fontWeight: FontWeight.w700),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.successColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const AppText(
-                            'Active',
-                            fontSize: 10,
-                            color: AppColors.successColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Bus Details
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.slate50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.slate200),
-                      ),
+                    // Assigned Bus Card
+                    AppCard(
+                      margin: const EdgeInsets.symmetric(horizontal: 0),
+                      borderRadius: 0,
+                      padding: const EdgeInsets.all(20),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(10),
+                              const AppText('Assigned Bus', fontSize: 16, fontWeight: FontWeight.w700),
+                              if (route.assignedVehicles.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.successColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const AppText(
+                                    'Active',
+                                    fontSize: 10,
+                                    color: AppColors.successColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Iconsax.bus,
-                                  color: AppColors.primaryColor,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const AppText(
-                                      'DL-1CA-1234',
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textColorPrimary,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    const AppText(
-                                      'Tata Ultra AC • 45 Seater',
-                                      fontSize: 12,
-                                      color: AppColors.textColorSecondary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ],
                           ),
+                          const SizedBox(height: 20),
+                          
+                          if (route.assignedVehicles.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: AppText('Not assigned yet', fontSize: 14, color: AppColors.textColorHint),
+                              ),
+                            )
+                          else ...[
+                            // Bus Details
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.slate50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.slate200),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: const Icon(
+                                          Iconsax.bus,
+                                          color: AppColors.primaryColor,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            AppText(
+                                              route.assignedVehicles.first.registrationNumber,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textColorPrimary,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            AppText(
+                                              '${route.assignedVehicles.first.make} ${route.assignedVehicles.first.model} • ${route.assignedVehicles.first.seatingCapacity} Seater',
+                                              fontSize: 12,
+                                              color: AppColors.textColorSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildBusDetailItem('Model Year', route.assignedVehicles.first.modelYear.toString()),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildBusDetailItem('Fuel Type', route.assignedVehicles.first.fuelType.toUpperCase()),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildBusDetailItem('Model Year', '2023'),
+                          
+                          // Bus Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await Get.toNamed(RouteHelper.getAssignRouteRoute(), arguments: route);
+                                controller.fetchRouteDetails(routeId);
+                              },
+                              icon: Icon(route.assignedVehicles.isEmpty ? Iconsax.add : Iconsax.refresh, size: 18),
+                              label: AppText(
+                                route.assignedVehicles.isEmpty ? 'Assign Bus' : 'Change Bus',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildBusDetailItem('Fuel Type', 'Diesel'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primaryColor,
+                                side: const BorderSide(color: AppColors.primaryColor),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildBusDetailItem('Last Service', '15 Jan 2026'),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildBusDetailItem('Next Service', '15 Apr 2026'),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Change Bus Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
-                          Get.toNamed(RouteHelper.getAssignRouteRoute(), arguments: route);
-                        },
-                        icon: const Icon(Iconsax.refresh, size: 18),
-                        label: const AppText(
-                          'Change Bus',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primaryColor,
-                          side: const BorderSide(color: AppColors.primaryColor),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
                       ),
                     ),
                     
                     const SizedBox(height: 24),
                     
-                    // Assigned Driver Section
-                    const AppText('Assigned Driver', fontSize: 14, fontWeight: FontWeight.w700),
-                    const SizedBox(height: 12),
-                    
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.slate50,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.slate200),
-                      ),
+                    // Assigned Driver Card
+                    AppCard(
+                      margin: const EdgeInsets.symmetric(horizontal: 0),
+                      borderRadius: 0,
+                      padding: const EdgeInsets.all(20),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor.withOpacity(0.1),
-                                  shape: BoxShape.circle,
+                              const AppText('Assigned Driver', fontSize: 16, fontWeight: FontWeight.w700),
+                              if (route.assignedDrivers.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.successColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const AppText(
+                                    'Active',
+                                    fontSize: 10,
+                                    color: AppColors.successColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Iconsax.user,
-                                  color: AppColors.primaryColor,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const AppText(
-                                      'Rajesh Kumar',
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textColorPrimary,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    const AppText(
-                                      '+91 98765 43210',
-                                      fontSize: 12,
-                                      color: AppColors.textColorSecondary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.successColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const AppText(
-                                  'Available',
-                                  fontSize: 10,
-                                  color: AppColors.successColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
                             ],
                           ),
+                          const SizedBox(height: 20),
+                          
+                          if (route.assignedDrivers.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: AppText('Not assigned yet', fontSize: 14, color: AppColors.textColorHint),
+                              ),
+                            )
+                          else ...[
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.slate50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppColors.slate200),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryColor.withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Iconsax.user,
+                                          color: AppColors.primaryColor,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            AppText(
+                                              route.assignedDrivers.first.name,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.textColorPrimary,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            AppText(
+                                              route.assignedDrivers.first.phone,
+                                              fontSize: 12,
+                                              color: AppColors.textColorSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildDriverDetailItem('License No.', route.assignedDrivers.first.licenseNumber ?? 'N/A'),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: _buildDriverDetailItem('Shift', route.assignedDrivers.first.shiftName ?? 'N/A'),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          
                           const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildDriverDetailItem('License No.', 'DL-1420110012345'),
+                          
+                          // Driver Button
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                await Get.toNamed(RouteHelper.getAssignRouteDriver(), arguments: route);
+                                controller.fetchRouteDetails(routeId);
+                              },
+                              icon: Icon(route.assignedDrivers.isEmpty ? Iconsax.user_add : Iconsax.user_edit, size: 18),
+                              label: AppText(
+                                route.assignedDrivers.isEmpty ? 'Assign Driver' : 'Change Driver',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDriverDetailItem('Experience', '8 Years'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primaryColor,
+                                side: const BorderSide(color: AppColors.primaryColor),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildDriverDetailItem('License Expiry', '25 Dec 2027'),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDriverDetailItem('Rating', '4.8 ⭐'),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Change Driver Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () {
-                          final route = controller.routes.firstWhere((r) => r.id == routeId, orElse: () => Get.arguments as RouteModel);
-                          Get.toNamed(RouteHelper.getAssignRouteDriver(), arguments: route);
-                        },
-                        icon: const Icon(Iconsax.user_edit, size: 18),
-                        label: const AppText(
-                          'Change Driver',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primaryColor,
-                          side: const BorderSide(color: AppColors.primaryColor),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
+        ),
         );
       }),
     );

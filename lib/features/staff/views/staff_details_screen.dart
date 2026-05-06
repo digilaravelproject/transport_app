@@ -17,38 +17,54 @@ class StaffDetailsScreen extends GetView<StaffController> {
 
   @override
   Widget build(BuildContext context) {
-    final StaffModel staff = Get.arguments ?? controller.staffList.first;
+    final int staffId = (Get.arguments as StaffModel?)?.id ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
 
-    return AppScaffold(
-      appBar: AppHeader(
-        title: 'Staff Details',
-        subtitle: staff.name,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildProfileHeader(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Personal Information'),
-            _buildPersonalInfo(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Work Information'),
-            _buildWorkInfo(staff),
-            const SizedBox(height: 12),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Actions'),
-            _buildActionsGrid(staff),
-            const SizedBox(height: 32),
-            AppButton.outline(
-              text: 'Edit Staff',
-              onPressed: () => Get.toNamed(RouteHelper.getEditStaffRoute(), arguments: staff),
-            ),
-            const SizedBox(height: 32),
-          ],
+    return Obx(() {
+      final StaffModel? staff = controller.staffList.firstWhereOrNull((s) => s.id == staffId);
+
+      if (staff == null) {
+        return const AppScaffold(
+          appBar: AppHeader(title: 'Staff Details'),
+          body: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      return AppScaffold(
+        appBar: AppHeader(
+          title: 'Staff Details',
+          subtitle: staff.name,
         ),
-      ),
-    );
+        body: RefreshIndicator(
+          onRefresh: () async {
+            await controller.fetchStaff();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _buildProfileHeader(staff),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Personal Information'),
+                _buildPersonalInfo(staff),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Work Information'),
+                _buildWorkInfo(staff),
+                const SizedBox(height: 12),
+                _buildSectionTitle('Actions'),
+                _buildActionsGrid(staff),
+                const SizedBox(height: 32),
+                AppButton.outline(
+                  text: 'Edit Staff',
+                  onPressed: () => Get.toNamed(RouteHelper.getEditStaffRoute(), arguments: staff),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildProfileHeader(StaffModel staff) {
@@ -75,7 +91,7 @@ class StaffDetailsScreen extends GetView<StaffController> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    AppText(staff.role.name.capitalizeFirst!, style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                    AppText(staff.roleName!, style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                   ],
                 ),
               ),
@@ -116,7 +132,7 @@ class StaffDetailsScreen extends GetView<StaffController> {
         children: [
           _buildInfoRow(Iconsax.card, 'Monthly Salary', '₹ ${staff.salary}'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.clock, 'Working Shift', staff.shift ?? 'N/A'),
+          _buildInfoRow(Iconsax.clock, 'Working Shift', staff.shiftName ?? 'N/A'),
           if (staff.assignedVehicleNumber != null) ...[
             const SizedBox(height: 12),
             _buildInfoRow(Iconsax.bus, 'Assigned Vehicle', staff.assignedVehicleNumber!),

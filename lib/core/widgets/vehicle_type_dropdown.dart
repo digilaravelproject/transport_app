@@ -22,12 +22,14 @@ class VehicleTypeDropdown extends StatelessWidget {
   final Rxn<int> selectedId;
   final void Function(int? id, String displayName)? onChanged;
   final String label;
+  final String? errorText;
 
   const VehicleTypeDropdown({
     Key? key,
     required this.selectedId,
     this.onChanged,
     this.label = 'Vehicle Type',
+    this.errorText,
   }) : super(key: key);
 
   /// Ensures the VehicleTypeController is available.
@@ -67,7 +69,7 @@ class VehicleTypeDropdown extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
+                border: Border.all(color: errorText != null ? Colors.red : AppColors.borderColor.withOpacity(0.5)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Row(
@@ -88,7 +90,7 @@ class VehicleTypeDropdown extends StatelessWidget {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
+                border: Border.all(color: errorText != null ? Colors.red : AppColors.borderColor.withOpacity(0.5)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const AppText(
@@ -99,39 +101,54 @@ class VehicleTypeDropdown extends StatelessWidget {
             );
           }
 
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: selectedType != null ? selectedType.id : null,
-                isExpanded: true,
-                hint: const AppText('Select Vehicle Type', style: AppTextStyle.body, fontSize: 14),
-                icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                onChanged: (int? newId) {
-                  if (newId != null) {
-                    selectedId.value = newId;
-                    final selected = types.firstWhereOrNull((t) => t.id == newId);
-                    if (selected != null && onChanged != null) {
-                      onChanged!(newId, _formatDisplayName(selected));
-                    }
-                  }
-                },
-                items: types.map((VehicleTypeModel type) {
-                  return DropdownMenuItem<int>(
-                    value: type.id,
-                    child: AppText(
-                      _formatDisplayName(type),
-                      style: AppTextStyle.body,
-                      fontSize: 14,
-                    ),
-                  );
-                }).toList(),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: errorText != null ? Colors.red : AppColors.borderColor.withOpacity(0.5)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: selectedType != null ? selectedType.id : null,
+                    isExpanded: true,
+                    hint: const AppText('Select Vehicle Type', style: AppTextStyle.body, fontSize: 14),
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                    onChanged: (int? newId) {
+                      if (newId != null) {
+                        selectedId.value = newId;
+                        final selected = types.firstWhereOrNull((t) => t.id == newId);
+                        if (selected != null && onChanged != null) {
+                          onChanged!(newId, _formatDisplayName(selected));
+                        }
+                      }
+                    },
+                    items: types.map((VehicleTypeModel type) {
+                      return DropdownMenuItem<int>(
+                        value: type.id,
+                        child: AppText(
+                          _formatDisplayName(type),
+                          style: AppTextStyle.body,
+                          fontSize: 14,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
+              if (errorText != null && errorText!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 4),
+                  child: AppText(
+                    errorText!,
+                    style: AppTextStyle.body,
+                    fontSize: 12,
+                    color: Colors.red,
+                  ),
+                ),
+            ],
           );
         }),
       ],

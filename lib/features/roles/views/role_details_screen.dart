@@ -111,20 +111,20 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
                   ),
                 ),
   
-                const SizedBox(height: 24),
-  
-                // --- Stats Row ---
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildStatCard('Permissions', '${role.permissions.length}', Iconsax.key, AppColors.primaryColor),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildStatCard('Level', role.level, Iconsax.hierarchy, AppColors.infoColor),
-                    ),
-                  ],
-                ),
+                // const SizedBox(height: 24),
+                //
+                // // --- Stats Row ---
+                // Row(
+                //   children: [
+                //     Expanded(
+                //       child: _buildStatCard('Permissions', '${role.permissions.length}', Iconsax.key, AppColors.primaryColor),
+                //     ),
+                //     const SizedBox(width: 16),
+                //     Expanded(
+                //       child: _buildStatCard('Level', role.level, Iconsax.hierarchy, AppColors.infoColor),
+                //     ),
+                //   ],
+                // ),
   
                 const SizedBox(height: 24),
   

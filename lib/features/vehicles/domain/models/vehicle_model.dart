@@ -4,6 +4,7 @@ enum VehicleStatus { active, maintenance, inactive }
 
 class VehicleModel {
   final int? id;
+  final int? vehicleTypeId;
   final String vehicleNumber;
   final String type;
   final int capacity;
@@ -31,6 +32,7 @@ class VehicleModel {
 
   VehicleModel({
     this.id,
+    this.vehicleTypeId,
     required this.vehicleNumber,
     required this.type,
     required this.capacity,
@@ -63,6 +65,9 @@ class VehicleModel {
     
     return VehicleModel(
       id: data['id'] ?? data['vehicle_id'],
+      vehicleTypeId: data['vehicle_type_id'] is int
+          ? data['vehicle_type_id']
+          : int.tryParse(data['vehicle_type_id']?.toString() ?? ''),
       vehicleNumber: data['registration_number'] ?? '',
       type: data['type'] ?? '',
       capacity: data['seating_capacity'] ?? 0,

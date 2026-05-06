@@ -86,15 +86,15 @@ class TransactionModel {
       case 'cheque':
         return 'Cheque';
       default:
-        return mode.replaceAll('_', ' ').split(' ').map((word) => 
-          word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word
+        return mode.replaceAll('_', ' ').split(' ').map((word) =>
+        word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word
         ).join(' ');
     }
   }
 
   String get displayCategory {
-    return category.replaceAll('_', ' ').split(' ').map((word) => 
-      word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word
+    return category.replaceAll('_', ' ').split(' ').map((word) =>
+    word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : word
     ).join(' ');
   }
 }
@@ -134,8 +134,8 @@ class FinanceResponse {
     return FinanceResponse(
       summary: FinanceSummary.fromJson(json['summary'] ?? {}),
       transactions: (json['data']['data'] as List<dynamic>?)
-              ?.map((e) => TransactionModel.fromJson(e))
-              .toList() ??
+          ?.map((e) => TransactionModel.fromJson(e))
+          .toList() ??
           [],
       meta: PaginationMeta.fromJson(json['data'] ?? {}),
     );

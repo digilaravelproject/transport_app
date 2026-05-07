@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
@@ -129,8 +130,8 @@ class StaffController extends GetxController {
     ];
 
     staffDocuments.value = [
-      StaffDocument(name: 'Driving License', uploadDate: DateTime.now().subtract(const Duration(days: 200)), expiryDate: DateTime.now().add(const Duration(days: 400)), fileUrl: 'license.pdf'),
-      StaffDocument(name: 'Aadhar Card', uploadDate: DateTime.now().subtract(const Duration(days: 300)), expiryDate: DateTime.now().add(const Duration(days: 365*10)), fileUrl: 'aadhar.pdf'),
+      StaffDocument(id: 1, documentType: 'license', expiryDate: DateTime.now().add(const Duration(days: 400)), viewUrl: 'license.pdf'),
+      StaffDocument(id: 2, documentType: 'aadhar', expiryDate: DateTime.now().add(const Duration(days: 365 * 10)), viewUrl: 'aadhar.pdf'),
     ];
   }
 
@@ -335,6 +336,73 @@ class StaffController extends GetxController {
       return false;
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchStaffDocuments(dynamic staffId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.getStaffDocumentsUrl(staffId));
+      if (response.isSuccess && response.json != null) {
+        final List<dynamic> data = response.json?['data'] ?? [];
+        staffDocuments.value = data.map((json) => StaffDocument.fromJson(json)).toList();
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to fetch documents: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> uploadStaffDocument({
+    required dynamic staffId,
+    required String documentType,
+    required String documentNumber,
+    required String expiryDate,
+    String? filePath,
+  }) async {
+    isLoading.value = true;
+    try {
+      final Map<String, dynamic> formDataMap = {
+        'document_type': documentType,
+        'document_number': documentNumber,
+        'expiry_date': expiryDate,
+      };
+
+      if (filePath != null && filePath.isNotEmpty) {
+        formDataMap['document_file'] = await dio.MultipartFile.fromFile(filePath);
+      }
+
+      final formData = dio.FormData.fromMap(formDataMap);
+      final response = await _apiClient.post(AppConstants.uploadStaffDocumentUrl(staffId), data: formData);
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        fetchStaffDocuments(staffId);
+        return true;
+      } else {
+        // Show specific validation error if available
+        String errorMessage = response.message;
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          errorMessage = response.errors!.first.message ?? response.message;
+        }
+        CustomSnackbar.showError(errorMessage);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to upload document: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> downloadFile(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      CustomSnackbar.showError('Could not launch $url');
     }
   }
 

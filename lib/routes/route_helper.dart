@@ -20,6 +20,7 @@ import '../features/leads/views/lead_details_screen.dart';
 import '../features/leads/views/edit_lead_screen.dart';
 import '../features/leads/views/lead_notes_screen.dart';
 import '../features/leads/views/follow_up_screen.dart';
+import '../features/leads/views/follow_up_list_screen.dart';
 import '../features/leads/views/quotation_preview_screen.dart';
 import '../features/leads/views/pdf_viewer_screen.dart';
 import '../features/trips/views/trip_list_screen.dart';
@@ -178,6 +179,7 @@ class RouteHelper {
   static String getEditLeadRoute() => AppRoutes.editLead;
   static String getLeadNotesRoute() => AppRoutes.leadNotes;
   static String getFollowUpRoute() => AppRoutes.followUp;
+  static String getFollowUpListRoute() => AppRoutes.followUpList;
   static String getQuotationPreviewRoute() => AppRoutes.quotationPreview;
   static String getPdfViewerRoute() => AppRoutes.pdfViewer;
   static String getDocumentPreviewRoute() => AppRoutes.documentPreview;
@@ -356,6 +358,11 @@ class RouteHelper {
       name: AppRoutes.followUp,
       page: () => const FollowUpScreen(),
       transition: Transition.downToUp,
+    ),
+    GetPage(
+      name: AppRoutes.followUpList,
+      page: () => const FollowUpListScreen(),
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: AppRoutes.quotationPreview,

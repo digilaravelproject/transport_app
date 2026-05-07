@@ -88,20 +88,35 @@ class FollowUpScreen extends GetView<LeadController> {
             
             const SizedBox(height: 40),
             
-            AppButton(
+            Obx(() => AppButton(
               text: 'Save Reminder',
-              onPressed: () {
-                Get.snackbar(
-                  'Success', 
-                  'Reminder set for ${reminderDate.value.day}/${reminderDate.value.month} at ${reminderTime.value.format(context)}',
-                  backgroundColor: AppColors.primaryColor,
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                  margin: const EdgeInsets.all(20),
+              isLoading: controller.isLoading.value,
+              onPressed: () async {
+                if (noteController.text.trim().isEmpty) {
+                  Get.snackbar('Error', 'Please enter a note', backgroundColor: Colors.red, colorText: Colors.white);
+                  return;
+                }
+
+                final DateTime fullDateTime = DateTime(
+                  reminderDate.value.year,
+                  reminderDate.value.month,
+                  reminderDate.value.day,
+                  reminderTime.value.hour,
+                  reminderTime.value.minute,
                 );
-                Get.back();
+
+                final String formattedDate = "${fullDateTime.year}-${fullDateTime.month.toString().padLeft(2, '0')}-${fullDateTime.day.toString().padLeft(2, '0')} ${fullDateTime.hour.toString().padLeft(2, '0')}:${fullDateTime.minute.toString().padLeft(2, '0')}:00";
+
+                final success = await controller.addLeadFollowup(lead.id!, {
+                  "reminder_at": formattedDate,
+                  "note": noteController.text.trim(),
+                });
+
+                if (success) {
+                  Get.back();
+                }
               },
-            ),
+            )),
           ],
         ),
       ),

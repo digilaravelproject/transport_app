@@ -320,6 +320,9 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       'permit_number': _permitNoController.text,
       'permit_expiry': permitExpiry != null ? DateFormat('yyyy-MM-dd').format(permitExpiry!) : '',
     };
+    data.forEach((key, value) {
+      print('$key : $value');
+    });
 
     final List<MultipartDocument> files = [];
 

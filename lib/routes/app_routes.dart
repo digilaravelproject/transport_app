@@ -13,6 +13,7 @@ class AppRoutes {
   static const String editLead = '/editLead';
   static const String leadNotes = '/leadNotes';
   static const String followUp = '/followUp';
+  static const String followUpList = '/followUpList';
   static const String quotationPreview = '/quotationPreview';
   static String getPdfViewerRoute() => AppRoutes.pdfViewer;
   static String getDocumentPreviewRoute() => AppRoutes.documentPreview;

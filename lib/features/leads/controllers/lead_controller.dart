@@ -442,34 +442,87 @@ class LeadController extends GetxController {
     }
   }
 
-  Future<void> fetchLeadDetails(String leadId) async {
+  Future<void> fetchLeadDetails(String id) async {
     isDetailsLoading.value = true;
     try {
-      final response = await _apiClient.get('/api/v1/leads/$leadId');
+      final response = await _apiClient.get('${AppConstants.leadsUrl}/$id');
       if (response.isSuccess && response.body != null) {
-        final data = response.body;
+        final Map<String, dynamic> data = response.body;
         selectedLeadDetails.value = data;
         
-        if (data['followups'] is List) {
-          leadFollowups.assignAll(List<Map<String, dynamic>>.from(data['followups']));
+        // Extract related data
+        if (data['followups'] != null) {
+          leadFollowups.value = List<Map<String, dynamic>>.from(data['followups']);
         }
-        
-        if (data['expenses'] is List) {
-          leadExpenses.assignAll(List<Map<String, dynamic>>.from(data['expenses']));
+        if (data['expenses'] != null) {
+          leadExpenses.value = List<Map<String, dynamic>>.from(data['expenses']);
         }
-        
-        if (data['duty_sheets'] is List) {
-          leadDutySheets.assignAll(List<Map<String, dynamic>>.from(data['duty_sheets']));
-        }
-        
-        if (data['notes'] is List) {
-          leadNotes.assignAll((data['notes'] as List).map((n) => LeadNote.fromJson(n)).toList());
+        if (data['duty_sheets'] != null) {
+          leadDutySheets.value = List<Map<String, dynamic>>.from(data['duty_sheets']);
         }
       }
     } catch (e) {
       print('Error fetching lead details: $e');
+      CustomSnackbar.showError('Could not load lead details');
     } finally {
       isDetailsLoading.value = false;
+    }
+  }
+
+  Future<bool> updateLead(String id) async {
+    isLoading.value = true;
+    try {
+      final Map<String, dynamic> data = {
+        'trip_route': routeController.text,
+        'trip_date': "${selectedDate.value.year}-${selectedDate.value.month.toString().padLeft(2, '0')}-${selectedDate.value.day.toString().padLeft(2, '0')}",
+        'duration_days': int.tryParse(selectedDuration.value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1,
+        'vehicle_type': selectedVehicleTypeId.value ?? 1,
+        'seating_capacity': vehicleCount.value,
+        'pickup_address': pickupAddressController.text,
+        'points': destinationPoints,
+        'customer_name': customerNameController.text,
+        'customer_contact': phoneController.text,
+        'total_amount': double.tryParse(totalAmountController.text) ?? 0.0,
+        'advance_amount': double.tryParse(advancePaymentController.text) ?? 0.0,
+        'pending_amount': pendingAmount,
+      };
+
+      final response = await _apiClient.put('${AppConstants.leadsUrl}/$id', data: data);
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        await fetchLeadDetails(id);
+        fetchLeads(isRefresh: true);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error updating lead: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> deleteLead(String id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.delete('${AppConstants.leadsUrl}/$id');
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        fetchLeads(isRefresh: true);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error deleting lead: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -493,6 +546,42 @@ class LeadController extends GetxController {
     } catch (e) {
       CustomSnackbar.showError('Error updating status: $e');
       return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> addLeadFollowup(String leadId, Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post('/api/v1/leads/$leadId/followups', data: data);
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        await fetchLeadDetails(leadId); // Refresh details
+        await fetchLeadFollowups(leadId); // Refresh followups list
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error adding follow up: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchLeadFollowups(String leadId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get('/api/v1/leads/$leadId/followups');
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body is Map ? (response.body['data'] ?? []) : response.body;
+        leadFollowups.value = List<Map<String, dynamic>>.from(data);
+      }
+    } catch (e) {
+      print('Error fetching followups: $e');
     } finally {
       isLoading.value = false;
     }

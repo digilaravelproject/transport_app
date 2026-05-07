@@ -10,20 +10,36 @@ import '../../../core/widgets/app_input_field.dart';
 import '../domain/models/lead_model.dart';
 import '../controllers/lead_controller.dart';
 
-class LeadNotesScreen extends GetView<LeadController> {
+class LeadNotesScreen extends StatefulWidget {
   const LeadNotesScreen({Key? key}) : super(key: key);
 
   @override
+  State<LeadNotesScreen> createState() => _LeadNotesScreenState();
+}
+
+class _LeadNotesScreenState extends State<LeadNotesScreen> {
+  final LeadController controller = Get.find<LeadController>();
+  late final LeadModel lead;
+  final TextEditingController noteController = TextEditingController();
+  final RxnString noteError = RxnString();
+
+  @override
+  void initState() {
+    super.initState();
+    lead = Get.arguments ?? (controller.leads.isNotEmpty ? controller.leads.first : LeadModel.empty());
+    if (lead.id != null) {
+      controller.fetchLeadNotes(lead.id!.toString());
+    }
+  }
+
+  @override
+  void dispose() {
+    noteController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final LeadModel lead = Get.arguments ?? controller.leads.first;
-    final noteController = TextEditingController();
-
-    // Mock notes
-    final notes = [
-      LeadNote(id: '1', leadId: lead.id!, note: 'Customer called regarding discount. Offered 5% off.', userName: 'Admin', createdAt: DateTime.now().subtract(const Duration(hours: 2))),
-      LeadNote(id: '2', leadId: lead.id!, note: 'Sent quotation via WhatsApp.', userName: 'Firoz', createdAt: DateTime.now().subtract(const Duration(days: 1))),
-    ].obs;
-
     return AppScaffold(
       appBar: AppHeader(
         title: 'Lead Notes',
@@ -37,25 +53,37 @@ class LeadNotesScreen extends GetView<LeadController> {
             margin: const EdgeInsets.all(16),
             padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppInputField(
-                  hint: 'Add a new note...',
-                  maxLines: 3,
-                  controller: noteController,
-                ),
+                Obx(() => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppInputField(
+                      hint: 'Add a new note...',
+                      maxLines: 3,
+                      controller: noteController,
+                      errorText: noteError.value,
+                      onChanged: (value) {
+                        if (noteError.value != null) noteError.value = null;
+                      },
+                    ),
+                  ],
+                )),
                 const SizedBox(height: 12),
                 AppButton(
                   text: 'Add Note',
                   height: 40,
-                  onPressed: () {
-                    if (noteController.text.isNotEmpty) {
-                      notes.insert(0, LeadNote(
-                        id: DateTime.now().toString(),
-                        leadId: lead.id!,
-                        note: noteController.text,
-                        userName: 'Firoz',
-                        createdAt: DateTime.now(),
-                      ));
+                  onPressed: () async {
+                    final text = noteController.text.trim();
+                    if (text.isEmpty) {
+                      noteError.value = 'Please enter a note';
+                      return;
+                    }
+                    if (lead.id == null) return;
+                    
+                    noteError.value = null;
+                    final success = await controller.addLeadNote(lead.id!.toString(), text);
+                    if (success) {
                       noteController.clear();
                     }
                   },
@@ -63,17 +91,25 @@ class LeadNotesScreen extends GetView<LeadController> {
               ],
             ),
           ),
-
           // Notes Timeline
           Expanded(
-            child: Obx(() => ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: notes.length,
-              itemBuilder: (context, index) {
-                final note = notes[index];
-                return _NoteItem(note: note, isLast: index == notes.length - 1);
-              },
-            )),
+            child: Obx(() {
+              if (controller.isNotesLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final notes = controller.leadNotes;
+              if (notes.isEmpty) {
+                return const Center(child: AppText('No notes yet.', style: AppTextStyle.body));
+              }
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: notes.length,
+                itemBuilder: (context, index) {
+                  final note = notes[index];
+                  return _NoteItem(note: note, isLast: index == notes.length - 1);
+                },
+              );
+            }),
           ),
         ],
       ),
@@ -129,7 +165,7 @@ class _NoteItem extends StatelessWidget {
                       children: [
                         AppText(note.userName, style: AppTextStyle.label, color: AppColors.primaryColor),
                         AppText(
-                          '${note.createdAt.hour}:${note.createdAt.minute} • ${note.createdAt.day}/${note.createdAt.month}', 
+                          '${note.createdAt.hour.toString().padLeft(2, '0')}:${note.createdAt.minute.toString().padLeft(2, '0')} • ${note.createdAt.day}/${note.createdAt.month}',
                           style: AppTextStyle.caption,
                         ),
                       ],

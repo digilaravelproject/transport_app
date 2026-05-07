@@ -6,6 +6,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/multipart.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/custom_snackbar.dart';
@@ -47,46 +48,56 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
         title: 'Contract Details',
         subtitle: company.name,
       ),
-      body: Obx(() {
-        if (controller.isDetailsLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      body: RefreshIndicator(
+        onRefresh: () => controller.loadVendorDetails(company.id),
+        color: AppColors.primaryColor,
+        child: Obx(() {
+          if (controller.isDetailsLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        final vendor = controller.selectedVendor.value ?? company;
+          final vendor = controller.selectedVendor.value ?? company;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildContractInfo(vendor),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Assigned Vehicles', () => Get.toNamed(RouteHelper.getAssignVehicleToContractRoute(), arguments: vendor.id)),
-              _buildAssignedVehicles(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Assigned Driver', () => Get.toNamed(RouteHelper.getAssignDriverToContractRoute(), arguments: vendor.id)),
-              _buildAssignedDriver(),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Billing History', () => _showAddBillModal(context)),
-              _buildBillingHistory(),
-            ],
-          ),
-        );
-      }),
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildContractInfo(vendor),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Assigned Vehicles', () async {
+                  final result = await Get.toNamed(RouteHelper.getAssignVehicleToContractRoute(), arguments: vendor.id);
+                  if (result == true) {
+                    controller.loadVendorDetails(vendor.id);
+                  }
+                }),
+                _buildAssignedVehicles(),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Assigned Driver', () async {
+                  final result = await Get.toNamed(RouteHelper.getAssignDriverToContractRoute(), arguments: vendor.id);
+                  if (result == true) {
+                    controller.loadVendorDetails(vendor.id);
+                  }
+                }),
+                _buildAssignedDriver(),
+                const SizedBox(height: 24),
+                _buildSectionHeader('Billing History', () => _showAddBillModal(context)),
+                _buildBillingHistory(),
+              ],
+            ),
+          );
+        }),
+      ),
     );
   }
 
   void _showAddBillModal(BuildContext context) {
-    final nextInvNo = 'INV-2024-${(controller.billingHistory.length + 1).toString().padLeft(3, '0')}';
     final invoiceController = TextEditingController();
-        //text: nextInvNo);
     final amountController = TextEditingController();
-        //text: '15000');
     final dateController = TextEditingController();
-        //text: DateFormat('yyyy-MM-dd').format(DateTime.now()));
     
     XFile? selectedFile;
-    final RxString fileName = ''.obs;
 
     showModalBottomSheet(
       context: context,
@@ -159,7 +170,6 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                       if (image != null) {
                         setModalState(() {
                           selectedFile = image;
-                          fileName.value = image.name;
                         });
                       }
                     },
@@ -252,7 +262,6 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
             'Period',
             '${formatDate(vendor.startDate)} to ${formatDate(vendor.endDate)}',
           ),
-       //   _buildInfoRow('Period', '${vendor.startDate?.split('T').first ?? 'N/A'} to ${vendor.endDate?.split('T').first ?? 'N/A'}'),
           _buildInfoRow('Duty Type', vendor.dutyType ?? 'N/A'),
           _buildInfoRow('Vehicle Type', vendor.vehicleTypeName ?? 'N/A'),
           _buildInfoRow('Monthly Amount', '₹ ${vendor.monthlyAmount ?? '0.00'}', isAmount: true),
@@ -352,31 +361,12 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
   Widget _buildAssignedDriver() {
     return Obx(() {
       final vendor = controller.selectedVendor.value ?? company;
-
-      final List<Map<String, dynamic>> drivers = [
-        {
-          "name": "Ravi Kumar",
-          "registration_number": "UP32 AB 1234",
-          "type": "Truck Driver",
-        },
-        {
-          "name": "Amit Singh",
-          "registration_number": "UP32 XY 5678",
-          "type": "Mini Truck Driver",
-        },
-        {
-          "name": "Suresh Yadav",
-          "registration_number": "UP32 MN 9999",
-          "type": "Heavy Driver",
-        },
-      ];
-
-      if (drivers.isEmpty) {
+      if (controller.assignedDrivers.isEmpty) {
         return const AppCard(
           padding: EdgeInsets.all(20),
           child: Center(
             child: AppText(
-              'No drivers available',
+              'No drivers assigned',
               style: AppTextStyle.caption,
             ),
           ),
@@ -385,7 +375,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
 
       return AppCard(
         child: Column(
-          children: drivers.asMap().entries.map((entry) {
+          children: controller.assignedDrivers.asMap().entries.map((entry) {
             final idx = entry.key;
             final driver = entry.value;
 
@@ -396,7 +386,6 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                     horizontal: 12,
                     vertical: 6,
                   ),
-
                   leading: CircleAvatar(
                     backgroundColor: AppColors.primaryLight,
                     child: const Icon(
@@ -404,7 +393,6 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                       color: AppColors.primaryColor,
                     ),
                   ),
-
                   title: Text(
                     driver['name'] ?? 'Unknown',
                     style: const TextStyle(
@@ -412,44 +400,36 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                       fontSize: 14,
                     ),
                   ),
-
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 4),
                       Text(
-                        driver['type'] ?? '',
+                        driver['phone'] ?? '',
                         style: const TextStyle(fontSize: 12),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        driver['registration_number'] ?? '',
+                        driver['address'] ?? '',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-
-                  // 🔴 REMOVE BUTTON
                   trailing: IconButton(
                     icon: const Icon(
                       Icons.delete_outline,
                       color: Colors.red,
                     ),
-                    onPressed: () {
-                      // TODO: remove logic yaha handle kar
-                      drivers.removeAt(idx);
-
-                      // agar controller use kar raha hai to:
-                      // controller.removeDriver(idx);
-                    },
+                    onPressed: () => _showRemoveDriverDialog(vendor.id, driver['id'].toString(), driver['name'] ?? 'Unknown'),
                   ),
                 ),
-
-                if (idx < drivers.length - 1)
-                  const Divider(height: .5,color: Colors.grey,),
+                if (idx < controller.assignedDrivers.length - 1)
+                  const Divider(height: .5, color: Colors.grey),
               ],
             );
           }).toList(),
@@ -458,8 +438,28 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     });
   }
 
-
-
+  void _showRemoveDriverDialog(String vId, String driverId, String driverName) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const AppText('Remove Driver', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+        content: AppText('Are you sure you want to remove driver $driverName from this vendor?', style: AppTextStyle.body),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.removeDriver(vId, driverId);
+            },
+            child: const AppText('Remove', color: AppColors.errorColor, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildVehicleItem(String vehicleNo, String type, String vehicleId, String vId, {bool isLast = false}) {
     return Padding(
@@ -538,6 +538,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                   inv['status'] ?? 'pending',
                   inv['billing_date'] ?? 'N/A',
                   filePath: inv['file_path'],
+                //  filePath: "${AppConstants.imageBaseUrl}${inv['file_path'] ?? ''}",
                 ),
                 if (idx < controller.billingHistory.length - 1) const Divider(height: 1),
               ],
@@ -555,8 +556,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: filePath != null && filePath.isNotEmpty 
-              ? () => _showImageDialog(filePath) 
+            onTap:
+            filePath != null && filePath.isNotEmpty
+              ? () => _showImageDialog(filePath)
               : null,
             child: Container(
               padding: const EdgeInsets.all(10),

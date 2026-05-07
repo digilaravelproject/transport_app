@@ -15,6 +15,9 @@ abstract class CorporateRepository {
   Future<ResponseModel> assignVehicles(String vendorId, List<int> vehicleIds);
   Future<ResponseModel> removeVehicle(String vendorId, String vehicleId);
   Future<ResponseModel> addVendorBill(String vendorId, Map<String, String> body, List<MultipartBody> files);
+  Future<ResponseModel> getAvailableDrivers(String vendorId, {String? search});
+  Future<ResponseModel> assignDrivers(String vendorId, List<int> staffIds);
+  Future<ResponseModel> removeDriver(String vendorId, String driverId);
 }
 
 class CorporateRepositoryImpl implements CorporateRepository {
@@ -97,6 +100,36 @@ class CorporateRepositoryImpl implements CorporateRepository {
       body,
       files,
       [],
+    );
+  }
+
+  @override
+  Future<ResponseModel> getAvailableDrivers(String vendorId, {String? search}) async {
+    Map<String, dynamic> queryParameters = {
+      'per_page': 20,
+    };
+    if (search != null && search.isNotEmpty) {
+      queryParameters['search'] = search;
+    }
+
+    return await _apiClient.get(
+      '${AppConstants.createVendorUrl}/$vendorId/available-drivers',
+      queryParameters: queryParameters,
+    );
+  }
+
+  @override
+  Future<ResponseModel> assignDrivers(String vendorId, List<int> staffIds) async {
+    return await _apiClient.post(
+      '${AppConstants.createVendorUrl}/$vendorId/assign-drivers',
+      data: {'staff_ids': staffIds},
+    );
+  }
+
+  @override
+  Future<ResponseModel> removeDriver(String vendorId, String driverId) async {
+    return await _apiClient.delete(
+      '${AppConstants.createVendorUrl}/$vendorId/remove-driver/$driverId',
     );
   }
 }

@@ -83,95 +83,128 @@ class LeadListScreen extends GetView<LeadController> {
 
           // Scrollable Content
           Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header Title
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AppText(
-                          'Leads Dashboard',
-                          style: AppTextStyle.heading,
-                          fontSize: 28,
-                          color: AppColors.textColorPrimary,
+            child: RefreshIndicator(
+              onRefresh: () => controller.fetchLeads(isRefresh: true),
+              color: AppColors.primaryColor,
+              child: NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification scrollInfo) {
+                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && 
+                      controller.hasMoreData.value && 
+                      !controller.isLoading.value && 
+                      !controller.isMoreLoading.value) {
+                    controller.fetchLeads();
+                  }
+                  return true;
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Title
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            AppText(
+                              'Leads Dashboard',
+                              style: AppTextStyle.heading,
+                              fontSize: 28,
+                              color: AppColors.textColorPrimary,
+                            ),
+                            SizedBox(height: 4),
+                            AppText(
+                              'Manage all your inquiries & prospects',
+                              style: AppTextStyle.body,
+                              color: AppColors.textColorSecondary,
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 4),
-                        AppText(
-                          'Manage all your inquiries & prospects',
-                          style: AppTextStyle.body,
-                          color: AppColors.textColorSecondary,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                      ),
+                      const SizedBox(height: 24),
 
-                  // Dashboard Stats
-                  Obx(() => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        Expanded(child: _DashboardStatCard(title: 'Total', value: controller.totalLeads.toString(), color: const Color(0xFF3B82F6), icon: Iconsax.chart_215)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _DashboardStatCard(title: 'Pending', value: controller.pendingLeads.toString(), color: const Color(0xFFF59E0B), icon: Iconsax.timer_15)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _DashboardStatCard(title: 'Confirmed', value: controller.confirmedLeads.toString(), color: const Color(0xFF10B981), icon: Iconsax.tick_circle5)),
-                      ],
-                    ),
-                  )),
-                  const SizedBox(height: 20),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: AppSearchBar(
-                      hint: 'Search leads...',
-                      onChanged: (value) => controller.searchQuery.value = value,
-                    ),
-                  ),
-                  
-                  // Filter Chips
-                  const SizedBox(height: 12),
-                  Obx(() => SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      children: [
-                        AppFilterChip(label: 'All', isSelected: controller.selectedFilter.value == 'All', onTap: () => controller.setFilter('All')),
-                        AppFilterChip(label: 'Pending', isSelected: controller.selectedFilter.value == 'Pending', onTap: () => controller.setFilter('Pending')),
-                        AppFilterChip(label: 'Confirmed', isSelected: controller.selectedFilter.value == 'Confirmed', onTap: () => controller.setFilter('Confirmed')),
-                        AppFilterChip(label: 'Cancelled', isSelected: controller.selectedFilter.value == 'Cancelled', onTap: () => controller.setFilter('Cancelled')),
-                      ],
-                    ),
-                  )),
-                  const SizedBox(height: 16),
-                  
-                  // Lead List
-                  Obx(() {
-                    if (controller.filteredLeads.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: Center(
-                          child: AppText('No leads found', style: AppTextStyle.body),
+                      // Dashboard Stats
+                      Obx(() => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          children: [
+                            Expanded(child: _DashboardStatCard(title: 'Total', value: controller.totalLeads.toString(), color: const Color(0xFF3B82F6), icon: Iconsax.chart_215)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _DashboardStatCard(title: 'Pending', value: controller.pendingLeads.toString(), color: const Color(0xFFF59E0B), icon: Iconsax.timer_15)),
+                            const SizedBox(width: 12),
+                            Expanded(child: _DashboardStatCard(title: 'Confirmed', value: controller.confirmedLeads.toString(), color: const Color(0xFF10B981), icon: Iconsax.tick_circle5)),
+                          ],
                         ),
-                      );
-                    }
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
-                      itemCount: controller.filteredLeads.length,
-                      itemBuilder: (context, index) {
-                        final lead = controller.filteredLeads[index];
-                        return _LeadCard(lead: lead);
-                      },
-                    );
-                  }),
-                ],
+                      )),
+                      const SizedBox(height: 20),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: AppSearchBar(
+                          hint: 'Search leads...',
+                          onChanged: (value) => controller.searchQuery.value = value,
+                        ),
+                      ),
+                      
+                      // Filter Chips
+                      const SizedBox(height: 12),
+                      Obx(() => SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            AppFilterChip(label: 'All', isSelected: controller.selectedFilter.value == 'All', onTap: () => controller.setFilter('All')),
+                            AppFilterChip(label: 'Pending', isSelected: controller.selectedFilter.value == 'Pending', onTap: () => controller.setFilter('Pending')),
+                            AppFilterChip(label: 'Confirmed', isSelected: controller.selectedFilter.value == 'Confirmed', onTap: () => controller.setFilter('Confirmed')),
+                            AppFilterChip(label: 'Cancelled', isSelected: controller.selectedFilter.value == 'Cancelled', onTap: () => controller.setFilter('Cancelled')),
+                          ],
+                        ),
+                      )),
+                      const SizedBox(height: 16),
+                      
+                      // Lead List
+                      Obx(() {
+                        if (controller.isLoading.value && controller.currentPage.value == 1) {
+                          return const Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+
+                        if (controller.filteredLeads.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(40.0),
+                            child: Center(
+                              child: AppText('No leads found', style: AppTextStyle.body),
+                            ),
+                          );
+                        }
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                          itemCount: controller.filteredLeads.length,
+                          itemBuilder: (context, index) {
+                            final lead = controller.filteredLeads[index];
+                            return _LeadCard(lead: lead);
+                          },
+                        );
+                      }),
+
+                      // Load More Spinner
+                      Obx(() {
+                        if (controller.isMoreLoading.value) {
+                          return const Padding(
+                            padding: EdgeInsets.only(bottom: 100),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return const SizedBox(height: 100);
+                      }),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -251,10 +284,10 @@ class LeadListScreen extends GetView<LeadController> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+              color: isSelected ? AppColors.primaryColor.withOpacity(0.08) : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.slate100,
+                color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : AppColors.slate100,
                 width: 1,
               ),
             ),
@@ -320,10 +353,10 @@ class LeadListScreen extends GetView<LeadController> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+            color: isSelected ? AppColors.primaryColor.withOpacity(0.08) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: isSelected ? AppColors.primaryColor.withValues(alpha: 0.3) : AppColors.slate100,
+              color: isSelected ? AppColors.primaryColor.withOpacity(0.3) : AppColors.slate100,
               width: 1,
             ),
           ),
@@ -334,7 +367,7 @@ class LeadListScreen extends GetView<LeadController> {
                 decoration: BoxDecoration(
                   color: isSelected ? AppColors.primaryColor : AppColors.slate100,
                   borderRadius: BorderRadius.circular(8),
-                ),
+                 ),
                 child: Icon(Iconsax.calendar_tick, color: isSelected ? Colors.white : AppColors.textColorPrimary, size: 16),
               ),
               const SizedBox(width: 12),
@@ -436,7 +469,9 @@ class _LeadCard extends StatelessWidget {
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: AppColors.primaryColor, size: 20),
                 onSelected: (String result) {
-                  Get.find<LeadController>().updateLeadStatus(lead.id!, result);
+                  if (lead.id != null) {
+                    Get.find<LeadController>().updateLeadStatus(lead.id!, result);
+                  }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                   const PopupMenuItem<String>(value: 'Pending', child: AppText('Mark Pending', fontSize: 13)),
@@ -488,19 +523,19 @@ class _DashboardStatCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.15),
+            color: color.withOpacity(0.15),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
-        border: Border.all(color: color.withValues(alpha: 0.1)),
+        border: Border.all(color: color.withOpacity(0.1)),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 24),
@@ -525,4 +560,3 @@ class _DashboardStatCard extends StatelessWidget {
     );
   }
 }
-

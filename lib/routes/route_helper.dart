@@ -319,6 +319,7 @@ class RouteHelper {
         Get.lazyPut(() => TripController(), fenix: true);
         Get.lazyPut(() => VehicleController(), fenix: true);
         Get.lazyPut(() => StaffController(), fenix: true);
+        Get.lazyPut(() => RouteController(), fenix: true);
       }),
       transition: Transition.fadeIn,
     ),
@@ -327,6 +328,7 @@ class RouteHelper {
       page: () => const LeadListScreen(),
       binding: BindingsBuilder(() {
         Get.lazyPut(() => LeadController(), fenix: true);
+        Get.lazyPut(() => RouteController(), fenix: true);
       }),
       transition: Transition.fadeIn,
     ),

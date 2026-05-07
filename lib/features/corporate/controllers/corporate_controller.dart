@@ -7,7 +7,7 @@ import '../domain/models/corporate_contract_request_model.dart';
 import '../domain/repositories/corporate_repository.dart';
 
 class CorporateController extends GetxController {
-  final CorporateRepository _repository = CorporateRepositoryImpl(ApiClient());
+  final CorporateRepository _repository = CorporateRepositoryImpl(Get.find<ApiClient>());
   
   final RxList<CompanyModel> _companies = <CompanyModel>[].obs;
   final RxString searchQuery = ''.obs;
@@ -20,6 +20,7 @@ class CorporateController extends GetxController {
 
   final Rx<CompanyModel?> selectedVendor = Rx<CompanyModel?>(null);
   final RxList<Map<String, dynamic>> assignedVehicles = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> assignedDrivers = <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> billingHistory = <Map<String, dynamic>>[].obs;
   final RxBool isDetailsLoading = false.obs;
 
@@ -117,6 +118,12 @@ class CorporateController extends GetxController {
         if (data['assigned_vehicles'] is List) {
           assignedVehicles.assignAll(List<Map<String, dynamic>>.from(data['assigned_vehicles']));
         }
+
+        if (data['assigned_drivers'] is List) {
+          assignedDrivers.assignAll(List<Map<String, dynamic>>.from(data['assigned_drivers']));
+        } else if (data['drivers'] is List) {
+          assignedDrivers.assignAll(List<Map<String, dynamic>>.from(data['drivers']));
+        }
         
         if (data['billing_history'] is List) {
           billingHistory.assignAll(List<Map<String, dynamic>>.from(data['billing_history']));
@@ -159,6 +166,80 @@ class CorporateController extends GetxController {
     } finally {
       isAvailableVehiclesLoading.value = false;
     }
+  }
+
+  final RxList<Map<String, dynamic>> availableDrivers = <Map<String, dynamic>>[].obs;
+  final RxBool isAvailableDriversLoading = false.obs;
+  final RxString driverSearchQuery = ''.obs;
+
+  Future<void> loadAvailableDrivers(String vendorId, {bool isRefresh = false}) async {
+    try {
+      if (isRefresh) {
+        availableDrivers.clear();
+      }
+      isAvailableDriversLoading.value = true;
+      final response = await _repository.getAvailableDrivers(
+        vendorId,
+        search: driverSearchQuery.value,
+      );
+      
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body is List ? response.body : [];
+        availableDrivers.assignAll(List<Map<String, dynamic>>.from(data));
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to load available drivers');
+      }
+    } catch (e) {
+      print('Error loading available drivers: $e');
+      CustomSnackbar.showError('Error loading available drivers');
+    } finally {
+      isAvailableDriversLoading.value = false;
+    }
+  }
+
+  Future<bool> assignDrivers(String vendorId, List<int> staffIds) async {
+    try {
+      isLoading.value = true;
+      final response = await _repository.assignDrivers(vendorId, staffIds);
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Drivers assigned successfully');
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to assign drivers');
+        return false;
+      }
+    } catch (e) {
+      print('Error assigning drivers: $e');
+      CustomSnackbar.showError('Error assigning drivers');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> removeDriver(String vendorId, String driverId) async {
+    try {
+      isLoading.value = true;
+      final response = await _repository.removeDriver(vendorId, driverId);
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message ?? 'Driver removed successfully');
+        loadVendorDetails(vendorId); // Refresh details list
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to remove driver');
+      }
+    } catch (e) {
+      print('Error removing driver: $e');
+      CustomSnackbar.showError('Error removing driver');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  void updateDriverSearch(String vendorId, String query) {
+    driverSearchQuery.value = query;
+    loadAvailableDrivers(vendorId);
   }
 
   void updateVehicleSearch(String vendorId, String query) {

@@ -178,7 +178,7 @@ class EditLeadScreen extends GetView<LeadController> {
 
             AppButton(
               text: 'Update Lead',
-              onPressed: () => controller.updateLead(lead.id!),
+            //  onPressed: () => controller.updateLead(lead.id!),
             ),
             const SizedBox(height: 12),
             AppButton.outline(
@@ -203,7 +203,7 @@ class EditLeadScreen extends GetView<LeadController> {
       buttonColor: Colors.red,
       onConfirm: () {
         Get.back(); // close dialog
-        controller.deleteLead(leadId);
+      //  controller.deleteLead(leadId);
         Get.back(); // close edit screen
       },
     );

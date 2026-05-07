@@ -3,6 +3,7 @@ import '../services/config/env_config.dart';
 class AppConstants {
   static String appName = EnvConfig.appName;
   static String baseUrl = "https://beige-stingray-620454.hostingersite.com";
+  static String imageBaseUrl = "https://beige-stingray-620454.hostingersite.com/storage";
   static String apiToken = EnvConfig.apiToken;
   static const String googleMapsKey = 'AIzaSyAH2m4kQwGljzCxdDdy7JrnKTDKCgFZU_A';
   static const String fontFamily = 'Poppins';
@@ -41,6 +42,7 @@ class AppConstants {
   static const String userData = 'user_data';
   static const String profileData = 'profile_data';
   static const String isLoggedIn = 'is_logged_in';
+  static const String leadsUrl = '/api/v1/leads';
 
 
   static const String createShift = '/api/v1/shifts';

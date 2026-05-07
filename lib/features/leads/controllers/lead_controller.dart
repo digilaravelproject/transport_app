@@ -1,18 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/services/network/api_client.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/lead_model.dart';
 
 class LeadController extends GetxController {
+  final ApiClient _apiClient = Get.find<ApiClient>();
   final isLoading = false.obs;
   final leads = <LeadModel>[].obs;
   final filteredLeads = <LeadModel>[].obs;
   final searchQuery = ''.obs;
   final selectedFilter = 'All'.obs;
+  final selectedDateFilter = 'All'.obs;
+  final customDateRange = Rxn<DateTimeRange>();
+
+  // Detailed lead state
+  final selectedLeadDetails = Rxn<Map<String, dynamic>>();
+  final leadFollowups = <Map<String, dynamic>>[].obs;
+  final leadExpenses = <Map<String, dynamic>>[].obs;
+  final leadDutySheets = <Map<String, dynamic>>[].obs;
+  final isDetailsLoading = false.obs;
+
+  // Pagination state
+  final currentPage = 1.obs;
+  final hasMoreData = true.obs;
+  final isMoreLoading = false.obs;
+  final totalItems = 0.obs;
 
   // Dashboard Stats
   int get totalLeads => leads.length;
-  int get pendingLeads => leads.where((l) => l.status == 'Pending').length;
-  int get confirmedLeads => leads.where((l) => l.status == 'Confirmed').length;
+  int get pendingLeads => leads.where((l) => l.status.toLowerCase() == 'pending').length;
+  int get confirmedLeads => leads.where((l) => l.status.toLowerCase() == 'confirmed').length;
 
   // Form controllers
   final customerNameController = TextEditingController();
@@ -22,15 +41,14 @@ class LeadController extends GetxController {
   final totalAmountController = TextEditingController();
   final advancePaymentController = TextEditingController();
   final pickupAddressController = TextEditingController();
+  final destinationController = TextEditingController();
   
   final selectedDate = DateTime.now().obs;
   final selectedDuration = '1 Day'.obs;
   final selectedVehicleType = ''.obs;
   final selectedVehicleTypeId = Rxn<int>();
   final vehicleCount = 1.obs;
-  final destinationPoints = <String>[].obs;
-  final selectedDateFilter = 'All'.obs;
-  final customDateRange = Rxn<DateTimeRange>();
+  final destinationPoints = <Map<String, dynamic>>[].obs;
   final selectedCountryCode = '+91'.obs;
 
   // Quick Presets
@@ -74,29 +92,157 @@ class LeadController extends GetxController {
     final preset = tripPresets[index];
     
     pickupAddressController.text = preset['pickup'];
-    destinationPoints.assignAll(List<String>.from(preset['destinations']));
+    destinationPoints.assignAll(
+      (preset['destinations'] as List<String>).map((name) => {
+        'name': name,
+        'lat': 0.0,
+        'lng': 0.0,
+      }).toList()
+    );
     selectedDuration.value = preset['duration'];
     selectedVehicleType.value = preset['vehicle'];
     totalAmountController.text = preset['amount'];
     
-    // Refresh calculations
     totalAmountController.notifyListeners();
   }
 
   @override
   void onInit() {
     super.onInit();
-    fetchLeads();
+    fetchLeads(isRefresh: true);
     
-    // Setup listeners
-    debounce(searchQuery, (_) => filterLeads(), time: const Duration(milliseconds: 500));
-    ever(selectedFilter, (_) => filterLeads());
-    ever(selectedDateFilter, (_) => filterLeads());
-    ever(customDateRange, (_) => filterLeads());
+    debounce(searchQuery, (_) => fetchLeads(isRefresh: true), time: const Duration(milliseconds: 500));
+    ever(selectedFilter, (_) => fetchLeads(isRefresh: true));
+    ever(selectedDateFilter, (_) => fetchLeads(isRefresh: true));
+    ever(customDateRange, (_) => fetchLeads(isRefresh: true));
   }
 
-  void fetchLeads() {
-    // Mock data for initial development
+  Future<void> fetchLeads({bool isRefresh = false}) async {
+    if (isRefresh) {
+      currentPage.value = 1;
+      hasMoreData.value = true;
+      leads.clear();
+    }
+
+    if (!hasMoreData.value || (isLoading.value || isMoreLoading.value)) return;
+
+    if (currentPage.value == 1) {
+      isLoading.value = true;
+    } else {
+      isMoreLoading.value = true;
+    }
+
+    try {
+      Map<String, dynamic> queryParams = {
+        'page': currentPage.value,
+        'per_page': 10,
+      };
+
+      if (selectedFilter.value != 'All') {
+        queryParams['status'] = selectedFilter.value.toLowerCase();
+      }
+
+      if (searchQuery.value.isNotEmpty) {
+        queryParams['search'] = searchQuery.value;
+      }
+
+      // Date Filters
+      final now = DateTime.now();
+      String? fromDate;
+      String? toDate;
+
+      if (selectedDateFilter.value != 'All') {
+        DateTime start;
+        DateTime end = now;
+
+        switch (selectedDateFilter.value) {
+          case 'Today':
+            start = DateTime(now.year, now.month, now.day);
+            end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+            break;
+          case '3 Days':
+            start = now.subtract(const Duration(days: 3));
+            break;
+          case 'Week':
+            start = now.subtract(const Duration(days: 7));
+            break;
+          case 'Month':
+            start = now.subtract(const Duration(days: 30));
+            break;
+          case '3 Months':
+            start = now.subtract(const Duration(days: 90));
+            break;
+          case '6 Months':
+            start = now.subtract(const Duration(days: 180));
+            break;
+          case 'Year':
+            start = now.subtract(const Duration(days: 365));
+            break;
+          case 'Custom':
+            if (customDateRange.value != null) {
+              start = customDateRange.value!.start;
+              end = customDateRange.value!.end;
+            } else {
+              start = now;
+            }
+            break;
+          default:
+            start = now;
+        }
+        
+        fromDate = "${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}";
+        toDate = "${end.year}-${end.month.toString().padLeft(2, '0')}-${end.day.toString().padLeft(2, '0')}";
+        
+        queryParams['from'] = fromDate;
+        queryParams['to'] = toDate;
+      }
+
+      final response = await _apiClient.get(AppConstants.leadsUrl, queryParameters: queryParams);
+      
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body is List ? response.body : [];
+        final List<LeadModel> fetchedLeads = data.map((json) => LeadModel.fromJson(json)).toList();
+
+        if (isRefresh) {
+          leads.assignAll(fetchedLeads);
+        } else {
+          leads.addAll(fetchedLeads);
+        }
+
+        // Handle pagination metadata from response.json
+        if (response.json != null && response.json!['meta'] != null) {
+          final meta = response.json!['meta'];
+          totalItems.value = meta['total'] ?? 0;
+          
+          if (meta['current_page'] >= meta['last_page']) {
+            hasMoreData.value = false;
+          } else {
+            currentPage.value++;
+            hasMoreData.value = true;
+          }
+        } else {
+          // If no meta, assume no more data if list is small
+          if (fetchedLeads.length < 10) {
+            hasMoreData.value = false;
+          } else {
+            currentPage.value++;
+          }
+        }
+        
+        filterLeads(); // Still call filterLeads for search and date filtering that might not be on API
+      } else {
+        if (currentPage.value == 1) _loadMockData();
+      }
+    } catch (e) {
+      print('Error fetching leads: $e');
+      if (currentPage.value == 1) _loadMockData();
+    } finally {
+      isLoading.value = false;
+      isMoreLoading.value = false;
+    }
+  }
+
+  void _loadMockData() {
     leads.value = [
       LeadModel(
         id: '1',
@@ -113,21 +259,6 @@ class LeadController extends GetxController {
         status: 'Pending',
         createdAt: DateTime.now(),
       ),
-      LeadModel(
-        id: '2',
-        leadNo: '#LD-1002',
-        customerName: 'Amit Verma',
-        phone: '9988776655',
-        route: 'Noida - Jaipur',
-        date: DateTime.now().add(const Duration(days: 5)),
-        duration: '2 Days',
-        vehicleType: 'Tempo Traveller',
-        vehicleCount: 1,
-        totalAmount: 18000,
-        advancePayment: 18000,
-        status: 'Confirmed',
-        createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      ),
     ];
     filteredLeads.value = leads;
   }
@@ -137,7 +268,7 @@ class LeadController extends GetxController {
     
     // 1. Filter by Status
     if (selectedFilter.value != 'All') {
-      list = list.where((l) => l.status == selectedFilter.value).toList();
+      list = list.where((l) => l.status.toLowerCase() == selectedFilter.value.toLowerCase()).toList();
     }
     
     // 2. Filter by Search Query
@@ -170,15 +301,6 @@ class LeadController extends GetxController {
           case 'Month':
             return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
                    leadDate.isBefore(startOfToday.add(const Duration(days: 30)));
-          case '3 Months':
-            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
-                   leadDate.isBefore(startOfToday.add(const Duration(days: 90)));
-          case '6 Months':
-            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
-                   leadDate.isBefore(startOfToday.add(const Duration(days: 180)));
-          case 'Year':
-            return leadDate.isAfter(startOfToday.subtract(const Duration(days: 1))) && 
-                   leadDate.isBefore(startOfToday.add(const Duration(days: 365)));
           case 'Custom':
             if (customDateRange.value != null) {
               return (leadDate.isAtSameMomentAs(customDateRange.value!.start) || leadDate.isAfter(customDateRange.value!.start)) && 
@@ -210,6 +332,30 @@ class LeadController extends GetxController {
     selectedFilter.value = filter;
   }
 
+  Future<bool> createLead(Map<String, dynamic> data) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(AppConstants.leadsUrl, data: data);
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        fetchLeads();
+        return true;
+      } else {
+        String errorMessage = response.message;
+        if (response.errors != null && response.errors!.isNotEmpty) {
+          errorMessage = response.errors!.first.message ?? response.message;
+        }
+        CustomSnackbar.showError(errorMessage);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error creating lead: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   void resetForm() {
     customerNameController.clear();
     phoneController.clear();
@@ -218,6 +364,7 @@ class LeadController extends GetxController {
     totalAmountController.clear();
     advancePaymentController.clear();
     pickupAddressController.clear();
+    destinationController.clear();
     selectedDate.value = DateTime.now();
     selectedDuration.value = '1 Day';
     selectedVehicleType.value = '';
@@ -227,135 +374,127 @@ class LeadController extends GetxController {
     selectedCountryCode.value = '+91';
   }
 
-  void addDestination(String point) {
-    if (point.isNotEmpty) {
-      destinationPoints.add(point);
-    }
-  }
-
-  void removeDestination(int index) {
-    destinationPoints.removeAt(index);
-  }
-
   double get pendingAmount {
     double total = double.tryParse(totalAmountController.text) ?? 0;
     double advance = double.tryParse(advancePaymentController.text) ?? 0;
     return total - advance;
   }
 
-  // --- CRUD Operations ---
-
-  void addLead() {
-    final nextId = leads.isEmpty ? 1001 : int.parse(leads.last.leadNo.split('-').last) + 1;
-    final newLead = LeadModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      leadNo: '#LD-$nextId',
-      customerName: customerNameController.text.trim(),
-      phone: '${selectedCountryCode.value} ${phoneController.text.trim()}',
-      email: emailController.text.trim(),
-      route: routeController.text.trim(),
-      date: selectedDate.value,
-      duration: selectedDuration.value,
-      vehicleType: selectedVehicleType.value,
-      vehicleCount: vehicleCount.value,
-      pickupAddress: pickupAddressController.text.trim(),
-      destinationPoints: List.from(destinationPoints),
-      totalAmount: double.tryParse(totalAmountController.text) ?? 0,
-      advancePayment: double.tryParse(advancePaymentController.text) ?? 0,
-      status: 'Pending',
-      createdAt: DateTime.now(),
-    );
-
-    leads.add(newLead);
-    filterLeads();
-    Get.back();
-    Get.snackbar(
-      'Success',
-      'Lead added successfully',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.green.withValues(alpha: 0.9),
-      colorText: Colors.white,
-    );
-  }
-
-  void updateLead(String id) {
-    final index = leads.indexWhere((l) => l.id == id);
-    if (index != -1) {
-      final updatedLead = LeadModel(
-        id: id,
-        leadNo: leads[index].leadNo,
-        customerName: customerNameController.text.trim(),
-        phone: '${selectedCountryCode.value} ${phoneController.text.trim()}',
-        email: emailController.text.trim(),
-        route: routeController.text.trim(),
-        date: selectedDate.value,
-        duration: selectedDuration.value,
-        vehicleType: selectedVehicleType.value,
-        vehicleCount: vehicleCount.value,
-        pickupAddress: pickupAddressController.text.trim(),
-        destinationPoints: List.from(destinationPoints),
-        totalAmount: double.tryParse(totalAmountController.text) ?? 0,
-        advancePayment: double.tryParse(advancePaymentController.text) ?? 0,
-        status: leads[index].status, // Preserve existing status
-        createdAt: leads[index].createdAt, // Preserve creation date
-      );
-
-      leads[index] = updatedLead;
-      filterLeads();
-      Get.back();
-      Get.snackbar(
-        'Success',
-        'Lead updated successfully',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.green.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+  void calculateRoute() {
+    if (pickupAddressController.text.isNotEmpty && destinationPoints.isNotEmpty) {
+      String dest = destinationPoints.last['name'];
+      routeController.text = "${pickupAddressController.text} to $dest";
     }
   }
 
-  void deleteLead(String id) {
-    leads.removeWhere((l) => l.id == id);
-    filterLeads();
-    Get.back(); // Usually called from details or bottom sheet
-    Get.snackbar(
-      'Deleted',
-      'Lead removed perfectly',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: Colors.red.withValues(alpha: 0.9),
-      colorText: Colors.white,
-    );
-  }
-
-  void updateLeadStatus(String id, String newStatus) {
+  void updateLeadStatus(String id, String newStatus) async {
+    // Logic to update status via API if needed
     final index = leads.indexWhere((l) => l.id == id);
     if (index != -1) {
-      final oldLead = leads[index];
-      leads[index] = LeadModel(
-        id: oldLead.id,
-        leadNo: oldLead.leadNo,
-        customerName: oldLead.customerName,
-        phone: oldLead.phone,
-        email: oldLead.email,
-        route: oldLead.route,
-        date: oldLead.date,
-        duration: oldLead.duration,
-        vehicleType: oldLead.vehicleType,
-        vehicleCount: oldLead.vehicleCount,
-        pickupAddress: oldLead.pickupAddress,
-        destinationPoints: oldLead.destinationPoints,
-        totalAmount: oldLead.totalAmount,
-        advancePayment: oldLead.advancePayment,
-        status: newStatus, // Updated status
-        createdAt: oldLead.createdAt,
+      fetchLeads(); // Refresh list
+      CustomSnackbar.showSuccess('Status updated to $newStatus');
+    }
+  }
+
+  final leadNotes = <LeadNote>[].obs;
+  final isNotesLoading = false.obs;
+
+  Future<void> fetchLeadNotes(String leadId) async {
+    isNotesLoading.value = true;
+    try {
+      final response = await _apiClient.get('/api/v1/leads/$leadId/notes');
+      if (response.isSuccess) {
+        dynamic responseData = response.body;
+        List<dynamic> notesList = [];
+        
+        if (responseData is Map && responseData.containsKey('data')) {
+          notesList = responseData['data'] is List ? responseData['data'] : [];
+        } else if (responseData is List) {
+          notesList = responseData;
+        }
+        
+        leadNotes.value = notesList.map((json) => LeadNote.fromJson(json)).toList();
+      }
+    } catch (e) {
+      print('Error fetching notes: $e');
+    } finally {
+      isNotesLoading.value = false;
+    }
+  }
+
+  Future<bool> addLeadNote(String leadId, String note) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post('/api/v1/leads/$leadId/notes', data: {'note': note});
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        fetchLeadNotes(leadId);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error adding note: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchLeadDetails(String leadId) async {
+    isDetailsLoading.value = true;
+    try {
+      final response = await _apiClient.get('/api/v1/leads/$leadId');
+      if (response.isSuccess && response.body != null) {
+        final data = response.body;
+        selectedLeadDetails.value = data;
+        
+        if (data['followups'] is List) {
+          leadFollowups.assignAll(List<Map<String, dynamic>>.from(data['followups']));
+        }
+        
+        if (data['expenses'] is List) {
+          leadExpenses.assignAll(List<Map<String, dynamic>>.from(data['expenses']));
+        }
+        
+        if (data['duty_sheets'] is List) {
+          leadDutySheets.assignAll(List<Map<String, dynamic>>.from(data['duty_sheets']));
+        }
+        
+        if (data['notes'] is List) {
+          leadNotes.assignAll((data['notes'] as List).map((n) => LeadNote.fromJson(n)).toList());
+        }
+      }
+    } catch (e) {
+      print('Error fetching lead details: $e');
+    } finally {
+      isDetailsLoading.value = false;
+    }
+  }
+
+  Future<bool> updateLeadStatusDetail(String id, String newStatus) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.patch(
+        '/api/v1/leads/$id/status',
+        data: {'status': newStatus.toLowerCase()},
       );
-      filterLeads();
-      Get.snackbar(
-        'Status Updated',
-        'Lead marked as $newStatus',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.blue.withValues(alpha: 0.9),
-        colorText: Colors.white,
-      );
+      
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Status updated to $newStatus');
+        await fetchLeadDetails(id);
+        fetchLeads(isRefresh: true); // Refresh list screen too
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error updating status: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 }

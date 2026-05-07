@@ -9,10 +9,10 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_status_chip.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/lead_controller.dart';
 import '../domain/models/lead_model.dart';
-import '../controllers/lead_controller.dart';
 
 class LeadDetailsScreen extends StatefulWidget {
   const LeadDetailsScreen({Key? key}) : super(key: key);
@@ -353,7 +353,14 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     _GridActionButton(
                       icon: Icons.description_rounded,
                       label: 'Quotation',
-                      onTap: () => Get.toNamed(RouteHelper.getQuotationPreviewRoute(), arguments: displayLead),
+                      onTap: () {
+                       // if (displayLead.quotationPath != null && displayLead.quotationPath!.isNotEmpty) {
+                          final String fullUrl = AppConstants.getFileUrl(displayLead.quotationPath);
+                          Get.toNamed(RouteHelper.getPdfViewerRoute(), arguments: fullUrl);
+                        // } else {
+                        //   Get.toNamed(RouteHelper.getQuotationPreviewRoute(), arguments: displayLead);
+                        // }
+                      },
                     ),
                     // _GridActionButton(
                     //   icon: Iconsax.receipt_2_1,

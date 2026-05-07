@@ -10,14 +10,15 @@ class LeadModel {
   final DateTime date;
   final String duration;
   final String vehicleType;
-  final int? vehicleTypeId; // Added for correct dropdown prefilling
+  final int? vehicleTypeId; 
   final int vehicleCount;
   final String? pickupAddress;
   final List<String> destinationPoints;
   final List<Map<String, dynamic>>? rawPoints; 
   final double totalAmount;
   final double advancePayment;
-  final String status; // 'Pending', 'Quotation Sent', 'Confirmed', 'Cancelled'
+  final String status; 
+  final String? quotationPath; // Added
   final DateTime? createdAt;
 
   LeadModel({
@@ -38,6 +39,7 @@ class LeadModel {
     required this.totalAmount,
     required this.advancePayment,
     this.status = 'Pending',
+    this.quotationPath,
     this.createdAt,
   });
 
@@ -66,6 +68,7 @@ class LeadModel {
         totalAmount: _toDouble(json['total_amount'] ?? json['total_amount']),
         advancePayment: _toDouble(json['advance_payment'] ?? json['advance_amount']),
         status: json['status'] ?? 'Pending',
+        quotationPath: json['quotation_path'],
         createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       );
 
@@ -86,6 +89,7 @@ class LeadModel {
         'total_amount': totalAmount,
         'advance_payment': advancePayment,
         'status': status,
+        'quotation_path': quotationPath,
         'created_at': createdAt?.toIso8601String(),
       };
 

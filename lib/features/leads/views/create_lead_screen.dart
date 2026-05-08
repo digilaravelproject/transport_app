@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/app_validators.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
@@ -14,6 +15,7 @@ import '../../../routes/route_helper.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/lead_controller.dart';
 import '../../routes_management/views/location_search_screen.dart';
+import '../domain/models/lead_model.dart';
 
 class CreateLeadScreen extends StatefulWidget {
   const CreateLeadScreen({Key? key}) : super(key: key);
@@ -26,14 +28,79 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
   final LeadController controller = Get.find<LeadController>();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  LeadModel? _editLead;
+  bool get _isEdit => _editLead != null;
+
   Map<String, dynamic>? _pickupPoint;
-  final List<TextEditingController> _destinationControllers = [TextEditingController()];
-  final List<Map<String, dynamic>?> _destinationPoints = [null];
+  final List<TextEditingController> _destinationControllers = [];
+  final List<Map<String, dynamic>?> _destinationPoints = [];
+  late TextEditingController _vehicleCountController;
 
   @override
   void initState() {
     super.initState();
-    controller.resetForm();
+    _editLead = Get.arguments is LeadModel ? Get.arguments as LeadModel : null;
+    _vehicleCountController = TextEditingController();
+    
+    if (_isEdit) {
+      _prefillData();
+    } else {
+      controller.resetForm();
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+      _vehicleCountController.text = controller.vehicleCount.value.toString();
+    }
+  }
+
+  void _prefillData() {
+    final lead = _editLead!;
+    controller.customerNameController.text = lead.customerName;
+    controller.phoneController.text = lead.phone;
+    controller.routeController.text = lead.route;
+    controller.totalAmountController.text = lead.totalAmount.toString();
+    controller.advancePaymentController.text = lead.advancePayment.toString();
+    controller.selectedDate.value = lead.date;
+    controller.selectedDuration.value = lead.duration;
+    controller.selectedVehicleType.value = lead.vehicleType;
+    controller.selectedVehicleTypeId.value = lead.vehicleTypeId;
+    controller.vehicleCount.value = lead.vehicleCount;
+    _vehicleCountController.text = lead.vehicleCount.toString();
+    controller.pickupAddressController.text = lead.pickupAddress ?? '';
+    
+    // Fill points if available
+    if (lead.rawPoints != null && lead.rawPoints!.isNotEmpty) {
+      final points = lead.rawPoints!;
+      
+      // Pickup (type == 'start')
+      final startPoint = points.firstWhere((p) => p['type'] == 'start', orElse: () => points.first);
+      _pickupPoint = {
+        'name': startPoint['name'],
+        'lat': startPoint['lat'],
+        'lng': startPoint['lng'],
+      };
+      controller.pickupAddressController.text = startPoint['name'];
+
+      // Destinations (type == 'stop' or 'end')
+      final destinations = points.where((p) => p['type'] != 'start').toList();
+      destinations.sort((a, b) => (a['order'] ?? 0).compareTo(b['order'] ?? 0));
+
+      if (destinations.isEmpty) {
+        _destinationControllers.add(TextEditingController());
+        _destinationPoints.add(null);
+      } else {
+        for (var p in destinations) {
+          _destinationControllers.add(TextEditingController(text: p['name']));
+          _destinationPoints.add({
+            'name': p['name'],
+            'lat': p['lat'],
+            'lng': p['lng'],
+          });
+        }
+      }
+    } else {
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+    }
   }
 
   @override
@@ -41,14 +108,47 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
     for (var c in _destinationControllers) {
       c.dispose();
     }
+    _vehicleCountController.dispose();
     super.dispose();
+  }
+
+  void _addDestination() {
+    setState(() {
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+    });
+  }
+
+  void _removeDestination(int index) {
+    if (_destinationControllers.length > 1) {
+      setState(() {
+        _destinationControllers[index].dispose();
+        _destinationControllers.removeAt(index);
+        _destinationPoints.removeAt(index);
+      });
+    }
+  }
+
+  Future<void> _selectLocation(int? index) async {
+    final result = await Get.to(() => const LocationSearchScreen(title: 'Search Location'));
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        if (index == null) {
+          _pickupPoint = result;
+          controller.pickupAddressController.text = result['name'];
+        } else {
+          _destinationPoints[index] = result;
+          _destinationControllers[index].text = result['name'];
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Create Lead',
+        title: _isEdit ? 'Edit Lead' : 'Create Lead',
         onBack: () => Navigator.of(context).pop(),
       ),
       body: Form(
@@ -59,33 +159,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
             children: [
               // ── Trip Details ─────────────────────────────────────────
               const SectionHeader(title: 'Trip Details'),
-              /*const SizedBox(height: 8),
-              SizedBox(
-                height: 38,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: controller.tripPresets.length,
-                  itemBuilder: (context, index) {
-                    final preset = controller.tripPresets[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ActionChip(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        label: AppText(
-                          preset['label'],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryColor,
-                        ),
-                        backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                        side: BorderSide(color: AppColors.primaryColor.withValues(alpha: 0.2)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        onPressed: () => controller.applyPreset(index),
-                      ),
-                    );
-                  },
-                ),
-              ),*/
               const SizedBox(height: 12),
               AppCard(
                 padding: const EdgeInsets.all(16),
@@ -100,7 +173,7 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                               final date = await showDatePicker(
                                 context: context,
                                 initialDate: controller.selectedDate.value,
-                                firstDate: DateTime.now(),
+                                firstDate: DateTime.now().subtract(const Duration(days: 30)),
                                 lastDate: DateTime.now().add(const Duration(days: 365)),
                               );
                               if (date != null) controller.selectedDate.value = date;
@@ -108,7 +181,7 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                             value: controller.selectedDate,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: _DropdownField(
                             label: 'Duration',
@@ -118,144 +191,83 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: VehicleTypeDropdown(
-                            selectedId: controller.selectedVehicleTypeId,
-                            onChanged: (id, displayName) {
-                              controller.selectedVehicleType.value = displayName;
-                              controller.selectedVehicleTypeId.value = id;
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          flex: 1,
-                          child: AppInputField(
-                            label: 'Vehicle Count',
-                            hint: '1',
-                            icon: Icons.filter_9_plus_rounded,
-                            iconSize: 16,
-                            keyboardType: TextInputType.number,
-                            onChanged: (v) => controller.vehicleCount.value = int.tryParse(v) ?? 1,
-                            validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    
-                    // Pickup Address (Start Point)
-                    AppInputField(
-                      label: 'Pickup Address (Start)',
-                      hint: 'Search pickup location',
-                      icon: Iconsax.location5,
-                      controller: controller.pickupAddressController,
-                      readOnly: true,
-                      isRequired: true,
-                      validator: (val) => (val == null || val.isEmpty) ? 'Please select pickup point' : null,
-                      onTap: () async {
-                        final result = await Get.to(() => const LocationSearchScreen(title: 'Search Pickup Point'));
-                        if (result != null) {
-                          setState(() {
-                            _pickupPoint = result;
-                            controller.pickupAddressController.text = result['name'];
-                          });
-                          controller.calculateRoute();
-                        }
+                    const SizedBox(height: 16),
+                    VehicleTypeDropdown(
+                      selectedId: controller.selectedVehicleTypeId,
+                      onChanged: (id, name) {
+                        if (id != null) controller.selectedVehicleTypeId.value = id;
+                        if (name != null) controller.selectedVehicleType.value = name;
                       },
                     ),
-                    const SizedBox(height: 20),
-
-                    // Destinations (Multiple Points)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const AppText('Destinations',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textColorPrimary,
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _destinationControllers.add(TextEditingController());
-                              _destinationPoints.add(null);
-                            });
-                          },
-                          child: const Row(
-                            children: [
-                              Icon(Iconsax.add, size: 18, color: AppColors.primaryColor),
-                              SizedBox(width: 4),
-                              AppText('Add Destination',
-                                fontSize: 13,
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      label: 'Vehicle Count',
+                      hint: 'Enter number of vehicles',
+                      icon: Iconsax.bus,
+                      keyboardType: TextInputType.number,
+                      controller: _vehicleCountController,
+                      onChanged: (val) => controller.vehicleCount.value = int.tryParse(val) ?? 1,
                     ),
-                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              const SectionHeader(title: 'Route Details'),
+              const SizedBox(height: 12),
+              AppCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    AppInputField(
+                      label: 'Pickup Point',
+                      hint: 'Search pickup location',
+                      icon: Iconsax.location,
+                      controller: controller.pickupAddressController,
+                      readOnly: true,
+                      onTap: () => _selectLocation(null),
+                      isRequired: true,
+                      validator: (val) => (val == null || val.isEmpty) ? 'Pickup point required' : null,
+                    ),
+                    const SizedBox(height: 16),
                     ...List.generate(_destinationControllers.length, (index) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(bottom: 16),
                         child: Row(
                           children: [
                             Expanded(
                               child: AppInputField(
-                                hint: index == 0 ? 'e.g. Dadar, Mumbai' : 'Enter destination...',
-                                icon: Iconsax.location,
+                                label: index == _destinationControllers.length - 1 ? 'End Point' : 'Stop Point ${index + 1}',
+                                hint: 'Search destination',
+                                icon: Iconsax.map,
                                 controller: _destinationControllers[index],
                                 readOnly: true,
+                                onTap: () => _selectLocation(index),
                                 isRequired: true,
-                                validator: (val) => (val == null || val.isEmpty) ? 'Please select a destination' : null,
-                                onTap: () async {
-                                  final result = await Get.to(() => LocationSearchScreen(title: 'Search Destination ${index + 1}'));
-                                  if (result != null) {
-                                    setState(() {
-                                      _destinationPoints[index] = result;
-                                      _destinationControllers[index].text = result['name'];
-                                      // If it's the last destination, set it as the primary destination for calculation
-                                      if (index == _destinationControllers.length - 1) {
-                                        controller.destinationController.text = result['name'];
-                                      }
-                                    });
-                                    controller.calculateRoute();
-                                  }
-                                },
+                                validator: (val) => (val == null || val.isEmpty) ? 'Destination required' : null,
                               ),
                             ),
                             if (_destinationControllers.length > 1)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8),
-                                child: IconButton(
-                                  icon: const Icon(Icons.remove_circle_outline, color: AppColors.errorColor, size: 22),
-                                  onPressed: () {
-                                    setState(() {
-                                      _destinationControllers[index].dispose();
-                                      _destinationControllers.removeAt(index);
-                                      _destinationPoints.removeAt(index);
-                                    });
-                                    controller.calculateRoute();
-                                  },
-                                ),
+                              IconButton(
+                                icon: const Icon(Iconsax.trash, color: Colors.red, size: 20),
+                                onPressed: () => _removeDestination(index),
                               ),
                           ],
                         ),
                       );
                     }),
+                    AppButton.outline(
+                      text: 'Add Stop',
+                      icon: Icon(Iconsax.add),
+                      onPressed: _addDestination,
+                    ),
                   ],
                 ),
               ),
 
+              const SizedBox(height: 24),
+              const SectionHeader(title: 'Customer Info'),
               const SizedBox(height: 12),
-              const SectionHeader(title: 'Customer Details'),
-              const SizedBox(height: 6),
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -266,32 +278,25 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                       icon: Iconsax.user,
                       controller: controller.customerNameController,
                       isRequired: true,
-                      validator: (val) => (val == null || val.isEmpty) ? 'Please enter customer name' : null,
+                      validator: (val) => (val == null || val.isEmpty) ? 'Name required' : null,
                     ),
-                    const SizedBox(height: 20),
-                    Obx(() => AppInputField(
-                      label: 'Mobile Number',
-                      hint: 'Enter 10 digit number',
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      label: 'Contact Number',
+                      hint: '10-digit mobile number',
+                      icon: Iconsax.call,
                       keyboardType: TextInputType.phone,
                       controller: controller.phoneController,
-                      icon: Iconsax.call,
-                      phoneCode: controller.selectedCountryCode.value,
                       isRequired: true,
-                      validator: (val) => (val == null || val.isEmpty) ? 'Please enter mobile number' : null,
-                      onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
-                        context: context,
-                        selectedCode: controller.selectedCountryCode,
-                      ),
-                    )),
+                      validator: (val) => AppValidators.validateMobile(val),
+                    ),
                   ],
                 ),
               ),
 
+              const SizedBox(height: 24),
+              const SectionHeader(title: 'Financials'),
               const SizedBox(height: 12),
-
-              // ── Payment Details ──────────────────────────────────────
-              const SectionHeader(title: 'Payment Details'),
-              const SizedBox(height: 6),
               AppCard(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -360,16 +365,81 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
 
               // ── Action Buttons ───────────────────────────────────────
               Obx(() => AppButton(
-                text: 'Save Lead',
+                text: _isEdit ? 'Update Lead' : 'Save Lead',
                 isLoading: controller.isLoading.value,
                 onPressed: () => _handleSubmit(),
               )),
               const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Generate Quotation',
-                onPressed: () => Get.toNamed(RouteHelper.getQuotationPreviewRoute()),
+              if (!_isEdit)
+                AppButton.outline(
+                  text: 'Generate Quotation',
+                  onPressed: () => Get.toNamed(RouteHelper.getQuotationPreviewRoute()),
+                )
+              else
+                AppButton.outline(
+                  text: 'Delete Lead',
+                  color: Colors.red,
+                  onPressed: () => _showDeleteConfirmation(),
+                ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.trash, color: Colors.red, size: 32),
+              ),
+              const SizedBox(height: 24),
+              const AppText('Delete Lead', style: AppTextStyle.subheading, fontSize: 20),
+              const SizedBox(height: 12),
+              AppText(
+                'Are you sure you want to delete this lead? This action cannot be undone and will remove all related data.',
+                style: AppTextStyle.body,
+                color: AppColors.textColorSecondary,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.outline(
+                      text: 'Cancel',
+                      onPressed: () => Get.back(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppButton(
+                      text: 'Delete',
+                      color: Colors.red,
+                      onPressed: () async {
+                        Get.back(); // close dialog
+                        final success = await controller.deleteLead(_editLead!.id!);
+                        if (success) {
+                          Get.offAllNamed(RouteHelper.getLeadListRoute());
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -382,11 +452,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
 
     if (_pickupPoint == null || _destinationPoints.any((p) => p == null)) {
       Get.snackbar('Error', 'Please select all locations', backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
-
-    if (controller.selectedVehicleTypeId.value == null) {
-      Get.snackbar('Error', 'Please select a vehicle type', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
@@ -425,24 +490,34 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       durationDays = int.tryParse(durationText.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
     }
 
-    final payload = {
-      "trip_route": "Lucknow to Delhi",
-      "trip_date": controller.selectedDate.value.toIso8601String().split('T')[0],
-      "duration_days": durationDays,
-      "vehicle_type": controller.selectedVehicleTypeId.value,
-      "seating_capacity": controller.vehicleCount.value, // User said vehicle count goes here
-      "pickup_address": controller.pickupAddressController.text,
-      "points": points,
-      "customer_name": controller.customerNameController.text.trim(),
-      "customer_contact": controller.phoneController.text.trim(),
-      "total_amount": double.tryParse(controller.totalAmountController.text) ?? 0,
-      "advance_amount": double.tryParse(controller.advancePaymentController.text) ?? 0,
-      "pending_amount": controller.pendingAmount,
-    };
+    // Update destinationPoints in controller for updateLead/createLead if they use it
+    controller.destinationPoints.assignAll(points);
 
-    final success = await controller.createLead(payload);
-    if (success) {
-      Get.back();
+    if (_isEdit) {
+      final success = await controller.updateLead(_editLead!.id!);
+      if (success) {
+        Get.back();
+      }
+    } else {
+      final payload = {
+        "trip_route": "${_pickupPoint!['name']} to ${_destinationPoints.last!['name']}",
+        "trip_date": controller.selectedDate.value.toIso8601String().split('T')[0],
+        "duration_days": durationDays,
+        "vehicle_type": controller.selectedVehicleTypeId.value ?? 1,
+        "seating_capacity": controller.vehicleCount.value,
+        "pickup_address": controller.pickupAddressController.text,
+        "points": points,
+        "customer_name": controller.customerNameController.text.trim(),
+        "customer_contact": controller.phoneController.text.trim(),
+        "total_amount": double.tryParse(controller.totalAmountController.text) ?? 0,
+        "advance_amount": double.tryParse(controller.advancePaymentController.text) ?? 0,
+        "pending_amount": controller.pendingAmount,
+      };
+      
+      final success = await controller.createLead(payload);
+      if (success) {
+        Get.back();
+      }
     }
   }
 }

@@ -176,7 +176,7 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
-                      AppText(staff.displayRole, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                      AppText(staff.staffType, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                       // if (staff.attendance != null && staff.attendance!.inTime != null)
                       //   Padding(
                       //     padding: const EdgeInsets.only(top: 4),

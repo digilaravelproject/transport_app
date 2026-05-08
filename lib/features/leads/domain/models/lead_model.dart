@@ -10,12 +10,15 @@ class LeadModel {
   final DateTime date;
   final String duration;
   final String vehicleType;
+  final int? vehicleTypeId; 
   final int vehicleCount;
   final String? pickupAddress;
   final List<String> destinationPoints;
+  final List<Map<String, dynamic>>? rawPoints; 
   final double totalAmount;
   final double advancePayment;
-  final String status; // 'Pending', 'Quotation Sent', 'Confirmed', 'Cancelled'
+  final String status; 
+  final String? quotationPath; // Added
   final DateTime? createdAt;
 
   LeadModel({
@@ -28,12 +31,15 @@ class LeadModel {
     required this.date,
     required this.duration,
     required this.vehicleType,
+    this.vehicleTypeId,
     required this.vehicleCount,
     this.pickupAddress,
     this.destinationPoints = const [],
+    this.rawPoints,
     required this.totalAmount,
     required this.advancePayment,
     this.status = 'Pending',
+    this.quotationPath,
     this.createdAt,
   });
 
@@ -50,6 +56,7 @@ class LeadModel {
               json['trip_date'] != null ? DateTime.parse(json['trip_date']) : DateTime.now(),
         duration: json['duration'] ?? json['duration_days']?.toString() ?? '',
         vehicleType: json['vehicle_type']?.toString() ?? '',
+        vehicleTypeId: int.tryParse(json['vehicle_type']?.toString() ?? ''),
         vehicleCount: json['vehicle_count'] ?? json['seating_capacity'] ?? 1,
         pickupAddress: json['pickup_address'],
         destinationPoints: json['destination_points'] != null 
@@ -57,9 +64,11 @@ class LeadModel {
             : (json['points'] is List 
                 ? (json['points'] as List).map((p) => p['name']?.toString() ?? '').where((n) => n.isNotEmpty).toList()
                 : []),
+        rawPoints: json['points'] is List ? List<Map<String, dynamic>>.from(json['points']) : null,
         totalAmount: _toDouble(json['total_amount'] ?? json['total_amount']),
         advancePayment: _toDouble(json['advance_payment'] ?? json['advance_amount']),
         status: json['status'] ?? 'Pending',
+        quotationPath: json['quotation_path'],
         createdAt: json['created_at'] != null ? DateTime.parse(json['created_at']) : null,
       );
 
@@ -76,9 +85,11 @@ class LeadModel {
         'vehicle_count': vehicleCount,
         'pickup_address': pickupAddress,
         'destination_points': destinationPoints,
+        'points': rawPoints,
         'total_amount': totalAmount,
         'advance_payment': advancePayment,
         'status': status,
+        'quotation_path': quotationPath,
         'created_at': createdAt?.toIso8601String(),
       };
 

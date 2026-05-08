@@ -9,9 +9,10 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_status_chip.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../routes/route_helper.dart';
-import '../domain/models/lead_model.dart';
 import '../controllers/lead_controller.dart';
+import '../domain/models/lead_model.dart';
 
 class LeadDetailsScreen extends StatefulWidget {
   const LeadDetailsScreen({Key? key}) : super(key: key);
@@ -115,7 +116,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
       appBar: AppHeader(
         title: 'Lead Details',
         onBack: () => Get.back(),
-        trailing: Icon(Iconsax.menu_12),
+
       ),
       body: RefreshIndicator(
         onRefresh: () => controller.fetchLeadDetails(lead.id!),
@@ -256,7 +257,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                 const SizedBox(height: 20),
 
                 // ── Followups ──────────────────────────────────────────
-                if (controller.leadFollowups.isNotEmpty) ...[
+                /*if (controller.leadFollowups.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 12),
                     child: AppText('Upcoming Followups', style: AppTextStyle.subheading, fontSize: 16),
@@ -268,10 +269,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     color: AppColors.warningColor,
                   )),
                   const SizedBox(height: 20),
-                ],
+                ],*/
 
                 // ── Expenses ───────────────────────────────────────────
-                if (controller.leadExpenses.isNotEmpty) ...[
+               /* if (controller.leadExpenses.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 12),
                     child: AppText('Trip Expenses', style: AppTextStyle.subheading, fontSize: 16),
@@ -283,10 +284,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     color: Colors.redAccent,
                   )),
                   const SizedBox(height: 20),
-                ],
+                ],*/
 
                 // ── Duty Sheets ────────────────────────────────────────
-                if (controller.leadDutySheets.isNotEmpty) ...[
+               /* if (controller.leadDutySheets.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 12),
                     child: AppText('Duty Sheets', style: AppTextStyle.subheading, fontSize: 16),
@@ -301,10 +302,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     },
                   )),
                   const SizedBox(height: 20),
-                ],
+                ],*/
 
                 // ── Lead Notes ─────────────────────────────────────────
-                if (controller.leadNotes.isNotEmpty) ...[
+                /*if (controller.leadNotes.isNotEmpty) ...[
                   const Padding(
                     padding: EdgeInsets.only(left: 4, bottom: 12),
                     child: AppText('Recent Notes', style: AppTextStyle.subheading, fontSize: 16),
@@ -316,9 +317,9 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     color: Colors.blueGrey,
                   )),
                   const SizedBox(height: 20),
-                ],
+                ],*/
 
-                const SizedBox(height: 12),
+              //  const SizedBox(height: 12),
 
                 // ── Actions Grid ────────────────────────────────────────
                 GridView.count(
@@ -332,7 +333,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     _GridActionButton(
                       icon: Iconsax.edit,
                       label: 'Edit Lead',
-                      onTap: () => Get.toNamed(RouteHelper.getEditLeadRoute(), arguments: displayLead),
+                      onTap: () => Get.toNamed(RouteHelper.getCreateLeadRoute(), arguments: displayLead),
                     ),
                     _GridActionButton(
                       icon: Icons.note_add_rounded,
@@ -342,23 +343,30 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     _GridActionButton(
                       icon: Icons.notification_add_rounded,
                       label: 'Follow Up',
-                      onTap: () => Get.toNamed(RouteHelper.getFollowUpRoute(), arguments: displayLead),
+                      onTap: () => Get.toNamed(RouteHelper.getFollowUpListRoute(), arguments: displayLead),
                     ),
-                    _GridActionButton(
-                      icon: Iconsax.add,
-                      label: 'Create Trip',
-                      onTap: () {},
-                    ),
+                    // _GridActionButton(
+                    //   icon: Iconsax.add,
+                    //   label: 'Create Trip',
+                    //   onTap: () {},
+                    // ),
                     _GridActionButton(
                       icon: Icons.description_rounded,
                       label: 'Quotation',
-                      onTap: () => Get.toNamed(RouteHelper.getQuotationPreviewRoute(), arguments: displayLead),
+                      onTap: () {
+                       // if (displayLead.quotationPath != null && displayLead.quotationPath!.isNotEmpty) {
+                          final String fullUrl = AppConstants.getFileUrl(displayLead.quotationPath);
+                          Get.toNamed(RouteHelper.getPdfViewerRoute(), arguments: fullUrl);
+                        // } else {
+                        //   Get.toNamed(RouteHelper.getQuotationPreviewRoute(), arguments: displayLead);
+                        // }
+                      },
                     ),
-                    _GridActionButton(
-                      icon: Iconsax.receipt_2_1,
-                      label: 'Invoice',
-                      onTap: () {},
-                    ),
+                    // _GridActionButton(
+                    //   icon: Iconsax.receipt_2_1,
+                    //   label: 'Invoice',
+                    //   onTap: () {},
+                    // ),
                   ],
                 ),
                 const SizedBox(height: 40),

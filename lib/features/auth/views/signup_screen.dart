@@ -153,7 +153,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 16),
                             FadeTransition(
                               opacity: _titleFadeAnimation,
                               child: SlideTransition(
@@ -166,7 +166,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
                             FadeTransition(
                               opacity: _subtitleFadeAnimation,
                               child: SlideTransition(
@@ -183,7 +183,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                         ),
                       ),
         
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 24),
         
                       // Form Card (Clean & Premium)
                       FadeTransition(
@@ -212,7 +212,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                               ],
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(32),
+                              padding: const EdgeInsets.all(24),
                               child: Form(
                                 key: _formKey,
                                 child: Column(
@@ -229,7 +229,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       controller: authController.companyNameController,
                                     ),
         
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
         
                                     // Owner Name
                                     AppInputField(
@@ -244,7 +244,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       controller: authController.nameController,
                                     ),
         
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
         
                                     // Mobile Number
                                     AppInputField(
@@ -262,7 +262,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       ),
                                     ),
         
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
         
                                     // Email
                                     AppInputField(
@@ -275,7 +275,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       controller: authController.emailController,
                                     ),
         
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 12),
         
                                     // Password
                                    /* AppInputField(
@@ -313,7 +313,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                       ),
                                     ),*/
         
-                                    const SizedBox(height: 32),
+                                    const SizedBox(height: 24),
         
                                     // Register Button
                                     Obx(() => AppButton(
@@ -336,7 +336,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                         ),
                       ),
         
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
         
                       // Sign In Link
                       FadeTransition(
@@ -370,7 +370,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                         ),
                       ),
         
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),

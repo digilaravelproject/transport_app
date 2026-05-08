@@ -16,4 +16,24 @@ class RoleModel {
     this.isActive = true,
     this.level = 'Medium',
   });
+
+  RoleModel copyWith({
+    String? id,
+    String? roleName,
+    String? description,
+    int? assignedUsersCount,
+    List<String>? permissions,
+    bool? isActive,
+    String? level,
+  }) {
+    return RoleModel(
+      id: id ?? this.id,
+      roleName: roleName ?? this.roleName,
+      description: description ?? this.description,
+      assignedUsersCount: assignedUsersCount ?? this.assignedUsersCount,
+      permissions: permissions ?? this.permissions,
+      isActive: isActive ?? this.isActive,
+      level: level ?? this.level,
+    );
+  }
 }

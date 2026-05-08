@@ -198,6 +198,7 @@ class _UploadDocumentModalState extends State<_UploadDocumentModal> {
               UploadBox(
                 label: 'Document File',
                 fileName: _selectedFile?.name,
+                localPath: _selectedFile?.path,
                 isUploaded: _selectedFile != null,
                 onTap: _pickFile,
               ),
@@ -246,14 +247,31 @@ class _DocumentCard extends StatelessWidget {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       onTap: doc.viewUrl != null 
-          ? () => AppImagePreview.show(context, imageUrl: doc.viewUrl, title: doc.name)
+          ? () => AppImagePreview.show(
+              context, 
+              imageUrl: doc.viewUrl, 
+              title: doc.name,
+              onDownload: doc.downloadUrl != null ? () => controller.downloadFile(doc.downloadUrl!) : null,
+            )
           : null,
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.description_outlined, color: AppColors.primaryColor),
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(10),
+              image: (doc.viewUrl != null && (doc.viewUrl!.toLowerCase().endsWith('.jpg') || doc.viewUrl!.toLowerCase().endsWith('.jpeg') || doc.viewUrl!.toLowerCase().endsWith('.png')))
+                  ? DecorationImage(
+                      image: NetworkImage(doc.viewUrl!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
+            ),
+            child: (doc.viewUrl != null && (doc.viewUrl!.toLowerCase().endsWith('.jpg') || doc.viewUrl!.toLowerCase().endsWith('.jpeg') || doc.viewUrl!.toLowerCase().endsWith('.png')))
+                ? null
+                : const Icon(Icons.description_outlined, color: AppColors.primaryColor),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -276,11 +294,16 @@ class _DocumentCard extends StatelessWidget {
               if (doc.viewUrl != null)
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined, color: AppColors.primaryColor),
-                  onPressed: () => AppImagePreview.show(context, imageUrl: doc.viewUrl, title: doc.name),
+                  onPressed: () => AppImagePreview.show(
+                    context, 
+                    imageUrl: doc.viewUrl, 
+                    title: doc.name,
+                    onDownload: doc.downloadUrl != null ? () => controller.downloadFile(doc.downloadUrl!) : null,
+                  ),
                 ),
               if (doc.downloadUrl != null)
                 IconButton(
-                  icon: const Icon(Iconsax.document_download, color: AppColors.textColorHint),
+                  icon: const Icon(Iconsax.document_download, color: AppColors.primaryColor),
                   onPressed: () => controller.downloadFile(doc.downloadUrl!),
                 ),
             ],

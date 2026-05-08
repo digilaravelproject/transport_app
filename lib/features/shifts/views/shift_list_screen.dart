@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/shift_controller.dart';
 import '../domain/models/shift_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class ShiftListScreen extends GetView<ShiftController> {
   const ShiftListScreen({Key? key}) : super(key: key);
@@ -83,9 +84,15 @@ class ShiftListScreen extends GetView<ShiftController> {
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
-                  label: 'Special Duty',
-                  isSelected: controller.selectedFilter.value == 'Special Duty',
-                  onTap: () => controller.setFilter('Special Duty'),
+                  label: 'Night',
+                  isSelected: controller.selectedFilter.value == 'Night',
+                  onTap: () => controller.setFilter('Night'),
+                ),
+                const SizedBox(width: 8),
+                AppFilterChip(
+                  label: 'Custom',
+                  isSelected: controller.selectedFilter.value == 'Custom',
+                  onTap: () => controller.setFilter('Custom'),
                 ),
               ],
             )),
@@ -102,16 +109,12 @@ class ShiftListScreen extends GetView<ShiftController> {
               }
               
               if (controller.filteredShifts.isEmpty) {
-                return RefreshIndicator(
-                  onRefresh: () => controller.refreshShifts(),
-                  color: AppColors.primaryColor,
-                  child: ListView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    children: const [
-                      SizedBox(height: 200),
-                      Center(child: AppText('No shifts found.')),
-                    ],
-                  ),
+                return AppEmptyState(
+                  title: controller.searchQuery.value.isNotEmpty ? 'No Matching Shifts' : 'No Shifts Found',
+                  subtitle: controller.searchQuery.value.isNotEmpty 
+                      ? 'We couldn\'t find any shifts matching "${controller.searchQuery.value}"'
+                      : 'Create your first shift to start managing your team schedules.',
+                  icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.clock,
                 );
               }
               

@@ -16,6 +16,7 @@ import '../../vehicles/widgets/upload_box.dart';
 import '../../../core/widgets/app_image_preview.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class ServicePaymentHistoryScreen extends StatefulWidget {
   const ServicePaymentHistoryScreen({super.key});
@@ -131,14 +132,10 @@ class _ServicePaymentHistoryScreenState extends State<ServicePaymentHistoryScree
                 if (currentRecord.payments.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 40),
-                    child: Center(
-                      child: Column(
-                        children: [
-                          Icon(Iconsax.document_text, size: 48, color: AppColors.slate300),
-                          const SizedBox(height: 12),
-                          const AppText('No payment logs found', color: AppColors.textColorHint),
-                        ],
-                      ),
+                    child: AppEmptyState(
+                      title: 'No Payment Logs',
+                      subtitle: 'No payment transactions have been recorded for this record yet.',
+                      icon: Iconsax.document_text,
                     ),
                   )
                 else

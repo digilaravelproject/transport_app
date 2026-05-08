@@ -5,8 +5,10 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/app_button.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
+import '../../../core/constants/app_constants.dart';
 
 class StaffPerformanceScreen extends GetView<StaffController> {
   const StaffPerformanceScreen({Key? key}) : super(key: key);
@@ -15,34 +17,69 @@ class StaffPerformanceScreen extends GetView<StaffController> {
   Widget build(BuildContext context) {
     final StaffModel staff = Get.arguments ?? controller.staffList.first;
 
+    // Fetch performance data on build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchStaffPerformance(staff.id);
+    });
+
     return AppScaffold(
       appBar: AppHeader(
         title: 'Performance Report',
         subtitle: staff.name,
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildOverallRating(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Efficiency Metrics'),
-            _buildMetricsGrid(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Monthly Trip History'),
-            _buildTripChart(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Recent Feedback'),
-            _buildFeedbackList(),
-          ],
-        ),
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value && controller.performanceReport.value == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final report = controller.performanceReport.value;
+        if (report == null) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.analytics_outlined, size: 64, color: AppColors.textColorHint.withOpacity(0.5)),
+                const SizedBox(height: 16),
+                const AppText('No performance data found', style: AppTextStyle.body, color: AppColors.textColorHint),
+                const SizedBox(height: 16),
+                AppButton.outline(
+                  text: 'Retry',
+                  onPressed: () => controller.fetchStaffPerformance(staff.id),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchStaffPerformance(staff.id),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildOverallRating(report),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Efficiency Metrics'),
+                _buildMetricsGrid(report),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Monthly Trip History'),
+                _buildTripChart(report),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Recent Feedback'),
+                _buildFeedbackList(report),
+              ],
+            ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildOverallRating(StaffModel staff) {
+  Widget _buildOverallRating(PerformanceReportModel report) {
+    final score = report.overallScore ?? 0.0;
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -64,14 +101,18 @@ class StaffPerformanceScreen extends GetView<StaffController> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const AppText('4.8', style: AppTextStyle.heading, fontSize: 24),
+                    AppText(score.toStringAsFixed(1), style: AppTextStyle.heading, fontSize: 24),
                     const SizedBox(width: 8),
                     Row(
-                      children: List.generate(5, (index) => Icon(
-                        index < 4 ? Icons.star_rounded : Icons.star_half_rounded,
-                        color: Colors.amber,
-                        size: 18,
-                      )),
+                      children: List.generate(5, (index) {
+                        if (index < score.floor()) {
+                          return const Icon(Icons.star_rounded, color: Colors.amber, size: 18);
+                        } else if (index < score) {
+                          return const Icon(Icons.star_half_rounded, color: Colors.amber, size: 18);
+                        } else {
+                          return const Icon(Icons.star_outline_rounded, color: Colors.amber, size: 18);
+                        }
+                      }),
                     ),
                   ],
                 ),
@@ -83,7 +124,8 @@ class StaffPerformanceScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildMetricsGrid(StaffModel staff) {
+  Widget _buildMetricsGrid(PerformanceReportModel report) {
+    final metrics = report.efficiencyMetrics;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -92,10 +134,30 @@ class StaffPerformanceScreen extends GetView<StaffController> {
       mainAxisSpacing: 12,
       childAspectRatio: 1.4,
       children: [
-        _buildMetricCard('On-Time', '98%', Icons.timer_rounded, Colors.green),
-        _buildMetricCard('Fuel Efficiency', '12 km/l', Icons.local_gas_station_rounded, Colors.blue),
-        _buildMetricCard('Safety Violations', '0', Icons.gpp_good_rounded, Colors.orange),
-        _buildMetricCard('Customer Satisfaction', '95%', Icons.sentiment_very_satisfied_rounded, Colors.purple),
+        _buildMetricCard(
+          'On-Time', 
+          metrics['on_time'] != null ? '${metrics['on_time']}%' : 'N/A', 
+          Icons.timer_rounded, 
+          Colors.green
+        ),
+        _buildMetricCard(
+          'Fuel Efficiency', 
+          metrics['fuel_efficiency'] != null ? '${metrics['fuel_efficiency']} km/l' : 'N/A', 
+          Icons.local_gas_station_rounded, 
+          Colors.blue
+        ),
+        _buildMetricCard(
+          'Safety Violations', 
+          (metrics['safety_violations'] ?? 0).toString(), 
+          Icons.gpp_good_rounded, 
+          Colors.orange
+        ),
+        _buildMetricCard(
+          'Customer Satisfaction', 
+          metrics['customer_satisfaction'] != null ? '${metrics['customer_satisfaction']}%' : 'N/A', 
+          Icons.sentiment_very_satisfied_rounded, 
+          Colors.purple
+        ),
       ],
     );
   }
@@ -116,7 +178,8 @@ class StaffPerformanceScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildTripChart(StaffModel staff) {
+  Widget _buildTripChart(PerformanceReportModel report) {
+    final history = report.monthlyTripHistory;
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -125,25 +188,31 @@ class StaffPerformanceScreen extends GetView<StaffController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const AppText('Trips per Month', style: AppTextStyle.body, fontWeight: FontWeight.w600),
-              const AppText('Last 6 Months', style: AppTextStyle.caption),
+              AppText(history.isNotEmpty ? 'Last ${history.length} Months' : 'Last 6 Months', style: AppTextStyle.caption),
             ],
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            height: 120,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                _buildBar(20, 'Jan'),
-                _buildBar(35, 'Feb'),
-                _buildBar(50, 'Mar'),
-                _buildBar(45, 'Apr'),
-                _buildBar(60, 'May'),
-                _buildBar(55, 'Jun'),
-              ],
+          if (history.isEmpty)
+             const SizedBox(height: 120, child: Center(child: AppText('No trip history', style: AppTextStyle.caption)))
+          else
+            SizedBox(
+              height: 120,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: history.map((e) {
+                   // Calculate relative height based on max trips (capped at 100 for safety)
+                   int maxTrips = 0;
+                   for(var h in history) if(h.trips > maxTrips) maxTrips = h.trips;
+                   if(maxTrips == 0) maxTrips = 1;
+                   
+                   double height = (e.trips / maxTrips) * 100;
+                   if (height < 5) height = 5; // Minimum height for visibility
+                   
+                   return _buildBar(height, e.month);
+                }).toList(),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -167,12 +236,31 @@ class StaffPerformanceScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildFeedbackList() {
+  Widget _buildFeedbackList(PerformanceReportModel report) {
+    if (report.recentFeedback.isEmpty) {
+      return SizedBox(
+        width: double.infinity,
+        child: AppCard(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            children: [
+              Icon(Icons.chat_bubble_outline_rounded, size: 48, color: AppColors.textColorHint.withOpacity(0.3)),
+              const SizedBox(height: 12),
+              const AppText('No recent feedback', style: AppTextStyle.body, color: AppColors.textColorHint),
+            ],
+          ),
+        ),
+      );
+    }
     return Column(
-      children: [
-        _buildFeedbackItem('Excellent service, reached on time.', 'Trip #1024', DateTime.now().subtract(const Duration(days: 2))),
-        _buildFeedbackItem('Driver was polite and the bus was clean.', 'Trip #1015', DateTime.now().subtract(const Duration(days: 5))),
-      ],
+      children: report.recentFeedback.map((f) {
+        // Assuming feedback structure from API
+        return _buildFeedbackItem(
+          f['comment'] ?? 'No comment provided', 
+          'Trip #${f['trip_id'] ?? 'N/A'}', 
+          f['date'] != null ? DateTime.tryParse(f['date'].toString()) ?? DateTime.now() : DateTime.now()
+        );
+      }).toList(),
     );
   }
 

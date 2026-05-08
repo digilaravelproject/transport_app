@@ -65,9 +65,9 @@ class VehicleModel {
     
     return VehicleModel(
       id: data['id'] ?? data['vehicle_id'],
-      vehicleTypeId: data['vehicle_type_id'] is int
-          ? data['vehicle_type_id']
-          : int.tryParse(data['vehicle_type_id']?.toString() ?? ''),
+      vehicleTypeId: data['vehicle_type_id'] != null
+          ? (data['vehicle_type_id'] is int ? data['vehicle_type_id'] : int.tryParse(data['vehicle_type_id'].toString()))
+          : (data['type'] is int ? data['type'] : int.tryParse(data['type']?.toString() ?? '')),
       vehicleNumber: data['registration_number'] ?? '',
       type: data['type'] ?? '',
       capacity: data['seating_capacity'] ?? 0,

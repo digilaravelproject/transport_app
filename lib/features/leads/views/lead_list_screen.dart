@@ -13,6 +13,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/lead_controller.dart';
 import '../domain/models/lead_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class LeadListScreen extends GetView<LeadController> {
   const LeadListScreen({Key? key}) : super(key: key);
@@ -173,10 +174,16 @@ class LeadListScreen extends GetView<LeadController> {
                         }
 
                         if (controller.filteredLeads.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(40.0),
-                            child: Center(
-                              child: AppText('No leads found', style: AppTextStyle.body),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            child: AppEmptyState(
+                              title: controller.searchQuery.isNotEmpty ? 'No Results Found' : 'No Leads Found',
+                              subtitle: controller.searchQuery.isNotEmpty 
+                                  ? 'No leads match your search "${controller.searchQuery.value}".'
+                                  : 'Start by creating your first lead to track inquiries.',
+                              icon: controller.searchQuery.isNotEmpty ? Iconsax.search_status : Iconsax.chart_215,
+                              actionLabel: null,
+                              onActionPressed: null,
                             ),
                           );
                         }

@@ -36,6 +36,8 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
   final List<Map<String, dynamic>?> _destinationPoints = [];
   late TextEditingController _vehicleCountController;
 
+  String? vehicleTypeError;
+
   @override
   void initState() {
     super.initState();
@@ -67,11 +69,8 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
     _vehicleCountController.text = lead.vehicleCount.toString();
     controller.pickupAddressController.text = lead.pickupAddress ?? '';
     
-    // Fill points if available
     if (lead.rawPoints != null && lead.rawPoints!.isNotEmpty) {
       final points = lead.rawPoints!;
-      
-      // Pickup (type == 'start')
       final startPoint = points.firstWhere((p) => p['type'] == 'start', orElse: () => points.first);
       _pickupPoint = {
         'name': startPoint['name'],
@@ -80,7 +79,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       };
       controller.pickupAddressController.text = startPoint['name'];
 
-      // Destinations (type == 'stop' or 'end')
       final destinations = points.where((p) => p['type'] != 'start').toList();
       destinations.sort((a, b) => (a['order'] ?? 0).compareTo(b['order'] ?? 0));
 
@@ -154,14 +152,13 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: [
-              // ── Trip Details ─────────────────────────────────────────
               const SectionHeader(title: 'Trip Details'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AppCard(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
                     Row(
@@ -181,7 +178,7 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                             value: controller.selectedDate,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: _DropdownField(
                             label: 'Duration',
@@ -191,15 +188,17 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     VehicleTypeDropdown(
                       selectedId: controller.selectedVehicleTypeId,
+                      errorText: vehicleTypeError,
                       onChanged: (id, name) {
+                        setState(() => vehicleTypeError = null);
                         if (id != null) controller.selectedVehicleTypeId.value = id;
                         if (name != null) controller.selectedVehicleType.value = name;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     AppInputField(
                       label: 'Vehicle Count',
                       hint: 'Enter number of vehicles',
@@ -207,16 +206,17 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                       keyboardType: TextInputType.number,
                       controller: _vehicleCountController,
                       onChanged: (val) => controller.vehicleCount.value = int.tryParse(val) ?? 1,
+                      validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Count'),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const SectionHeader(title: 'Route Details'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AppCard(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
                     AppInputField(
@@ -226,13 +226,12 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                       controller: controller.pickupAddressController,
                       readOnly: true,
                       onTap: () => _selectLocation(null),
-                      isRequired: true,
                       validator: (val) => (val == null || val.isEmpty) ? 'Pickup point required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     ...List.generate(_destinationControllers.length, (index) {
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
+                        padding: const EdgeInsets.only(bottom: 12),
                         child: Row(
                           children: [
                             Expanded(
@@ -243,7 +242,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                                 controller: _destinationControllers[index],
                                 readOnly: true,
                                 onTap: () => _selectLocation(index),
-                                isRequired: true,
                                 validator: (val) => (val == null || val.isEmpty) ? 'Destination required' : null,
                               ),
                             ),
@@ -258,18 +256,19 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                     }),
                     AppButton.outline(
                       text: 'Add Stop',
-                      icon: Icon(Iconsax.add),
+                      height: 40,
+                      icon: Icon(Iconsax.add, size: 18),
                       onPressed: _addDestination,
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const SectionHeader(title: 'Customer Info'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AppCard(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
                     AppInputField(
@@ -277,28 +276,31 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                       hint: 'Enter full name',
                       icon: Iconsax.user,
                       controller: controller.customerNameController,
-                      isRequired: true,
-                      validator: (val) => (val == null || val.isEmpty) ? 'Name required' : null,
+                      validator: (val) => AppValidators.validateEmpty(val, fieldName: 'Name'),
                     ),
-                    const SizedBox(height: 16),
-                    AppInputField(
+                    const SizedBox(height: 12),
+                    Obx(() => AppInputField(
                       label: 'Contact Number',
                       hint: '10-digit mobile number',
                       icon: Iconsax.call,
                       keyboardType: TextInputType.phone,
                       controller: controller.phoneController,
-                      isRequired: true,
+                      phoneCode: controller.selectedCountryCode.value,
+                      onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                        context: context,
+                        selectedCode: controller.selectedCountryCode,
+                      ),
                       validator: (val) => AppValidators.validateMobile(val),
-                    ),
+                    )),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               const SectionHeader(title: 'Financials'),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AppCard(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
                     Row(
@@ -310,11 +312,10 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                             icon: Iconsax.card,
                             keyboardType: TextInputType.number,
                             controller: controller.totalAmountController,
-                            isRequired: true,
-                            validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                            validator: (val) => AppValidators.validateEmpty(val, fieldName: 'Total'),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: AppInputField(
                             label: 'Advance',
@@ -322,15 +323,14 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                             icon: Iconsax.empty_wallet,
                             keyboardType: TextInputType.number,
                             controller: controller.advancePaymentController,
-                            isRequired: true,
-                            validator: (val) => (val == null || val.isEmpty) ? 'Required' : null,
+                            validator: (val) => AppValidators.validateEmpty(val, fieldName: 'Advance'),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       decoration: BoxDecoration(
                         color: AppColors.slate50,
                         borderRadius: BorderRadius.circular(12),
@@ -361,15 +361,13 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                 ),
               ),
 
-              const SizedBox(height: 40),
-
-              // ── Action Buttons ───────────────────────────────────────
+              const SizedBox(height: 24),
               Obx(() => AppButton(
                 text: _isEdit ? 'Update Lead' : 'Save Lead',
                 isLoading: controller.isLoading.value,
                 onPressed: () => _handleSubmit(),
               )),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               if (!_isEdit)
                 AppButton.outline(
                   text: 'Generate Quotation',
@@ -430,7 +428,7 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
                       text: 'Delete',
                       color: Colors.red,
                       onPressed: () async {
-                        Get.back(); // close dialog
+                        Get.back();
                         final success = await controller.deleteLead(_editLead!.id!);
                         if (success) {
                           Get.offAllNamed(RouteHelper.getLeadListRoute());
@@ -448,17 +446,23 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
   }
 
   void _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
+    setState(() => vehicleTypeError = null);
+
+    bool isValid = _formKey.currentState!.validate();
+
+    if (controller.selectedVehicleTypeId.value == null || controller.selectedVehicleTypeId.value == 0) {
+      setState(() => vehicleTypeError = 'Vehicle Type is required');
+      isValid = false;
+    }
+
+    if (!isValid) return;
 
     if (_pickupPoint == null || _destinationPoints.any((p) => p == null)) {
       Get.snackbar('Error', 'Please select all locations', backgroundColor: Colors.red, colorText: Colors.white);
       return;
     }
 
-    // Build points list
     final List<Map<String, dynamic>> points = [];
-    
-    // 1. Start point (Pickup)
     points.add({
       "type": "start",
       "name": _pickupPoint!['name'],
@@ -467,7 +471,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       "order": 0
     });
 
-    // 2. Intermediate and End points
     for (int i = 0; i < _destinationPoints.length; i++) {
       final isLast = i == _destinationPoints.length - 1;
       points.add({
@@ -479,7 +482,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       });
     }
 
-    // Extract duration days as int
     int durationDays = 1;
     String durationText = controller.selectedDuration.value;
     if (durationText.contains('Day')) {
@@ -490,7 +492,6 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
       durationDays = int.tryParse(durationText.replaceAll(RegExp(r'[^0-9]'), '')) ?? 1;
     }
 
-    // Update destinationPoints in controller for updateLead/createLead if they use it
     controller.destinationPoints.assignAll(points);
 
     if (_isEdit) {
@@ -508,7 +509,7 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
         "pickup_address": controller.pickupAddressController.text,
         "points": points,
         "customer_name": controller.customerNameController.text.trim(),
-        "customer_contact": controller.phoneController.text.trim(),
+        "customer_contact": "${controller.selectedCountryCode.value}${controller.phoneController.text.trim()}",
         "total_amount": double.tryParse(controller.totalAmountController.text) ?? 0,
         "advance_amount": double.tryParse(controller.advancePaymentController.text) ?? 0,
         "pending_amount": controller.pendingAmount,
@@ -535,24 +536,24 @@ class _DatePickerField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
-                const Icon(Iconsax.calendar_1, size: 18, color: AppColors.primaryColor),
-                const SizedBox(width: 10),
+                const Icon(Iconsax.calendar_1, size: 16, color: AppColors.primaryColor),
+                const SizedBox(width: 8),
                 Obx(() => AppText(
                   '${value.value.day}/${value.value.month}/${value.value.year}',
                   style: AppTextStyle.body,
-                  fontSize: 14,
+                  fontSize: 13,
                 )),
               ],
             ),
@@ -576,14 +577,14 @@ class _DropdownField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Obx(() {
           final currentValue = value.value;
           final valueExistsInItems = items.contains(currentValue);
           
           if (!valueExistsInItems && currentValue.isNotEmpty && currentValue != 'Custom') {
             return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
                 borderRadius: BorderRadius.circular(12),
@@ -591,10 +592,10 @@ class _DropdownField extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  AppText(currentValue, style: AppTextStyle.body, fontSize: 14),
+                  AppText(currentValue, style: AppTextStyle.body, fontSize: 13),
                   InkWell(
                     onTap: () => value.value = 'Custom',
-                    child: const Icon(Icons.edit, size: 18, color: AppColors.primaryColor),
+                    child: const Icon(Icons.edit, size: 16, color: AppColors.primaryColor),
                   ),
                 ],
               ),
@@ -602,6 +603,7 @@ class _DropdownField extends StatelessWidget {
           }
           
           return Container(
+            height: 48,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.borderColor.withOpacity(0.5)),
@@ -630,7 +632,7 @@ class _DropdownField extends StatelessWidget {
                 items: items.map((String item) {
                   return DropdownMenuItem<String>(
                     value: item,
-                    child: AppText(item, style: AppTextStyle.body, fontSize: 14),
+                    child: AppText(item, style: AppTextStyle.body, fontSize: 13),
                   );
                 }).toList(),
               ),

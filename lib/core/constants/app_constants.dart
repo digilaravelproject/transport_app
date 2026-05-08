@@ -83,6 +83,13 @@ class AppConstants {
   static String getStaffDocumentsUrl(dynamic id) => '/api/v1/staff/$id/documents';
   static String uploadStaffDocumentUrl(dynamic id) => '/api/v1/staff/$id/document';
   static String deleteStaffUrl(dynamic id) => '/api/v1/staff/$id';
+  static String getStaffPerformanceUrl(dynamic id) => '/api/v1/staff/$id/performance-report';
+  static String getStaffAdvancesUrl(dynamic id) => '/api/v1/staff/$id/advances';
+  static String recordStaffAdvanceUrl(dynamic id) => '/api/v1/staff/$id/advance';
+  static String getStaffSalaryHistoryUrl(dynamic id) => '/api/v1/staff/$id/salary';
+  static String paySalaryUrl(dynamic id) => '/api/v1/staff/$id/pay-salary';
+  static String getStaffDutyHoursUrl(dynamic id) => '/api/v1/staff/$id/duty-hours';
+  static const String attendanceUrl = '/api/v1/attendance';
 
   // Vehicle Endpoints
   static const String vehiclesUrl = '/api/v1/vehicles';

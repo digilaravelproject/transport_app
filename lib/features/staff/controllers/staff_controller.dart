@@ -2,6 +2,9 @@ import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
+import 'dart:io';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
@@ -20,12 +23,17 @@ class StaffController extends GetxController {
   final staffDocuments = <StaffDocument>[].obs;
   final selectedCountryCode = '+91'.obs;
   final isLoading = false.obs;
+  final performanceReport = Rxn<PerformanceReportModel>();
+  final staffAdvanceHistory = Rxn<StaffAdvanceHistoryModel>();
+  final staffSalaryHistory = Rxn<StaffSalaryHistoryModel>();
+  final dutyHoursSummary = Rxn<DutyHoursSummary>();
+  final dutyLogs = <DutyLog>[].obs;
   
   final ApiClient _apiClient = Get.find<ApiClient>();
   
   // Salary Filtering
   final selectedSalaryMonth = 'All'.obs;
-  final selectedSalaryYear = '2024'.obs;
+  final selectedSalaryYear = DateTime.now().year.toString().obs;
   
   // Attendance State
   final selectedDate = DateTime.now().obs;
@@ -137,12 +145,8 @@ class StaffController extends GetxController {
 
   void _filterStaff() {
     List<StaffModel> list = List.from(staffList);
-    if (selectedFilter.value == 'Driver') {
-      list = list.where((s) => s.roleName?.toLowerCase() == 'driver').toList();
-    } else if (selectedFilter.value == 'Manager') {
-      list = list.where((s) => s.roleName?.toLowerCase() == 'manager').toList();
-    } else if (selectedFilter.value == 'Helper') {
-      list = list.where((s) => s.roleName?.toLowerCase() == 'helper').toList();
+    if (selectedFilter.value != 'All') {
+      list = list.where((s) => s.roleName?.toLowerCase() == selectedFilter.value.toLowerCase()).toList();
     }
     if (searchQuery.value.isNotEmpty) {
       list = list.where((s) =>
@@ -150,6 +154,33 @@ class StaffController extends GetxController {
           (s.roleName ?? '').toLowerCase().contains(searchQuery.value.toLowerCase())).toList();
     }
     filteredStaff.assignAll(list);
+  }
+
+  Future<StaffModel?> getStaffDetails(dynamic id) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.getStaffDetailsUrl(id));
+      if (response.isSuccess && response.json != null) {
+        return StaffModel.fromJson(response.json!);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching staff details: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> refreshStaffDetails(dynamic id) async {
+    final detailedStaff = await getStaffDetails(id);
+    if (detailedStaff != null) {
+      final index = staffList.indexWhere((s) => s.id == id);
+      if (index != -1) {
+        staffList[index] = detailedStaff;
+        _filterStaff();
+      }
+    }
   }
 
   void updateSearch(String query) {
@@ -203,6 +234,11 @@ class StaffController extends GetxController {
       queryParams['search'] = searchQuery.value;
     }
     
+    // Role/Type filter
+    if (selectedFilter.value != 'All' && selectedFilter.value != 'Active' && selectedFilter.value != 'Inactive') {
+      queryParams['type'] = selectedFilter.value.toLowerCase();
+    }
+    
     // Activity filter
     if (selectedFilter.value == 'Active') {
       queryParams['is_active'] = 1;
@@ -216,7 +252,6 @@ class StaffController extends GetxController {
       staffList.value = data.map((json) => StaffModel.fromJson(json)).toList();
       _filterStaff();
     } else {
-      // Fallback to mock data for now if API fails or is empty
       if (staffList.isEmpty) _loadMockStaff();
     }
     isLoading.value = false;
@@ -225,23 +260,37 @@ class StaffController extends GetxController {
   Future<bool> addStaff(Map<String, dynamic> data) async {
     isLoading.value = true;
     try {
-      final formData = dio.FormData.fromMap({
+      final Map<String, dynamic> formDataMap = {
         'name': data['name'],
         'phone': data['phone'],
         'email': data['email'],
         'staff_type': data['staff_type'],
-        'salary_type': data['salary_type'],
-        'basic_salary': data['basic_salary'],
-        'work_shift': data['work_shift'], // Kept as work_shift as per curl, but if 500 persists, try work_shift_id
+        'work_shift': data['work_shift'],
+        'date_of_birth': data['date_of_birth'],
         'date_of_joining': data['date_of_joining'],
         'address': data['address'],
+        'emergency_contact': data['emergency_contact'],
+        'emergency_contact_name': data['emergency_contact_name'],
+        'license_number': data['license_number'],
+        'license_expiry': data['license_expiry'],
+        'license_type': data['license_type'],
+        'basic_salary': data['basic_salary'],
+        'da_per_day': data['da_per_day'],
+        'hra': data['hra'],
+        'bank_name': data['bank_name'],
+        'bank_account': data['bank_account'],
+        'bank_ifsc': data['bank_ifsc'],
         'aadhar_number': data['aadhar_number'],
         'pan_number': data['pan_number'],
-        'dl_number': data['dl_number'],
-        'dl_expiry': data['dl_expiry'],
         'badge_number': data['badge_number'],
         'badge_expiry': data['badge_expiry'],
-      });
+        'salary_type': data['salary_type'],
+        'assigned_vehicle': data['assigned_vehicle'],
+        'other_allowance': data['other_allowance'],
+        'notes': data['notes'],
+      };
+
+      final formData = dio.FormData.fromMap(formDataMap);
 
       // Add files
       if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty) {
@@ -283,24 +332,38 @@ class StaffController extends GetxController {
   Future<bool> updateStaff(dynamic id, Map<String, dynamic> data) async {
     isLoading.value = true;
     try {
-      final formData = dio.FormData.fromMap({
+      final Map<String, dynamic> formDataMap = {
         '_method': 'PUT',
         'name': data['name'],
         'phone': data['phone'],
         'email': data['email'],
         'staff_type': data['staff_type'],
-        'salary_type': data['salary_type'],
-        'basic_salary': data['basic_salary'],
         'work_shift': data['work_shift'],
+        'date_of_birth': data['date_of_birth'],
         'date_of_joining': data['date_of_joining'],
         'address': data['address'],
+        'emergency_contact': data['emergency_contact'],
+        'emergency_contact_name': data['emergency_contact_name'],
+        'license_number': data['license_number'],
+        'license_expiry': data['license_expiry'],
+        'license_type': data['license_type'],
+        'basic_salary': data['basic_salary'],
+        'da_per_day': data['da_per_day'],
+        'hra': data['hra'],
+        'bank_name': data['bank_name'],
+        'bank_account': data['bank_account'],
+        'bank_ifsc': data['bank_ifsc'],
         'aadhar_number': data['aadhar_number'],
         'pan_number': data['pan_number'],
-        'dl_number': data['dl_number'],
-        'dl_expiry': data['dl_expiry'],
         'badge_number': data['badge_number'],
         'badge_expiry': data['badge_expiry'],
-      });
+        'salary_type': data['salary_type'],
+        'assigned_vehicle': data['assigned_vehicle'],
+        'other_allowance': data['other_allowance'],
+        'notes': data['notes'],
+      };
+
+      final formData = dio.FormData.fromMap(formDataMap);
 
       // Add files if new paths are provided
       if (data['aadhar_file'] != null && data['aadhar_file'].isNotEmpty && !data['aadhar_file'].startsWith('http')) {
@@ -326,6 +389,7 @@ class StaffController extends GetxController {
 
       if (response.isSuccess) {
         fetchStaff();
+        refreshStaffDetails(id);
         return true;
       } else {
         CustomSnackbar.showError(response.message);
@@ -381,7 +445,6 @@ class StaffController extends GetxController {
         fetchStaffDocuments(staffId);
         return true;
       } else {
-        // Show specific validation error if available
         String errorMessage = response.message;
         if (response.errors != null && response.errors!.isNotEmpty) {
           errorMessage = response.errors!.first.message ?? response.message;
@@ -398,11 +461,44 @@ class StaffController extends GetxController {
   }
 
   Future<void> downloadFile(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      CustomSnackbar.showError('Could not launch $url');
+    try {
+      CustomSnackbar.showInfo('Downloading file...');
+      
+      // Get temporary directory
+      final tempDir = await getTemporaryDirectory();
+      final fileName = url.split('/').last.split('?').first;
+      final filePath = '${tempDir.path}/$fileName';
+      
+      // Download using Dio
+      final dio.Dio _dio = dio.Dio();
+      await _dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            print((received / total * 100).toStringAsFixed(0) + "%");
+          }
+        },
+      );
+      
+      CustomSnackbar.showSuccess('Download complete');
+      
+      // Open the file with system default
+      final result = await OpenFilex.open(filePath);
+      if (result.type != ResultType.done) {
+        CustomSnackbar.showError('Could not open file: ${result.message}');
+      }
+    } catch (e) {
+      print('Download error: $e');
+      // Fallback to URL launcher if direct download fails
+      try {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      } catch (innerE) {
+        CustomSnackbar.showError('Could not download file: $e');
+      }
     }
   }
 
@@ -415,7 +511,7 @@ class StaffController extends GetxController {
         staffList.removeWhere((s) => s.id == id);
         _filterStaff();
         CustomSnackbar.showSuccess('Staff deleted successfully.');
-        Get.back(); // Back from details screen or dialog
+        Get.back();
         return true;
       } else {
         CustomSnackbar.showError(response.message);
@@ -423,6 +519,189 @@ class StaffController extends GetxController {
       }
     } catch (e) {
       CustomSnackbar.showError('Failed to delete staff: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchStaffPerformance(dynamic staffId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.getStaffPerformanceUrl(staffId));
+      if (response.isSuccess && response.json != null) {
+        performanceReport.value = PerformanceReportModel.fromJson(response.json!);
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to fetch performance report: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchStaffAdvances(dynamic staffId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.getStaffAdvancesUrl(staffId));
+      if (response.isSuccess && response.json != null) {
+        staffAdvanceHistory.value = StaffAdvanceHistoryModel.fromJson(response.json!);
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to fetch advances: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> recordStaffAdvance({
+    required dynamic staffId,
+    required double amount,
+    required String date,
+    required String reason,
+    String paymentMode = 'cash',
+  }) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(
+        AppConstants.recordStaffAdvanceUrl(staffId),
+        data: {
+          'amount': amount,
+          'advance_date': date,
+          'reason': reason,
+          'payment_mode': paymentMode,
+        },
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        fetchStaffAdvances(staffId);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to record advance: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchStaffSalaryHistory(int staffId, {int? month, int? year}) async {
+    try {
+      isLoading.value = true;
+      final queryParams = <String, dynamic>{};
+      if (month != null) queryParams['month'] = month;
+      if (year != null) queryParams['year'] = year;
+
+      final response = await _apiClient.get(
+        AppConstants.getStaffSalaryHistoryUrl(staffId),
+        queryParameters: queryParams,
+      );
+
+      if (response.isSuccess && response.json != null) {
+        staffSalaryHistory.value = StaffSalaryHistoryModel.fromJson(response.json!);
+      } else {
+        staffSalaryHistory.value = null;
+        CustomSnackbar.showError(response.message);
+      }
+    } catch (e) {
+      print('Error fetching salary history: $e');
+      staffSalaryHistory.value = null;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> paySalary({
+    required int staffId,
+    required int month,
+    required int year,
+    required double amount,
+    required String paymentMode,
+    String? transactionRef,
+    String? paidOn,
+  }) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiClient.post(
+        AppConstants.paySalaryUrl(staffId),
+        data: {
+          'month': month,
+          'year': year,
+          'amount': amount,
+          'payment_mode': paymentMode,
+          'paid_on': paidOn ?? DateTime.now().toIso8601String().split('T')[0],
+          'transaction_ref': transactionRef,
+        },
+      );
+
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess(response.message);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to pay salary: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchDutyHours(dynamic staffId) async {
+    try {
+      isLoading.value = true;
+      final response = await _apiClient.get(AppConstants.getStaffDutyHoursUrl(staffId));
+      if (response.isSuccess) {
+        final dutyHours = DutyHoursModel.fromJson(response.json!);
+        dutyHoursSummary.value = dutyHours.summary;
+        dutyLogs.assignAll(dutyHours.logs);
+      } else {
+        CustomSnackbar.showError(response.message);
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to fetch duty hours: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<bool> addDutyRecord({
+    required int staffId,
+    required String date,
+    required String status,
+    required String inTime,
+    required String outTime,
+    String? notes,
+  }) async {
+    try {
+      isLoading.value = true;
+      final body = {
+        "date": date,
+        "records": [
+          {
+            "staff_id": staffId,
+            "status": status,
+            "in_time": inTime,
+            "out_time": outTime,
+            "notes": notes,
+          }
+        ]
+      };
+      final response = await _apiClient.post(AppConstants.attendanceUrl, data: body);
+      if (response.isSuccess) {
+        fetchDutyHours(staffId);
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Failed to add duty record: $e');
       return false;
     } finally {
       isLoading.value = false;

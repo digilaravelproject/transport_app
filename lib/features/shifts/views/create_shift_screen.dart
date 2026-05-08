@@ -20,6 +20,7 @@ class CreateShiftScreen extends StatefulWidget {
 }
 
 class _CreateShiftScreenState extends State<CreateShiftScreen> {
+  final _formKey = GlobalKey<FormState>();
   final ShiftController controller = Get.find<ShiftController>();
   
   final TextEditingController _nameController = TextEditingController();
@@ -78,8 +79,14 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
 
   String _convertApiDateToDisplayFormat(String apiDate) {
     try {
+      // If it contains a timestamp (ISO format), take only the date part
+      String datePart = apiDate;
+      if (apiDate.contains('T')) {
+        datePart = apiDate.split('T')[0];
+      }
+      
       // Convert "YYYY-MM-DD" to "DD/MM/YYYY"
-      final parts = apiDate.split('-');
+      final parts = datePart.split('-');
       if (parts.length == 3) {
         final year = parts[0];
         final month = parts[1];
@@ -191,18 +198,7 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
   }
 
   void _createShift() async {
-    if (_nameController.text.isEmpty) {
-      CustomSnackbar.showError('Please enter shift name');
-      return;
-    }
-    if (_startTimeController.text.isEmpty) {
-      CustomSnackbar.showError('Please select start time');
-      return;
-    }
-    if (_endTimeController.text.isEmpty) {
-      CustomSnackbar.showError('Please select end time');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     // Convert time format from "06:00 AM" to "06:00"
     String startTime = _convertTimeFormat(_startTimeController.text);
@@ -221,7 +217,7 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
         name: _nameController.text,
         startTime: startTime,
         endTime: endTime,
-        type: _shiftType,
+        type: _shiftType.toLowerCase(),
         date: date,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
@@ -231,14 +227,11 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
         name: _nameController.text,
         startTime: startTime,
         endTime: endTime,
-        type: _shiftType,
+        type: _shiftType.toLowerCase(),
         date: date,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
       );
     }
-
-    // Navigation is now handled inside the controller methods
-    // to avoid the GetX SnackbarController crash.
   }
 
   String _convertTimeFormat(String time) {
@@ -276,28 +269,30 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
       appBar: AppHeader(
         title: _isEditMode ? 'Edit Shift' : 'Create Shift',
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            AppCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AppText('Shift Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Shift Name',
-                    hint: 'e.g. Morning Shift A',
-                    icon: Icons.access_time_filled_rounded,
-                    controller: _nameController,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        // child: GestureDetector(
-                        //   onTap: _selectStartTime,
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              AppCard(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AppText('Shift Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                    const SizedBox(height: 16),
+                    AppInputField(
+                      label: 'Shift Name',
+                      hint: 'e.g. Morning Shift A',
+                      icon: Icons.access_time_filled_rounded,
+                      controller: _nameController,
+                      validator: (v) => v == null || v.isEmpty ? 'Shift name is required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
                           child: AppInputField(
                             label: 'Start Time',
                             hint: '06:00 AM',
@@ -305,14 +300,11 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
                             icon: Icons.timer_outlined,
                             controller: _startTimeController,
                             readOnly: true,
+                            validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                           ),
-                        //),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        // child:
-                        // GestureDetector(
-                         // onTap: _selectEndTime,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
                           child: AppInputField(
                             label: 'End Time',
                             hint: '02:00 PM',
@@ -320,50 +312,42 @@ class _CreateShiftScreenState extends State<CreateShiftScreen> {
                             icon: Icons.timer_off_outlined,
                             controller: _endTimeController,
                             readOnly: true,
+                            validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                           ),
                         ),
-                     // ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildDropdown('Shift Type', _shiftType, ['Regular', 'Overtime', 'Special Duty'], (val) => setState(() => _shiftType = val!)),
-                  const SizedBox(height: 16),
-                  // GestureDetector(
-                  //   onTap: _selectDate,
-                  //   child:
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    _buildDropdown('Shift Type', _shiftType, ['Regular', 'Overtime', 'Night', 'Custom'], (val) => setState(() => _shiftType = val!)),
+                    const SizedBox(height: 12),
                     AppInputField(
                       label: 'Date',
                       hint: 'DD/MM/YYYY',
-                      onTap: _selectDate ,
+                      onTap: _selectDate,
                       icon: Iconsax.calendar_1,
                       controller: _dateController,
                       readOnly: true,
                     ),
-                 // ),
-                  const SizedBox(height: 16),
-                  AppInputField(
-                    label: 'Notes / Instructions',
-                    hint: 'Add details...',
-                    icon: Icons.notes_rounded,
-                    maxLines: 3,
-                    controller: _notesController,
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    AppInputField(
+                      label: 'Notes / Instructions',
+                      hint: 'Add details...',
+                      icon: Icons.notes_rounded,
+                      maxLines: 3,
+                      controller: _notesController,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            Obx(() => AppButton(
-              text: controller.isLoading.value 
-                  ? (_isEditMode ? 'Updating...' : 'Creating...') 
-                  : (_isEditMode ? 'Update Shift' : 'Save Shift Segment'),
-              onPressed: controller.isLoading.value ? null : _createShift,
-            )),
-            const SizedBox(height: 12),
-            AppButton.outline(
-              text: 'Cancel',
-              onPressed: () => Get.back(),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Obx(() => AppButton(
+                text: controller.isLoading.value 
+                    ? (_isEditMode ? 'Updating...' : 'Creating...') 
+                    : (_isEditMode ? 'Update Shift' : 'Save Shift Segment'),
+                onPressed: controller.isLoading.value ? null : _createShift,
+              )),
+            ],
+          ),
         ),
       ),
     );

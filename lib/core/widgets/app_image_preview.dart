@@ -11,18 +11,21 @@ class AppImagePreview extends StatelessWidget {
   final String? imagePath;
   final String? title;
 
+  final VoidCallback? onDownload;
+
   const AppImagePreview({
     super.key,
     this.imageUrl,
     this.imagePath,
     this.title,
+    this.onDownload,
   });
 
-  static void show(BuildContext context, {String? imageUrl, String? imagePath, String? title}) {
+  static void show(BuildContext context, {String? imageUrl, String? imagePath, String? title, VoidCallback? onDownload}) {
     showDialog(
       context: context,
       useSafeArea: false,
-      builder: (context) => AppImagePreview(imageUrl: imageUrl, imagePath: imagePath, title: title),
+      builder: (context) => AppImagePreview(imageUrl: imageUrl, imagePath: imagePath, title: title, onDownload: onDownload),
     );
   }
 
@@ -147,6 +150,11 @@ class AppImagePreview extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                  if (onDownload != null)
+                    IconButton(
+                      onPressed: onDownload,
+                      icon: const Icon(Iconsax.document_download, color: Colors.white),
                     ),
                 ],
               ),

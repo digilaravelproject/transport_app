@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/company_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class CompanyListScreen extends GetView<CorporateController> {
   const CompanyListScreen({Key? key}) : super(key: key);
@@ -66,20 +67,18 @@ class CompanyListScreen extends GetView<CorporateController> {
               if (controller.companies.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () => controller.loadVendors(isRefresh: true),
-                  child: ListView(
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Iconsax.building_34, size: 64, color: AppColors.slate300),
-                            const SizedBox(height: 16),
-                            AppText('No vendors found', style: AppTextStyle.body, color: AppColors.textColorSecondary),
-                          ],
-                        ),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: AppEmptyState(
+                        title: controller.searchQuery.value.isNotEmpty ? 'No Matching Vendors' : 'No Vendors Found',
+                        subtitle: controller.searchQuery.value.isNotEmpty 
+                            ? 'No vendors match your search "${controller.searchQuery.value}".'
+                            : 'Start by adding your first vendor to manage corporate partners.',
+                        icon: Iconsax.building_3,
                       ),
-                    ],
+                    ),
                   ),
                 );
               }

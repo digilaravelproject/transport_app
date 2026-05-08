@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import 'app_text.dart';
+import 'app_button.dart';
 
 class AppEmptyState extends StatelessWidget {
   final String title;
@@ -25,45 +27,60 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 64,
-                color: AppColors.primaryColor,
-              ),
+            // Icon with decorative background
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                Icon(
+                  icon,
+                  size: 48,
+                  color: AppColors.primaryColor,
+                ),
+              ],
             ),
-            const SizedBox(height: 24),
-            Text(
+            const SizedBox(height: 32),
+            
+            // Text Content
+            AppText(
               title,
+              style: AppTextStyle.heading,
+              fontSize: 20,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textColorPrimary,
-              ),
+              color: AppColors.textColorPrimary,
             ),
             const SizedBox(height: 12),
-            Text(
+            AppText(
               subtitle,
+              style: AppTextStyle.body,
+              fontSize: 15,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15,
-                color: AppColors.textColorSecondary,
-              ),
+              color: AppColors.textColorSecondary.withValues(alpha: 0.8),
             ),
+            
+            // Action Button
             if (actionLabel != null && onActionPressed != null) ...[
-              const SizedBox(height: 24),
-              SizedBox(
+              const SizedBox(height: 32),
+              AppButton(
+                text: actionLabel!,
+                onPressed: onActionPressed,
                 width: 200,
-                child: ElevatedButton(
-                  onPressed: onActionPressed,
-                  child: Text(actionLabel!),
-                ),
+                height: 48,
               ),
             ],
           ],

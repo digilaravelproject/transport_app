@@ -26,7 +26,8 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
   bool _isActive = true;
   final controller = Get.find<RoleController>();
 
-  List<String> _allPermissions = ['Trips', 'Vehicles', 'Staff', 'Leads', 'Corporate', 'Finance', 'Inventory', 'Shifts', 'Routes', 'Reports', 'Templates', 'Roles', 'Settings'];
+  static const List<String> _potentialPermissions = ['Trips', 'Vehicles', 'Staff', 'Leads', 'Corporate', 'Finance', 'Inventory', 'Shifts', 'Routes', 'Reports', 'Templates', 'Roles', 'Settings'];
+  List<String> _allPermissions = [];
   List<String> _selectedPermissions = [];
 
   bool get isEdit => widget.role != null;
@@ -38,12 +39,16 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
     _descCtrl = TextEditingController(text: widget.role?.description ?? '');
     
     // Filter permissions based on Membership
+    // Filter permissions based on Membership
     if (Get.isRegistered<MembershipController>()) {
       final membership = Get.find<MembershipController>();
       final sub = membership.activeSubscription.value;
       if (sub != null && sub.plan['module_access'] != null) {
         final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim()).toList();
-        _allPermissions = _allPermissions.where((p) => allowedModules.contains(p)).toList();
+        _allPermissions = _potentialPermissions.where((p) => allowedModules.contains(p)).toList();
+      } else {
+        // If no sub yet, keep it empty so it shows loading
+        _allPermissions = [];
       }
     }
     
@@ -73,7 +78,7 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
         final sub = membership.activeSubscription.value;
         if (sub != null && sub.plan['module_access'] != null) {
           final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim()).toList();
-          _allPermissions = ['Trips', 'Vehicles', 'Staff', 'Leads', 'Corporate', 'Finance', 'Inventory', 'Shifts', 'Routes', 'Reports', 'Templates', 'Roles', 'Settings']
+          _allPermissions = _potentialPermissions
               .where((p) => allowedModules.contains(p)).toList();
         }
 
@@ -168,11 +173,11 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
           body: Form(
             key: _formKey,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   AppCard(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -214,9 +219,9 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   AppCard(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -264,7 +269,7 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                           final membership = Get.put(MembershipController());
                           
                           // Show loading if membership data is still fetching
-                          if (membership.isLoading.value) {
+                          if (membership.isLoading.value || _allPermissions.isEmpty) {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16.0),
@@ -312,9 +317,9 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   AppCard(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

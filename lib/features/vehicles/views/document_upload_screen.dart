@@ -25,7 +25,16 @@ class DocumentUploadScreen extends StatefulWidget {
 
 class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   final VehicleController controller = Get.find<VehicleController>();
-  final nameController = TextEditingController();
+  final List<Map<String, String>> documentTypes = [
+    {'value': 'rc', 'label': 'Registration Certificate (RC)'},
+    {'value': 'insurance', 'label': 'Insurance'},
+    {'value': 'pollution', 'label': 'Pollution (PUCC)'},
+    {'value': 'permit', 'label': 'Permit'},
+    {'value': 'fitness', 'label': 'Fitness Certificate'},
+    {'value': 'tax', 'label': 'Tax Receipt'},
+    {'value': 'other', 'label': 'Other'},
+  ];
+  String selectedType = 'rc';
   final numberController = TextEditingController();
   final notesController = TextEditingController(text: 'Registration certificate');
   final alertDaysController = TextEditingController(text: '30');
@@ -34,7 +43,6 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   PlatformFile? pickedFile;
   dynamic vehicleId;
 
-  final RxString nameError = ''.obs;
   final RxString numberError = ''.obs;
   final RxString fileError = ''.obs;
   final RxString alertDaysError = ''.obs;
@@ -62,15 +70,38 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
           children: [
             AppCard(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Obx(() => AppInputField(
-                    label: 'Document Name',
-                    hint: 'e.g. RC, Insurance, Permit',
-                    controller: nameController,
-                    isRequired: true,
-                    errorText: nameError.value.isEmpty ? null : nameError.value,
-                    onChanged: (v) => nameError.value = '',
-                  )),
+                  const AppText('Document Type', style: AppTextStyle.body, fontWeight: FontWeight.w600),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.slate50,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.slate200),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedType,
+                        isExpanded: true,
+                        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primaryColor),
+                        items: documentTypes.map((type) {
+                          return DropdownMenuItem(
+                            value: type['value'],
+                            child: AppText(type['label']!, style: AppTextStyle.body),
+                          );
+                        }).toList(),
+                        onChanged: (v) {
+                          if (v != null) {
+                            setState(() {
+                              selectedType = v;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Obx(() => AppInputField(
                     label: 'Document Number',
@@ -173,11 +204,6 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
   Future<void> _validateAndSave() async {
     bool isValid = true;
     
-    if (nameController.text.trim().isEmpty) {
-      nameError.value = 'Please enter document name';
-      isValid = false;
-    }
-    
     if (numberController.text.trim().isEmpty) {
       numberError.value = 'Please enter document number';
       isValid = false;
@@ -191,7 +217,7 @@ class _DocumentUploadScreenState extends State<DocumentUploadScreen> {
     if (isValid) {
       final success = await controller.uploadDocument(
         vehicleId: vehicleId,
-        documentType: nameController.text.trim(),
+        documentType: selectedType,
         documentNumber: numberController.text.trim(),
         issueDate: issueDate,
         expiryDate: expiryDate,

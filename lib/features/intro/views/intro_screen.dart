@@ -41,7 +41,7 @@ class IntroScreen extends GetView<IntroController> {
                               borderRadius: BorderRadius.circular(30),
                               child: Image.asset(
                                 data['image']!,
-                                fit: BoxFit.contain,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           ),
@@ -79,7 +79,7 @@ class IntroScreen extends GetView<IntroController> {
               
               // ── Bottom Section ──────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 48),
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
                 child: Column(
                   children: [
                     // Dot Indicator
@@ -102,7 +102,7 @@ class IntroScreen extends GetView<IntroController> {
                       ),
                     )),
                     
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
                     
                     // Action Buttons
                     Obx(() => Row(
@@ -135,7 +135,7 @@ class IntroScreen extends GetView<IntroController> {
                                 child: AppButton(
                                   text: 'Get Started',
                                   onPressed: () => controller.getStarted(),
-                                  height: 56,
+                                  height: 48,
                                   fontSize: 16,
                                 ),
                               ),
@@ -143,12 +143,12 @@ class IntroScreen extends GetView<IntroController> {
                           : IconButton(
                               onPressed: () => controller.nextPage(),
                               icon: Container(
-                                padding: const EdgeInsets.all(20),
+                                padding: const EdgeInsets.all(16),
                                 decoration: const BoxDecoration(
                                   color: AppColors.primaryColor,
                                   shape: BoxShape.circle,
                                 ),
-                                child: Icon(Iconsax.arrow_right_3, size: 24, color: Colors.white),
+                                child: Icon(Iconsax.arrow_right_3, size: 20, color: Colors.white),
                               ),
                             ),
                       ],
@@ -161,12 +161,12 @@ class IntroScreen extends GetView<IntroController> {
           
           // Fixed Skip Button
           Positioned(
-            top: 50,
+            top: 40,
             right: 20,
             child: TextButton(
               onPressed: () => controller.getStarted(),
               child: const AppText(
-                'Skip',
+                'SKIP',
                 style: AppTextStyle.body,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textColorSecondary,

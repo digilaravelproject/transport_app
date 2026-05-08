@@ -320,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                         physics: const BouncingScrollPhysics(),
                         padding: EdgeInsets.only(bottom: keyboardHeight),
                         child: Padding(
-                          padding: const EdgeInsets.fromLTRB(28, 30, 28, 40),
+                          padding: const EdgeInsets.fromLTRB(28, 20, 28, 20),
                           child: Form(
                             key: _formKey,
                             child: Column(
@@ -337,7 +337,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 28),
+                                const SizedBox(height: 16),
 
                                 // Email field
                                 AppInputField(
@@ -350,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                   validator: AppValidators.validateEmail,
                                 ),
 
-                                const SizedBox(height: 28),
+                                const SizedBox(height: 18),
 
                                 // Sign in button
                                 Obx(() => AppButton(
@@ -366,7 +366,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                   },
                                 )),
 
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 12),
 
                                 // Divider with text
                                 Row(
@@ -406,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                     child: GestureDetector(
                                       onTap: () => Get.toNamed(RouteHelper.getSignupRoute()),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(vertical: 16),
+                                        padding: const EdgeInsets.symmetric(vertical: 10),
                                         child: Center(
                                           child: RichText(
                                             text: TextSpan(

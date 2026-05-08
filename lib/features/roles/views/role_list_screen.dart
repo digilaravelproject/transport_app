@@ -12,8 +12,9 @@ import '../controllers/role_controller.dart';
 import '../domain/models/role_model.dart';
 import '../../../routes/route_helper.dart';
 import '../../../core/widgets/app_filter_chip.dart';
-import '../../../core/widgets/app_status_chip.dart';
 import 'package:flutter/cupertino.dart';
+import '../../../core/widgets/app_status_chip.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class RoleListScreen extends GetView<RoleController> {
   const RoleListScreen({Key? key}) : super(key: key);
@@ -80,14 +81,16 @@ class RoleListScreen extends GetView<RoleController> {
                 );
               }
               if (controller.filteredRoles.isEmpty) {
-                return RefreshIndicator(
-                  onRefresh: () => controller.fetchRoles(),
-                  child: ListView(
-                    children: const [
-                      SizedBox(height: 100),
-                      Center(child: AppText('No roles found', style: AppTextStyle.body)),
-                    ],
-                  ),
+                return AppEmptyState(
+                  title: controller.searchQuery.value.isNotEmpty ? 'No Matching Roles' : 'No Roles Found',
+                  subtitle: controller.searchQuery.value.isNotEmpty 
+                      ? 'We couldn\'t find any roles matching "${controller.searchQuery.value}"'
+                      : 'Manage your agency access levels by adding your first role.',
+                  icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.shield_tick,
+                  actionLabel: controller.searchQuery.value.isNotEmpty ? null : 'Add New Role',
+                  onActionPressed: controller.searchQuery.value.isNotEmpty 
+                      ? null 
+                      : () => Get.toNamed(RouteHelper.getAddRoleRoute()),
                 );
               }
               return RefreshIndicator(
@@ -147,20 +150,7 @@ class _RoleCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(role.roleName, style: AppTextStyle.subheading, fontSize: 16),
-                        Row(
-                          children: [
-                            AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.textColorHint.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: AppText('${role.assignedUsersCount} Users', style: AppTextStyle.caption, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
+                        AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -197,8 +187,8 @@ class _RoleCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
               const SizedBox(width: 12),
-              Obx(() => controller.isLoading.value 
-                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              Obx(() => controller.updatingRoleId.value == role.id 
+                ? const SizedBox(width: 44, height: 24, child: Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))))
                 : CupertinoSwitch(
                     value: role.isActive,
                     activeColor: AppColors.primaryColor,

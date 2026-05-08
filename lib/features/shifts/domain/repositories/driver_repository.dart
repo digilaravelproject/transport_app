@@ -28,9 +28,8 @@ class DriverRepositoryImpl implements DriverRepository {
     String? search,
   }) async {
     try {
-      String endpoint = '/api/v1/drivers/$shiftId'; // Use dynamic shift ID
+      String endpoint = '/api/v1/drivers'; 
       
-      // Add search parameter if provided
       if (search != null && search.isNotEmpty) {
         endpoint += '?search=$search';
       }

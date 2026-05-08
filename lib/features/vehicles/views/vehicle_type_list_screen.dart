@@ -12,6 +12,7 @@ import '../../../core/widgets/app_header.dart';
 import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_type_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class VehicleTypeListScreen extends StatefulWidget {
   const VehicleTypeListScreen({Key? key}) : super(key: key);
@@ -85,16 +86,20 @@ class _VehicleTypeListScreenState extends State<VehicleTypeListScreen> {
                 }
 
                 if (controller.vehicleTypes.isEmpty) {
-                  return ListView(
+                  return SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: Center(
-                          child: AppText('No vehicle types found', style: AppTextStyle.body),
-                        ),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: AppEmptyState(
+                        title: controller.searchQuery.value.isNotEmpty ? 'No Results Found' : 'No Vehicle Types Found',
+                        subtitle: controller.searchQuery.value.isNotEmpty 
+                            ? 'No vehicle types match your search "${controller.searchQuery.value}".'
+                            : 'Start by adding a new vehicle type to manage your fleet better.',
+                        icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.bus5,
+                        actionLabel: controller.searchQuery.value.isNotEmpty ? null : 'Add Vehicle Type',
+                        onActionPressed: controller.searchQuery.value.isNotEmpty ? null : () => Get.toNamed(RouteHelper.getAddVehicleTypeRoute()),
                       ),
-                    ],
+                    ),
                   );
                 }
 

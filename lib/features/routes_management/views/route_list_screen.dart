@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/route_controller.dart';
 import '../domain/models/route_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class RouteListScreen extends GetView<RouteController> {
   const RouteListScreen({Key? key}) : super(key: key);
@@ -65,17 +66,29 @@ class RouteListScreen extends GetView<RouteController> {
           const SizedBox(height: 8),
           Expanded(
             child: Obx(() {
-               if (controller.filteredRoutes.isEmpty && !controller.isLoading.value) {
+               if (controller.isLoading.value && controller.routes.isEmpty) {
+                 return const Center(child: CircularProgressIndicator());
+               }
+               
+               if (controller.filteredRoutes.isEmpty) {
                  return RefreshIndicator(
                    onRefresh: () => controller.fetchRoutes(),
-                   child: ListView(
-                     children: const [
-                       SizedBox(height: 100),
-                       Center(child: AppText('No routes found.')),
-                     ],
+                   child: SingleChildScrollView(
+                     physics: const AlwaysScrollableScrollPhysics(),
+                     child: SizedBox(
+                       height: MediaQuery.of(context).size.height * 0.6,
+                       child: AppEmptyState(
+                         title: 'No Routes Found',
+                         subtitle: controller.searchQuery.value.isNotEmpty 
+                             ? 'No routes match your search "${controller.searchQuery.value}".'
+                             : 'Start by creating your first route to manage transport paths.',
+                         icon: Iconsax.map,
+                       ),
+                     ),
                    ),
                  );
                }
+               
                return RefreshIndicator(
                  onRefresh: () => controller.fetchRoutes(),
                  child: ListView.builder(

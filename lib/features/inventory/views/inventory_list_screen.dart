@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/inventory_controller.dart';
 import '../domain/models/inventory_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class InventoryListScreen extends GetView<InventoryController> {
   const InventoryListScreen({Key? key}) : super(key: key);
@@ -104,7 +105,22 @@ class InventoryListScreen extends GetView<InventoryController> {
                }
                
                if (controller.filteredItems.isEmpty) {
-                 return const Center(child: AppText('No inventory items found.'));
+                 return RefreshIndicator(
+                   onRefresh: () => controller.fetchInventoryData(refresh: true),
+                   child: SingleChildScrollView(
+                     physics: const AlwaysScrollableScrollPhysics(),
+                     child: SizedBox(
+                       height: MediaQuery.of(context).size.height * 0.5,
+                       child: AppEmptyState(
+                         title: controller.searchQuery.value.isNotEmpty ? 'No Matching Items' : 'No Inventory Items',
+                         subtitle: controller.searchQuery.value.isNotEmpty 
+                             ? 'No items match your search "${controller.searchQuery.value}".'
+                             : 'Start by adding items to your inventory to track stock.',
+                         icon: Iconsax.box,
+                       ),
+                     ),
+                   ),
+                 );
                }
                
                return ListView.builder(

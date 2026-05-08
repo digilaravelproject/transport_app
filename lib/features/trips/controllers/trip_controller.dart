@@ -24,6 +24,8 @@ class TripController extends GetxController {
   final advanceAmountController = TextEditingController();
   
   // Observable form values
+  var totalAmount = 0.0.obs;
+  var advanceAmount = 0.0.obs;
   var selectedTripType = 'Round Trip'.obs;
   var selectedVehicleType = 'Luxury Bus'.obs;
   var selectedDriver = ''.obs;
@@ -38,6 +40,13 @@ class TripController extends GetxController {
     // Listen to search query changes
     debounce(searchQuery, (_) => _filterTrips(), time: const Duration(milliseconds: 300));
     ever(selectedFilter, (_) => _filterTrips());
+
+    totalAmountController.addListener(() {
+      totalAmount.value = double.tryParse(totalAmountController.text) ?? 0.0;
+    });
+    advanceAmountController.addListener(() {
+      advanceAmount.value = double.tryParse(advanceAmountController.text) ?? 0.0;
+    });
   }
 
   void _loadMockTrips() {

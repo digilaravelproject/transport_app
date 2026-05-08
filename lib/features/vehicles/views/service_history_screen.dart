@@ -11,6 +11,7 @@ import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 import '../../../routes/route_helper.dart';
 import '../domain/models/service_record_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class ServiceHistoryScreen extends StatefulWidget {
   const ServiceHistoryScreen({Key? key}) : super(key: key);
@@ -110,11 +111,10 @@ class _ServiceHistoryScreenState extends State<ServiceHistoryScreen> {
               child: Obx(() {
                 final history = controller.filteredServiceHistory;
                 if (history.isEmpty) {
-                  return ListView(
-                    children: const [
-                      SizedBox(height: 200),
-                      Center(child: AppText('No service records found', style: AppTextStyle.body)),
-                    ],
+                  return AppEmptyState(
+                    title: 'No Service Records',
+                    subtitle: 'Start by adding your first service entry for this vehicle.',
+                    icon: Iconsax.setting_2,
                   );
                 }
                 return ListView.builder(

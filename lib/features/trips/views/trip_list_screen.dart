@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/trip_controller.dart';
 import '../domain/models/trip_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class TripListScreen extends GetView<TripController> {
   const TripListScreen({Key? key}) : super(key: key);
@@ -198,11 +199,14 @@ class TripListScreen extends GetView<TripController> {
                   // Trip List
                   Obx(() {
                     if (controller.filteredTrips.isEmpty) {
-                      return const Padding(
-                        padding: EdgeInsets.all(40.0),
-                        child: Center(
-                          child:
-                              AppText('No trips found', style: AppTextStyle.body),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: AppEmptyState(
+                          title: controller.searchQuery.value.isNotEmpty ? 'No Matching Trips' : 'No Trips Found',
+                          subtitle: controller.searchQuery.value.isNotEmpty 
+                              ? 'No trips match your search "${controller.searchQuery.value}".'
+                              : 'Track and manage all your fleet trips here.',
+                          icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.routing,
                         ),
                       );
                     }

@@ -53,6 +53,13 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
       appBar: AppHeader(
         title: 'Vehicle Details',
         subtitle: vehicle.vehicleNumber,
+        trailing: IconButton(
+          icon: const Icon(Iconsax.edit, color: AppColors.primaryColor, size: 20),
+          onPressed: () async {
+            await Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle);
+            _loadDetails();
+          },
+        ),
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator())
@@ -75,14 +82,6 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                   _buildSectionTitle('Compliance Documents'),
                   _buildDocumentsPreview(vehicle),
                   const SizedBox(height: 32),
-                  AppButton(
-                    text: 'Edit Vehicle',
-                    onPressed: () async {
-                      await Get.toNamed(RouteHelper.getEditVehicleRoute(), arguments: vehicle);
-                      _loadDetails();
-                    },
-                  ),
-                  const SizedBox(height: 12),
                   AppButton.outline(
                     text: 'Maintenance History',
                     onPressed: () => Get.toNamed(RouteHelper.getMaintenanceHistoryRoute(), arguments: vehicle),
@@ -106,7 +105,7 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
                 children: [
                   AppText(vehicle.vehicleNumber, style: AppTextStyle.heading, fontSize: 20),
                   const SizedBox(height: 4),
-                  AppText('${vehicle.type} • ${vehicle.capacity} Seats', 
+                  AppText('Model Year: ${vehicle.modelYear ?? vehicle.year} • ${vehicle.capacity} Seats', 
                     style: AppTextStyle.body, color: AppColors.textColorSecondary),
                 ],
               ),
@@ -114,14 +113,53 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
             ],
           ),
           const Divider(height: 32),
-          _buildInfoRow(Iconsax.calendar_1, 'Model Year', vehicle.year),
-          const SizedBox(height: 12),
+          _buildPriceSummaryBox(vehicle),
+          const SizedBox(height: 16),
           _buildInfoRow(Icons.build_rounded, 'Last Service', 
             vehicle.lastServiceDate != null 
               ? '${vehicle.lastServiceDate!.day}/${vehicle.lastServiceDate!.month}/${vehicle.lastServiceDate!.year}'
               : 'Never'),
         ],
       ),
+    );
+  }
+
+  Widget _buildPriceSummaryBox(VehicleModel vehicle) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildInfoItem('Seats', '${vehicle.capacity}'),
+          _buildVerticalDivider(),
+          _buildInfoItem('Price/KM', '₹${vehicle.perKmPrice}'),
+          _buildVerticalDivider(),
+          _buildInfoItem('AC Extra', '₹${vehicle.acPricePerKm}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Column(
+      children: [
+        AppText(label, fontSize: 12, color: AppColors.textColorSecondary, fontWeight: FontWeight.w500),
+        const SizedBox(height: 4),
+        AppText(value, fontSize: 16, color: AppColors.primaryColor, fontWeight: FontWeight.w700),
+      ],
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 30,
+      width: 1,
+      color: AppColors.primaryColor.withValues(alpha: 0.2),
     );
   }
 

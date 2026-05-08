@@ -11,6 +11,7 @@ import '../controllers/vehicle_controller.dart';
 import '../domain/models/vehicle_model.dart';
 import '../../../routes/route_helper.dart';
 import '../domain/models/service_record_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class RepairHistoryScreen extends StatefulWidget {
   const RepairHistoryScreen({Key? key}) : super(key: key);
@@ -110,11 +111,10 @@ class _RepairHistoryScreenState extends State<RepairHistoryScreen> {
               child: Obx(() {
                 final history = controller.filteredRepairHistory;
                 if (history.isEmpty) {
-                  return ListView(
-                    children: const [
-                      SizedBox(height: 200),
-                      Center(child: AppText('No repair records found', style: AppTextStyle.body)),
-                    ],
+                  return AppEmptyState(
+                    title: 'No Repair Records',
+                    subtitle: 'Start by adding your first repair entry for this vehicle.',
+                    icon: Iconsax.setting_2,
                   );
                 }
                 return ListView.builder(

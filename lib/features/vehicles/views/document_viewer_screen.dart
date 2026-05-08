@@ -86,49 +86,58 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      backgroundColor: Colors.black,
       appBar: AppHeader(
         title: document?.type ?? 'View Document',
         subtitle: document?.number,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
         trailing: IconButton(
           icon: isDownloading 
-            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(value: downloadProgress, strokeWidth: 2, color: AppColors.primaryColor))
-            : const Icon(Iconsax.document_download, color: AppColors.primaryColor),
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+            : const Icon(Iconsax.document_download, color: Colors.white),
           onPressed: isDownloading ? null : _downloadAndOpenFile,
         ),
       ),
-      body: Center(
-        child: isImage 
-          ? InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4.0,
-              child: CachedNetworkImage(
-                imageUrl: fileUrl,
-                placeholder: (context, url) => const CircularProgressIndicator(),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-                fit: BoxFit.contain,
-              ),
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.insert_drive_file_outlined, size: 80, color: AppColors.textColorHint),
-                const SizedBox(height: 20),
-                AppText(fileName, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                const SizedBox(height: 10),
-                const AppText('This file type cannot be previewed in-app.', style: AppTextStyle.caption),
-                const SizedBox(height: 30),
-                ElevatedButton.icon(
-                  onPressed: _downloadAndOpenFile,
-                  icon: const Icon(Icons.open_in_new_rounded),
-                  label: const AppText('Open File', color: Colors.white),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
+      body: SizedBox.expand(
+        child: Container(
+          color: Colors.black,
+          child: isImage 
+            ? InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4.0,
+                clipBehavior: Clip.none,
+                child: CachedNetworkImage(
+                  imageUrl: fileUrl,
+                  placeholder: (context, url) => const Center(child: CircularProgressIndicator(color: Colors.white)),
+                  errorWidget: (context, url, error) => const Center(child: Icon(Icons.error, color: Colors.white)),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.contain,
                 ),
-              ],
-            ),
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.insert_drive_file_outlined, size: 80, color: Colors.white54),
+                  const SizedBox(height: 20),
+                  AppText(fileName, style: AppTextStyle.body, fontWeight: FontWeight.bold, color: Colors.white),
+                  const SizedBox(height: 10),
+                  const AppText('This file type cannot be previewed in-app.', style: AppTextStyle.caption, color: Colors.white70),
+                  const SizedBox(height: 30),
+                  ElevatedButton.icon(
+                    onPressed: _downloadAndOpenFile,
+                    icon: const Icon(Icons.open_in_new_rounded),
+                    label: const AppText('Open File', color: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ],
+              ),
+        ),
       ),
     );
   }

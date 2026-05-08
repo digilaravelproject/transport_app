@@ -6,19 +6,22 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_status_chip.dart';
 import '../../../core/widgets/app_search_bar.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
+import '../../roles/controllers/role_controller.dart';
 
 class StaffListScreen extends GetView<StaffController> {
   const StaffListScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final roleController = Get.isRegistered<RoleController>() ? Get.find<RoleController>() : Get.put(RoleController());
+
     return AppScaffold(
       useScaffold: false,
       appBar: const AppHeader(
@@ -30,6 +33,7 @@ class StaffListScreen extends GetView<StaffController> {
         child: const Icon(Iconsax.add, color: AppColors.white),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -41,18 +45,29 @@ class StaffListScreen extends GetView<StaffController> {
           
           // Filter Chips
           const SizedBox(height: 12),
-          Obx(() => SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                AppFilterChip(label: 'All', isSelected: controller.selectedFilter.value == 'All', onTap: () => controller.setFilter('All')),
-                AppFilterChip(label: 'Driver', isSelected: controller.selectedFilter.value == 'Driver', onTap: () => controller.setFilter('Driver')),
-                AppFilterChip(label: 'Manager', isSelected: controller.selectedFilter.value == 'Manager', onTap: () => controller.setFilter('Manager')),
-                AppFilterChip(label: 'Helper', isSelected: controller.selectedFilter.value == 'Helper', onTap: () => controller.setFilter('Helper')),
-              ],
-            ),
-          )),
+          Obx(() {
+            final roles = roleController.roles;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  AppFilterChip(
+                    label: 'All', 
+                    isSelected: controller.selectedFilter.value == 'All', 
+                    onTap: () => controller.setFilter('All')
+                  ),
+                  ...roles.map((role) {
+                    return AppFilterChip(
+                      label: role.roleName, 
+                      isSelected: controller.selectedFilter.value.toLowerCase() == role.roleName.toLowerCase(), 
+                      onTap: () => controller.setFilter(role.roleName)
+                    );
+                  }).toList(),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: 16),
           Expanded(
             child: Obx(() {
@@ -62,11 +77,20 @@ class StaffListScreen extends GetView<StaffController> {
               if (controller.filteredStaff.isEmpty) {
                 return RefreshIndicator(
                   onRefresh: () => controller.fetchStaff(),
-                  child: ListView(
-                    children: const [
-                      SizedBox(height: 100),
-                      Center(child: AppText('No staff members found', style: AppTextStyle.body)),
-                    ],
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: AppEmptyState(
+                        title: 'No Staff Found',
+                        subtitle: controller.searchQuery.value.isNotEmpty 
+                            ? 'No staff members match your search "${controller.searchQuery.value}".'
+                            : 'Start by adding your first staff member to manage your team.',
+                        icon: Iconsax.user_tag,
+                        actionLabel: null,
+                        onActionPressed: null,
+                      ),
+                    ),
                   ),
                 );
               }

@@ -11,6 +11,7 @@ import '../domain/models/vehicle_model.dart';
 import '../domain/models/fuel_entry_model.dart';
 import '../../../routes/route_helper.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class FuelHistoryScreen extends StatefulWidget {
   const FuelHistoryScreen({Key? key}) : super(key: key);
@@ -46,18 +47,32 @@ class _FuelHistoryScreenState extends State<FuelHistoryScreen> {
       body: RefreshIndicator(
         onRefresh: () => controller.fetchFuelHistory(vehicle.id),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSummaryCard(),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: AppText(
+                'Fuel Transactions',
+                style: AppTextStyle.subheading,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value && controller.fuelHistory.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (controller.fuelHistory.isEmpty) {
-                  return const Center(child: AppText('No fuel records found', style: AppTextStyle.body));
+                  return AppEmptyState(
+                    title: 'No Fuel Records',
+                    subtitle: 'Start by adding your first fuel entry for this vehicle.',
+                    icon: Iconsax.gas_station,
+                  );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: controller.fuelHistory.length,
                   itemBuilder: (context, index) {
                     final entry = controller.fuelHistory[index];

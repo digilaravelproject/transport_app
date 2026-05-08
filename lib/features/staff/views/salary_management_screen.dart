@@ -7,6 +7,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
 
@@ -15,7 +16,16 @@ class SalaryManagementScreen extends GetView<StaffController> {
 
   @override
   Widget build(BuildContext context) {
-    final StaffModel staff = Get.arguments ?? controller.staffList.first;
+    final StaffModel staff = Get.arguments;
+
+    // Fetch salary history on init and when filters change
+    everAll([controller.selectedSalaryMonth, controller.selectedSalaryYear], (_) {
+      _fetchData(staff.id);
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData(staff.id);
+    });
 
     return AppScaffold(
       appBar: AppHeader(
@@ -26,19 +36,32 @@ class SalaryManagementScreen extends GetView<StaffController> {
         children: [
           _buildFilterBar(),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSummaryCard(staff),
-                  const SizedBox(height: 24),
-                  const AppText('Financial History', style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
-                  const SizedBox(height: 12),
-                  Obx(() => _buildHistoryList(staff)),
-                ],
-              ),
-            ),
+            child: Obx(() {
+              if (controller.isLoading.value && controller.staffSalaryHistory.value == null) {
+                return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+              }
+
+              final history = controller.staffSalaryHistory.value;
+              
+              return RefreshIndicator(
+                onRefresh: () => _fetchData(staff.id),
+                color: AppColors.primaryColor,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSummaryCard(history, staff),
+                      const SizedBox(height: 24),
+                      const AppText('Financial History', style: AppTextStyle.subheading, fontSize: 16, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 12),
+                      _buildHistoryList(history),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -52,9 +75,20 @@ class SalaryManagementScreen extends GetView<StaffController> {
     );
   }
 
+  Future<void> _fetchData(int staffId) async {
+    final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    int? month;
+    if (controller.selectedSalaryMonth.value != 'All') {
+      month = months.indexOf(controller.selectedSalaryMonth.value);
+    }
+    int year = int.parse(controller.selectedSalaryYear.value);
+    
+    await controller.fetchStaffSalaryHistory(staffId, month: month, year: year);
+  }
+
   Widget _buildFilterBar() {
     final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final years = ['2023', '2024', '2025'];
+    final years = ['2023', '2024', '2025', '2026'];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -114,7 +148,8 @@ class SalaryManagementScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildSummaryCard(StaffModel staff) {
+  Widget _buildSummaryCard(StaffSalaryHistoryModel? history, StaffModel staff) {
+    final summary = history?.summary;
     return AppCard(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -132,7 +167,7 @@ class SalaryManagementScreen extends GetView<StaffController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const AppText('Monthly Salary', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                    AppText('₹ ${staff.salary}', style: AppTextStyle.heading, fontSize: 20),
+                    AppText('₹ ${summary?.monthlySalary ?? staff.salary}', style: AppTextStyle.heading, fontSize: 20),
                   ],
                 ),
               ),
@@ -141,9 +176,9 @@ class SalaryManagementScreen extends GetView<StaffController> {
           const Divider(height: 32),
           Row(
             children: [
-              _buildSummaryStat('Total Paid', '₹ 25,000', AppColors.successColor),
+              _buildSummaryStat('Total Paid', '₹ ${summary?.totalPaid ?? 0.0}', AppColors.successColor),
               Container(width: 1, height: 30, color: AppColors.slate200, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              _buildSummaryStat('Pending', '₹ ${staff.salaryBalance}', AppColors.errorColor),
+              _buildSummaryStat('Pending', '₹ ${summary?.totalPending ?? 0.0}', AppColors.errorColor),
             ],
           ),
         ],
@@ -163,27 +198,8 @@ class SalaryManagementScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildHistoryList(StaffModel staff) {
-    // Collect and filter records
-    final List<dynamic> history = [];
-    
-    // Filter Salary Records
-    for (var record in controller.salaryHistory) {
-      bool monthMatch = controller.selectedSalaryMonth.value == 'All' || record.month.contains(controller.selectedSalaryMonth.value);
-      bool yearMatch = record.month.contains(controller.selectedSalaryYear.value);
-      if (monthMatch && yearMatch) history.add(record);
-    }
-    
-    // Filter Advance Records
-    final staffAdvances = controller.advanceHistory.where((a) => a.staffName == staff.name);
-    for (var advance in staffAdvances) {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      bool monthMatch = controller.selectedSalaryMonth.value == 'All' || months[advance.date.month - 1] == controller.selectedSalaryMonth.value;
-      bool yearMatch = advance.date.year.toString() == controller.selectedSalaryYear.value;
-      if (monthMatch && yearMatch) history.add(advance);
-    }
-
-    if (history.isEmpty) {
+  Widget _buildHistoryList(StaffSalaryHistoryModel? history) {
+    if (history == null || history.records.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 40),
@@ -199,12 +215,8 @@ class SalaryManagementScreen extends GetView<StaffController> {
     }
 
     return Column(
-      children: history.map((item) {
-        if (item is SalaryRecord) {
-          return _SalaryCard(record: item);
-        } else {
-          return _AdvanceCard(advance: item as AdvancePayment);
-        }
+      children: history.records.map((item) {
+        return _SalaryCard(record: item);
       }).toList(),
     );
   }
@@ -212,6 +224,15 @@ class SalaryManagementScreen extends GetView<StaffController> {
   void _showPaymentModal(StaffModel staff) {
     final pendingAmount = staff.salaryBalance;
     final TextEditingController amountController = TextEditingController(text: pendingAmount.toString());
+    final TextEditingController refController = TextEditingController();
+    final RxString paymentMode = 'bank'.obs;
+    final Rx<DateTime> paidOn = DateTime.now().obs;
+
+    final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    int selectedMonth = controller.selectedSalaryMonth.value == 'All' 
+        ? DateTime.now().month 
+        : months.indexOf(controller.selectedSalaryMonth.value);
+    int selectedYear = int.parse(controller.selectedSalaryYear.value);
 
     Get.bottomSheet(
       Container(
@@ -220,70 +241,205 @@ class SalaryManagementScreen extends GetView<StaffController> {
           color: AppColors.white, 
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const AppText('Pay Salary', style: AppTextStyle.heading, fontSize: 20),
-                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.slate50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.slate200),
-              ),
-              child: Column(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildModalBalanceRow('Total Salary', '₹ ${staff.salary}'),
-                  const SizedBox(height: 8),
-                  _buildModalBalanceRow('Advance Taken', '₹ ${staff.salary - pendingAmount}', color: AppColors.warningColor),
-                  const Divider(height: 24),
-                  _buildModalBalanceRow('Final Pending', '₹ $pendingAmount', color: AppColors.errorColor, isBold: true),
+                  const AppText('Pay Salary', style: AppTextStyle.heading, fontSize: 20),
+                  IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-            const AppText('Amount to Pay', style: AppTextStyle.label, fontWeight: FontWeight.bold),
-            const SizedBox(height: 8),
-            TextField(
-              controller: amountController,
-              decoration: InputDecoration(
-                prefixText: '₹ ',
-                hintText: 'Enter amount',
-                filled: true,
-                fillColor: AppColors.slate50,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primaryColor)),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.slate50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.slate200),
+                ),
+                child: Column(
+                  children: [
+                    _buildModalBalanceRow('Total Salary', '₹ ${staff.salary}'),
+                    const SizedBox(height: 8),
+                    _buildModalBalanceRow('Advance Taken', '₹ ${staff.advanceTaken}', color: AppColors.warningColor),
+                    const Divider(height: 24),
+                    _buildModalBalanceRow('Final Pending', '₹ ${staff.salaryBalance}', color: AppColors.errorColor, isBold: true),
+                  ],
+                ),
               ),
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            const SizedBox(height: 24),
-            AppButton(
-              text: 'Confirm Payment', 
-              onPressed: () {
-                Get.back();
-                Get.snackbar(
-                  'Payment Successful', 
-                  '₹ ${amountController.text} paid to ${staff.name}',
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
-                  snackPosition: SnackPosition.BOTTOM,
-                );
-              }
-            ),
-            const SizedBox(height: 10),
-          ],
+              const SizedBox(height: 24),
+              const AppText('Payment Details', style: AppTextStyle.label, fontWeight: FontWeight.bold),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Obx(() => _buildSelectableTab(
+                      'Bank Transfer', 
+                      paymentMode.value == 'bank', 
+                      () => paymentMode.value = 'bank',
+                      Iconsax.bank,
+                    )),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Obx(() => _buildSelectableTab(
+                      'Cash', 
+                      paymentMode.value == 'cash', 
+                      () => paymentMode.value = 'cash',
+                      Iconsax.money_send,
+                    )),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppText('Paid On', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: Get.context!,
+                              initialDate: paidOn.value,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now(),
+                            );
+                            if (date != null) paidOn.value = date;
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.slate50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.slate200),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Iconsax.calendar, size: 18, color: AppColors.primaryColor),
+                                const SizedBox(width: 8),
+                                Obx(() => AppText(
+                                  '${paidOn.value.day}/${paidOn.value.month}/${paidOn.value.year}',
+                                  style: AppTextStyle.body,
+                                )),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppText('Amount', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: amountController,
+                          decoration: InputDecoration(
+                            prefixText: '₹ ',
+                            filled: true,
+                            fillColor: AppColors.slate50,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.slate200)),
+                            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.slate200)),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Obx(() => paymentMode.value == 'bank' ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  const AppText('Transaction Ref.', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: refController,
+                    decoration: InputDecoration(
+                      hintText: 'Enter transaction ID',
+                      filled: true,
+                      fillColor: AppColors.slate50,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.slate200)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: AppColors.slate200)),
+                    ),
+                  ),
+                ],
+              ) : const SizedBox.shrink()),
+              const SizedBox(height: 32),
+              Obx(() => AppButton(
+                text: 'Confirm Payment', 
+                isLoading: controller.isLoading.value,
+                onPressed: () async {
+                  final amount = double.tryParse(amountController.text) ?? 0;
+                  if (amount <= 0) {
+                    CustomSnackbar.showError('Please enter a valid amount');
+                    return;
+                  }
+
+                  final success = await controller.paySalary(
+                    staffId: staff.id,
+                    month: selectedMonth,
+                    year: selectedYear,
+                    amount: amount,
+                    paymentMode: paymentMode.value,
+                    transactionRef: refController.text.isNotEmpty ? refController.text : null,
+                    paidOn: paidOn.value.toIso8601String().split('T')[0],
+                  );
+
+                  if (success) {
+                    Get.back();
+                    _fetchData(staff.id);
+                  }
+                }
+              )),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
       isScrollControlled: true,
+    );
+  }
+
+  Widget _buildSelectableTab(String label, bool isSelected, VoidCallback onTap, IconData icon) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryColor.withOpacity(0.05) : AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? AppColors.primaryColor : AppColors.slate200),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: isSelected ? AppColors.primaryColor : AppColors.textColorSecondary),
+            const SizedBox(width: 8),
+            AppText(label, 
+              style: AppTextStyle.body, 
+              color: isSelected ? AppColors.primaryColor : AppColors.textColorSecondary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 12,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -304,6 +460,9 @@ class _SalaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    final monthName = int.tryParse(record.month) != null ? months[int.parse(record.month)] : record.month;
+
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -321,20 +480,24 @@ class _SalaryCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppText(record.month, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                    AppText('$monthName ${record.year}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
                     const AppText('Monthly Salary Payment', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                   ],
                 ),
               ),
-              _buildStatusBadge(record.pendingAmount == 0 ? 'Paid' : 'Partial'),
+              _buildStatusBadge(record.paymentStatus.capitalizeFirst ?? 'Paid'),
             ],
           ),
           const Divider(height: 24),
-          _buildDetailRow('Total Salary', '₹ ${record.totalSalary}'),
+          _buildDetailRow('Basic Salary', '₹ ${record.basicSalary}'),
           const SizedBox(height: 8),
-          _buildDetailRow('Paid', '₹ ${record.paidAmount}', color: AppColors.successColor),
+          _buildDetailRow('Deductions', '₹ ${record.totalDeduction}', color: AppColors.errorColor),
           const SizedBox(height: 8),
-          _buildDetailRow('Pending', '₹ ${record.pendingAmount}', color: AppColors.errorColor),
+          _buildDetailRow('Net Paid', '₹ ${record.netSalary}', color: AppColors.successColor),
+          if (record.paidOn != null) ...[
+            const SizedBox(height: 8),
+            _buildDetailRow('Paid On', '${record.paidOn!.day}/${record.paidOn!.month}/${record.paidOn!.year}'),
+          ]
         ],
       ),
     );
@@ -351,7 +514,7 @@ class _SalaryCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(String status) {
-    bool isPaid = status == 'Paid';
+    bool isPaid = status.toLowerCase() == 'paid';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -359,54 +522,6 @@ class _SalaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: AppText(status, style: AppTextStyle.caption, color: isPaid ? AppColors.successColor : AppColors.warningColor, fontWeight: FontWeight.bold),
-    );
-  }
-}
-
-class _AdvanceCard extends StatelessWidget {
-  final AdvancePayment advance;
-  const _AdvanceCard({required this.advance});
-
-  @override
-  Widget build(BuildContext context) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final dateStr = '${advance.date.day} ${months[advance.date.month-1]} ${advance.date.year}';
-
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.warningColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Icon(Iconsax.receive_square_2, color: AppColors.warningColor, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText(advance.reason, style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                    const AppText('Cash Advance', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                  ],
-                ),
-              ),
-              AppText('₹ ${advance.amount}', style: AppTextStyle.body, color: AppColors.warningColor, fontWeight: FontWeight.bold),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textColorHint),
-              const SizedBox(width: 8),
-              AppText(dateStr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-            ],
-          ),
-        ],
-      ),
     );
   }
 }

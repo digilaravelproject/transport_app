@@ -48,7 +48,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
         final destPoints = _editingRoute!.points.where((p) => p['type'] != 'start').toList();
         if (destPoints.isNotEmpty) {
           _destinationControllers = destPoints.map((p) => TextEditingController(text: p['name'])).toList();
-          _destinationPoints = destPoints.map((p) => Map<String, dynamic>.from(p)).toList();
+          _destinationPoints = List<Map<String, dynamic>?>.from(destPoints.map((p) => Map<String, dynamic>.from(p)));
           controller.destinationController.text = destPoints.last['name'] ?? '';
         }
       }
@@ -113,7 +113,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
             children: [
             // --- Route Information Section ---
             AppCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -122,7 +122,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                     fontWeight: FontWeight.w700, 
                     color: AppColors.primaryColor,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   AppInputField(
                     label: 'Route Name',
                     hint: 'e.g. Pune to Mumbai Express',
@@ -131,7 +131,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                     isRequired: true,
                     validator: (val) => (val == null || val.isEmpty) ? 'Please enter a route name' : null,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   
                   // Origin
                   AppInputField(
@@ -153,7 +153,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                       }
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
                   // Destinations (Multiple)
                   Row(
@@ -269,7 +269,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
 
             // --- Schedules Section ---
             AppCard(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -335,7 +335,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                                 ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
@@ -381,7 +381,7 @@ class _CreateRouteScreenState extends State<CreateRouteScreen> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 20),
+                           const SizedBox(height: 12),
                           const AppText('Frequency', 
                             fontSize: 13, 
                             fontWeight: FontWeight.w600,

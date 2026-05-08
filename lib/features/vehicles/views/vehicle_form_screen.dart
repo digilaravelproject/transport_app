@@ -15,8 +15,8 @@ import '../widgets/upload_box.dart';
 import '../domain/models/vehicle_model.dart';
 import '../controllers/vehicle_controller.dart';
 import '../controllers/vehicle_type_controller.dart';
-import '../../../core/utils/file_converter.dart';
 import '../../../core/services/network/multipart.dart';
+import '../../../core/utils/app_validators.dart';
 
 class VehicleFormScreen extends StatefulWidget {
   const VehicleFormScreen({Key? key}) : super(key: key);
@@ -27,17 +27,20 @@ class VehicleFormScreen extends StatefulWidget {
 
 class _VehicleFormScreenState extends State<VehicleFormScreen> {
   final VehicleController controller = Get.find<VehicleController>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late VehicleModel? vehicle;
   bool isEdit = false;
-
-  // Error state for vehicle type selection
-  String? vehicleTypeError;
 
   PlatformFile? rcFile;
   PlatformFile? insuranceFile;
   PlatformFile? permitFile;
 
-  // Controllers
+  // Error States
+  String? rcFileError;
+  String? insuranceFileError;
+  String? permitFileError;
+  String? vehicleTypeError;
+
   final _regNoController = TextEditingController();
   final _capacityController = TextEditingController();
   final _yearController = TextEditingController();
@@ -55,45 +58,23 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   DateTime? insExpiry;
   DateTime? permitExpiry;
 
-  // Error States
-  String? regNoError;
-  String? capacityError;
-  String? yearError;
-  String? priceError;
-  String? rcNoError;
-  String? rcExpiryError;
-  String? insNoError;
-  String? insExpiryError;
-  String? permitNoError;
-  String? permitExpiryError;
-  String? rcFileError;
-  String? insuranceFileError;
-  String? permitFileError;
-
-  // Vehicle type selection handler
   void _onVehicleTypeSelected(int? id, String displayName) {
     if (id != null) {
-      // Find the selected vehicle type
+      vehicleTypeError = null;
       final vehicleTypeController = Get.find<VehicleTypeController>();
       final selectedType = vehicleTypeController.vehicleTypes.firstWhereOrNull(
         (type) => type.id == id
       );
       
       if (selectedType != null) {
-        // Update the controller's selected vehicle type
         controller.selectedVehicleTypeId.value = id;
         controller.selectedVehicleType.value = displayName;
         
-        // Auto-fill the capacity, per km price, and AC price fields
         _capacityController.text = selectedType.capacity.toString();
         _perKmPriceController.text = selectedType.perKmPrice.toString();
         _acPriceController.text = selectedType.acPricePerKm.toString();
         
-        // Clear any existing errors
-        setState(() {
-          capacityError = null;
-          priceError = null;
-        });
+        setState(() {});
       }
     }
   }
@@ -104,7 +85,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     vehicle = Get.arguments;
     isEdit = vehicle != null;
     
-    // Ensure VehicleTypeController is available
     VehicleTypeDropdown.ensureController();
     
     if (isEdit) {
@@ -119,8 +99,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     _regNoController.text = v.vehicleNumber;
     _yearController.text = v.year;
 
-    // Pre-select vehicle type using ID from model (preferred)
-    // Falls back to name-matching if API returns type name instead of ID
     if (v.vehicleTypeId != null) {
       controller.selectedVehicleTypeId.value = v.vehicleTypeId;
     } else if (v.type.isNotEmpty) {
@@ -134,7 +112,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       }
     }
 
-    // Fill capacity/price fields from vehicle model values
     _capacityController.text = v.capacity.toString();
     _perKmPriceController.text = v.perKmPrice.toString();
     _acPriceController.text = v.acPricePerKm.toString();
@@ -195,7 +172,6 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     final DateTime now = DateTime.now();
     DateTime initial = now;
     
-    // Set initial date based on existing selection if valid
     if (type == 'RC' && rcExpiry != null && rcExpiry!.isAfter(now)) initial = rcExpiry!;
     if (type == 'Insurance' && insExpiry != null && insExpiry!.isAfter(now)) initial = insExpiry!;
     if (type == 'Permit' && permitExpiry != null && permitExpiry!.isAfter(now)) initial = permitExpiry!;
@@ -211,15 +187,12 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         if (type == 'RC') {
           rcExpiry = picked;
           _rcExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
-          rcExpiryError = null;
         } else if (type == 'Insurance') {
           insExpiry = picked;
           _insExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
-          insExpiryError = null;
         } else if (type == 'Permit') {
           permitExpiry = picked;
           _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
-          permitExpiryError = null;
         }
       });
     }
@@ -227,87 +200,33 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
 
   Future<void> _handleSave() async {
     setState(() {
-      regNoError = null;
-      vehicleTypeError = null;
-      capacityError = null;
-      yearError = null;
-      priceError = null;
-      rcNoError = null;
-      rcExpiryError = null;
-      insNoError = null;
-      insExpiryError = null;
-      permitNoError = null;
-      permitExpiryError = null;
       rcFileError = null;
       insuranceFileError = null;
       permitFileError = null;
+      vehicleTypeError = null;
     });
 
-    bool hasError = false;
+    bool isValid = _formKey.currentState!.validate();
 
-    if (_regNoController.text.isEmpty) {
-      setState(() => regNoError = 'Vehicle number is required');
-      hasError = true;
-    }
     if (controller.selectedVehicleTypeId.value == null || controller.selectedVehicleTypeId.value == 0) {
-      setState(() => vehicleTypeError = 'Please select vehicle type');
-      hasError = true;
-    }
-    if (_capacityController.text.isEmpty) {
-      setState(() => capacityError = 'Capacity is required');
-      hasError = true;
-    }
-    if (_yearController.text.isEmpty) {
-      setState(() => yearError = 'Model year is required');
-      hasError = true;
-    }
-    if (_perKmPriceController.text.isEmpty) {
-      setState(() => priceError = 'Price is required');
-      hasError = true;
-    }
-    if (_rcNoController.text.isEmpty) {
-      setState(() => rcNoError = 'RC number is required');
-      hasError = true;
-    }
-    if (rcExpiry == null) {
-      setState(() => rcExpiryError = 'RC expiry is required');
-      hasError = true;
-    }
-    if (_insNoController.text.isEmpty) {
-      setState(() => insNoError = 'Insurance number is required');
-      hasError = true;
-    }
-    if (insExpiry == null) {
-      setState(() => insExpiryError = 'Insurance expiry is required');
-      hasError = true;
-    }
-    if (_permitNoController.text.isEmpty) {
-      setState(() => permitNoError = 'Permit number is required');
-      hasError = true;
-    }
-    if (permitExpiry == null) {
-      setState(() => permitExpiryError = 'Permit expiry is required');
-      hasError = true;
+      setState(() => vehicleTypeError = 'Vehicle Type is required');
+      isValid = false;
     }
 
-    // Document File Validation
     if (rcFile == null && vehicle?.rcFileUrl == null) {
       setState(() => rcFileError = 'RC document is required');
-      hasError = true;
+      isValid = false;
     }
     if (insuranceFile == null && vehicle?.insuranceFileUrl == null) {
-      setState(() => insuranceFileError = 'Insurance policy document is required');
-      hasError = true;
-    }
-    if (permitFile == null && vehicle?.permitFileUrl == null) {
-      setState(() => permitFileError = 'Permit document is required');
-      hasError = true;
+      setState(() => insuranceFileError = 'Insurance policy is required');
+      isValid = false;
     }
 
-    if (hasError) return;
+    if (!isValid) return;
 
     final Map<String, String> data = {
       'registration_number': _regNoController.text,
+      'type': controller.selectedVehicleTypeId.value.toString(),
       'vehicle_type_id': controller.selectedVehicleTypeId.value.toString(),
       'seating_capacity': _capacityController.text,
       'model_year': _yearController.text,
@@ -320,21 +239,11 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       'permit_number': _permitNoController.text,
       'permit_expiry': permitExpiry != null ? DateFormat('yyyy-MM-dd').format(permitExpiry!) : '',
     };
-    data.forEach((key, value) {
-      print('$key : $value');
-    });
 
     final List<MultipartDocument> files = [];
-
-    if (rcFile != null) {
-      files.add(MultipartDocument('registration_certificate', rcFile!));
-    }
-    if (insuranceFile != null) {
-      files.add(MultipartDocument('insurance_certificate', insuranceFile!));
-    }
-    if (permitFile != null) {
-      files.add(MultipartDocument('permit_certificate', permitFile!));
-    }
+    if (rcFile != null) files.add(MultipartDocument('registration_certificate', rcFile!));
+    if (insuranceFile != null) files.add(MultipartDocument('insurance_certificate', insuranceFile!));
+    if (permitFile != null) files.add(MultipartDocument('permit_certificate', permitFile!));
 
     bool success;
     if (isEdit) {
@@ -371,136 +280,104 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       body: Obx(() => Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionTitle('Vehicle Information'),
-                AppCard(
-                  child: Column(
-                    children: [
-                      AppInputField(
-                        label: 'Vehicle Number',
-                        hint: 'e.g. DL 01 AB 1234',
-                        controller: _regNoController,
-                        errorText: regNoError,
-                        onChanged: (_) => setState(() => regNoError = null),
-                      ),
-                      const SizedBox(height: 16),
-                      VehicleTypeDropdown(
-                        selectedId: controller.selectedVehicleTypeId,
-                        onChanged: _onVehicleTypeSelected,
-                        errorText: vehicleTypeError,
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: AppInputField(
-                              label: 'Seating Capacity',
-                              hint: 'e.g. 36',
-                              controller: _capacityController,
-                              keyboardType: TextInputType.number,
-                              errorText: capacityError,
-                              readOnly: true,
-                              onChanged: (_) => setState(() => capacityError = null),
-                            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const AppText('Vehicle Information', style: AppTextStyle.subheading, fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                        const SizedBox(height: 12),
+                        AppInputField(
+                          label: 'Vehicle Number',
+                          hint: 'e.g. DL 01 AB 1234',
+                          controller: _regNoController,
+                          validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Vehicle Number'),
+                        ),
+                        const SizedBox(height: 8),
+                        AppInputField(
+                          label: 'Model Year',
+                          hint: 'e.g. 2022',
+                          controller: _yearController,
+                          keyboardType: TextInputType.number,
+                          validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Model Year'),
+                        ),
+                        const SizedBox(height: 8),
+                        VehicleTypeDropdown(
+                          selectedId: controller.selectedVehicleTypeId,
+                          onChanged: _onVehicleTypeSelected,
+                          errorText: vehicleTypeError,
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.1)),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: AppInputField(
-                              label: 'Model Year',
-                              hint: 'e.g. 2022',
-                              controller: _yearController,
-                              keyboardType: TextInputType.number,
-                              errorText: yearError,
-                              onChanged: (_) => setState(() => yearError = null),
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildInfoItem('Seats', _capacityController.text),
+                              _buildVerticalDivider(),
+                              _buildInfoItem('Price/KM', '₹${_perKmPriceController.text}'),
+                              _buildVerticalDivider(),
+                              _buildInfoItem('AC Extra', '₹${_acPriceController.text}'),
+                            ],
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                _buildSectionTitle('Pricing Information'),
-                AppCard(
-                  child: Column(
-                    children: [
-                      AppInputField(
-                        label: 'Per KM Price',
-                        hint: 'e.g. 18.00',
-                        controller: _perKmPriceController,
-                        keyboardType: TextInputType.number,
-                        errorText: priceError,
-                        readOnly: true,
-                        onChanged: (_) => setState(() => priceError = null),
-                      ),
-                      const SizedBox(height: 16),
-                      AppInputField(
-                        label: 'AC Price per KM (Extra)',
-                        hint: 'e.g. 2.00',
-                        controller: _acPriceController,
-                        keyboardType: TextInputType.number,
-                        readOnly: true,
-                      ),
-                    ],
+                  const SizedBox(height: 12),
+
+                  _buildDocumentSection(
+                    'Registration Certificate (RC)',
+                    rcFile,
+                    _rcNoController,
+                    _rcExpiryController,
+                    () => _pickDocument('RC'),
+                    'RC Number',
+                    'RC',
+                    remoteUrl: vehicle?.rcFileUrl,
+                    fileError: rcFileError,
                   ),
-                ),
-                const SizedBox(height: 16),
-                _buildSectionTitle('Required Documents'),
-                _buildDocumentSection(
-                  'Registration Certificate (RC)',
-                  rcFile,
-                  _rcNoController,
-                  _rcExpiryController,
-                  () => _pickDocument('RC'),
-                  'RC Number',
-                  'RC',
-                  remoteUrl: vehicle?.rcFileUrl,
-                  noError: rcNoError,
-                  expiryError: rcExpiryError,
-                  fileError: rcFileError,
-                ),
-                _buildDocumentSection(
-                  'Insurance Policy',
-                  insuranceFile,
-                  _insNoController,
-                  _insExpiryController,
-                  () => _pickDocument('Insurance'),
-                  'Policy Number',
-                  'Insurance',
-                  remoteUrl: vehicle?.insuranceFileUrl,
-                  noError: insNoError,
-                  expiryError: insExpiryError,
-                  fileError: insuranceFileError,
-                ),
-                _buildDocumentSection(
-                  'Permit Details',
-                  permitFile,
-                  _permitNoController,
-                  _permitExpiryController,
-                  () => _pickDocument('Permit'),
-                  'Permit Number',
-                  'Permit',
-                  remoteUrl: vehicle?.permitFileUrl,
-                  noError: permitNoError,
-                  expiryError: permitExpiryError,
-                  fileError: permitFileError,
-                ),
-                const SizedBox(height: 40),
-                AppButton(
-                  text: isEdit ? 'Update Vehicle' : 'Save Vehicle',
-                  onPressed: _handleSave,
-                ),
-                const SizedBox(height: 12),
-                AppButton.outline(
-                  text: 'Cancel',
-                  onPressed: () => Get.back(),
-                ),
-                const SizedBox(height: 40),
-              ],
+                  _buildDocumentSection(
+                    'Insurance Policy',
+                    insuranceFile,
+                    _insNoController,
+                    _insExpiryController,
+                    () => _pickDocument('Insurance'),
+                    'Policy Number',
+                    'Insurance',
+                    remoteUrl: vehicle?.insuranceFileUrl,
+                    fileError: insuranceFileError,
+                  ),
+                  _buildDocumentSection(
+                    'Permit Details',
+                    permitFile,
+                    _permitNoController,
+                    _permitExpiryController,
+                    () => _pickDocument('Permit'),
+                    'Permit Number',
+                    'Permit',
+                    remoteUrl: vehicle?.permitFileUrl,
+                    fileError: permitFileError,
+                  ),
+                  const SizedBox(height: 16),
+                  AppButton(
+                    text: isEdit ? 'Update Vehicle' : 'Save Vehicle',
+                    onPressed: _handleSave,
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
           if (controller.isLoading.value)
@@ -521,29 +398,29 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     VoidCallback onUpload,
     String noLabel,
     String type,
-    {String? remoteUrl, String? noError, String? expiryError, String? fileError}
+    {String? remoteUrl, String? fileError}
   ) {
     return AppCard(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Iconsax.document_text, size: 18, color: AppColors.primaryColor),
+                child: const Icon(Iconsax.document_text, size: 16, color: AppColors.primaryColor),
               ),
-              const SizedBox(width: 12),
-              AppText(label, style: AppTextStyle.subheading, fontSize: 14, color: AppColors.textColorPrimary, fontWeight: FontWeight.w600),
+              const SizedBox(width: 10),
+              AppText(label, style: AppTextStyle.subheading, fontSize: 13, color: AppColors.textColorPrimary, fontWeight: FontWeight.w600),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           UploadBox(
             label: 'Photo Copy',
             isUploaded: file != null || remoteUrl != null,
@@ -554,25 +431,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           ),
           if (fileError != null)
             Padding(
-              padding: const EdgeInsets.only(top: 8, left: 4),
+              padding: const EdgeInsets.only(top: 4, left: 4),
               child: AppText(fileError, color: Colors.red, fontSize: 12),
             ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           AppInputField(
             label: noLabel,
             hint: 'Enter Number',
             controller: noController,
             icon: Iconsax.hashtag,
-            errorText: noError,
-            onChanged: (_) {
-              setState(() {
-                if (type == 'RC') rcNoError = null;
-                if (type == 'Insurance') insNoError = null;
-                if (type == 'Permit') permitNoError = null;
-              });
-            },
+            validator: (v) => AppValidators.validateEmpty(v, fieldName: noLabel),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           AppInputField(
             label: 'Expiry Date',
             hint: 'DD-MM-YYYY',
@@ -580,58 +450,28 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             readOnly: true,
             icon: Iconsax.calendar_1,
             onTap: () => _selectDate(context, type),
-            errorText: expiryError,
+            validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Expiry Date'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 8),
-      child: AppText(
-        title,
-        style: AppTextStyle.subheading,
-        fontSize: 14,
-        color: AppColors.primaryColor,
-        fontWeight: FontWeight.w600,
-      ),
+  Widget _buildInfoItem(String label, String value) {
+    return Column(
+      children: [
+        AppText(label, fontSize: 11, color: AppColors.textColorSecondary, fontWeight: FontWeight.w500),
+        const SizedBox(height: 2),
+        AppText(value.isEmpty ? '-' : value, fontSize: 14, color: AppColors.primaryColor, fontWeight: FontWeight.w700),
+      ],
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, String? initialVal, Function(String?) onChanged, {String? errorText}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: items.contains(initialVal) ? initialVal : null,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.slate50,
-            errorText: errorText,
-            errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.slate200),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: errorText != null ? Colors.red : AppColors.primaryColor, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-          hint: AppText('Select $label', style: AppTextStyle.body, color: AppColors.textColorHint),
-          items: items.map((e) => DropdownMenuItem(value: e, child: AppText(e, style: AppTextStyle.body))).toList(),
-          onChanged: onChanged,
-        ),
-      ],
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 24,
+      width: 1,
+      color: AppColors.primaryColor.withValues(alpha: 0.2),
     );
   }
 }

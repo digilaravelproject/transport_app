@@ -10,49 +10,85 @@ import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
 import '../../../routes/route_helper.dart';
 
-class DutyHoursScreen extends GetView<StaffController> {
+class DutyHoursScreen extends StatefulWidget {
   const DutyHoursScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final StaffModel staff = Get.arguments ?? controller.staffList.first;
+  State<DutyHoursScreen> createState() => _DutyHoursScreenState();
+}
 
+class _DutyHoursScreenState extends State<DutyHoursScreen> {
+  final controller = Get.find<StaffController>();
+  late StaffModel staff;
+
+  @override
+  void initState() {
+    super.initState();
+    staff = Get.arguments ?? controller.staffList.first;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchDutyHours(staff.id);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Duty Hours',
         subtitle: staff.name,
       ),
-      floatingActionButton: FloatingActionButton(heroTag: null,
+      floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getAddDutyRecordRoute(), arguments: staff),
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Iconsax.add, color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildSummaryCard(staff),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Duty Log'),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                return _DutyCard(
-                  date: DateTime.now().subtract(Duration(days: index)),
-                  tripName: 'Trip #${1000 + index} - Delhi to Jaipur',
-                  hours: 8.5 - index,
-                );
-              },
+      body: Obx(() {
+        if (controller.isLoading.value && controller.dutyLogs.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchDutyHours(staff.id),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _buildSummaryCard(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Duty Log'),
+                if (controller.dutyLogs.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: AppText('No duty logs found', color: AppColors.textColorSecondary),
+                    ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: controller.dutyLogs.length,
+                    itemBuilder: (context, index) {
+                      final log = controller.dutyLogs[index];
+                      return _DutyCard(
+                        date: log.date,
+                        tripName: log.notes ?? 'Trip Record',
+                        hours: log.totalHours,
+                      );
+                    },
+                  ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildSummaryCard(StaffModel staff) {
+  Widget _buildSummaryCard() {
+    final summary = controller.dutyHoursSummary.value;
     return AppCard(
       child: Column(
         children: [
@@ -61,9 +97,9 @@ class DutyHoursScreen extends GetView<StaffController> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildSummaryItem('Today', '8.5h', AppColors.primaryColor),
-              _buildSummaryItem('Weekly', '45h', Colors.orange),
-              _buildSummaryItem('Monthly', '${staff.dutyHours}h', Colors.green),
+              _buildSummaryItem('Today', '${summary?.today ?? 0.0}h', AppColors.primaryColor),
+              _buildSummaryItem('Weekly', '${summary?.weekly ?? 0.0}h', Colors.orange),
+              _buildSummaryItem('Monthly', '${summary?.monthly ?? 0.0}h', Colors.green),
             ],
           ),
         ],
@@ -95,7 +131,7 @@ class DutyHoursScreen extends GetView<StaffController> {
 class _DutyCard extends StatelessWidget {
   final DateTime date;
   final String tripName;
-  final double hours;
+  final String hours;
 
   const _DutyCard({required this.date, required this.tripName, required this.hours});
 

@@ -75,7 +75,7 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
               children: [
                 // --- Header Card ---
                 AppCard(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
                       Row(
@@ -101,12 +101,10 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
-                      const Divider(height: 1, thickness: 0.5),
                       const SizedBox(height: 20),
-                      _buildDetailRow(Iconsax.info_circle, 'Description', role.description),
+                      const Divider(height: 1, thickness: 0.5),
                       const SizedBox(height: 16),
-                      _buildDetailRow(Iconsax.people, 'Assigned Users', '${role.assignedUsersCount} Users'),
+                      _buildDetailRow(Iconsax.info_circle, 'Description', role.description),
                     ],
                   ),
                 ),
@@ -126,60 +124,49 @@ class _RoleDetailsScreenState extends State<RoleDetailsScreen> {
                 //   ],
                 // ),
   
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
   
                 // --- Permissions Section ---
                 const Padding(
-                  padding: EdgeInsets.only(left: 4, bottom: 12),
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                   child: AppText('Access Permissions', 
-                    fontSize: 18, 
-                    fontWeight: FontWeight.w700,
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w800,
                     color: AppColors.textColorPrimary,
                   ),
                 ),
-                AppCard(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        spacing: 10,
-                        runSpacing: 10,
-                        children: role.permissions.map((p) =>
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withOpacity(0.06),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.check_circle, size: 16, color: AppColors.successColor),
-                                const SizedBox(width: 8),
-                                AppText(p, 
-                                  fontSize: 14, 
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textColorPrimary,
-                                ),
-                              ],
-                            ),
-                          )
-                        ).toList(),
-                      ),
-                      if (role.permissions.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            child: AppText('No permissions assigned', 
-                              style: AppTextStyle.caption,
-                            ),
-                          ),
+                
+                if (role.permissions.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: AppText('No permissions assigned', style: AppTextStyle.caption)),
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 10,
+                    children: role.permissions.map((p) =>
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.successColor.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                    ],
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Iconsax.tick_circle, size: 14, color: AppColors.successColor),
+                            const SizedBox(width: 6),
+                            AppText(p, 
+                              fontSize: 13, 
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textColorPrimary,
+                            ),
+                          ],
+                        ),
+                      )
+                    ).toList(),
                   ),
-                ),
               ],
             ),
           );

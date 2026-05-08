@@ -46,7 +46,12 @@ class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
                 );
           return IconButton(
             icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
-            onPressed: () => Get.toNamed(RouteHelper.getCreateRouteRoute(), arguments: route),
+            onPressed: () async {
+              await Get.toNamed(RouteHelper.getCreateRouteRoute(), arguments: route);
+              if (routeId.isNotEmpty) {
+                controller.fetchRouteDetails(routeId);
+              }
+            },
           );
         }),
       ),
@@ -159,31 +164,32 @@ class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                AppText('Total Distance', fontSize: 12, color: Colors.white.withOpacity(0.8)),
-                                const SizedBox(height: 4),
+                                AppText('Total Distance', fontSize: 11, color: Colors.white.withValues(alpha: 0.9), fontWeight: FontWeight.w500),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: [
                                     const Icon(Iconsax.map, color: Colors.white, size: 16),
                                     const SizedBox(width: 6),
-                                    AppText('${route.distanceKm} km', fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                    Expanded(child: AppText('${route.distanceKm} km', fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white, overflow: TextOverflow.ellipsis)),
                                   ],
                                 ),
                               ],
                             ),
                           ),
-                          Container(width: 1, height: 30, color: Colors.white.withOpacity(0.3)),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
+                          Container(width: 1, height: 35, color: Colors.white.withValues(alpha: 0.2)),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                AppText('Est. Duration', fontSize: 12, color: Colors.white.withOpacity(0.8)),
-                                const SizedBox(height: 4),
+                                AppText('Est. Duration', fontSize: 11, color: Colors.white.withValues(alpha: 0.9), fontWeight: FontWeight.w500),
+                                const SizedBox(height: 6),
                                 Row(
                                   children: [
                                     const Icon(Iconsax.clock, color: Colors.white, size: 16),
                                     const SizedBox(width: 6),
-                                    AppText(route.estimatedTime, fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                    Expanded(child: AppText(route.estimatedTime, fontSize: 15, fontWeight: FontWeight.w800, color: Colors.white, overflow: TextOverflow.ellipsis)),
                                   ],
                                 ),
                               ],
@@ -278,25 +284,30 @@ class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
                                 children: [
                                   const Icon(Iconsax.clock, size: 16, color: AppColors.textColorSecondary),
                                   const SizedBox(width: 8),
-                                  Expanded(
-                                    child: AppText(
-                                      '${s['departure_time'] ?? s['start_time'] ?? 'N/A'} - ${s['arrival_time'] ?? s['end_time'] ?? 'N/A'}',
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.textColorPrimary,
-                                    ),
+                                  AppText(
+                                    '${s['departure_time'] ?? s['start_time'] ?? 'N/A'} - ${s['arrival_time'] ?? s['end_time'] ?? 'N/A'}',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textColorPrimary,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primaryColor.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: AppText(
-                                      s['days'] is List ? (s['days'] as List).join(', ') : (s['days']?.toString() ?? 'Daily'),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primaryColor,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryColor.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                        child: AppText(
+                                          s['days'] is List ? (s['days'] as List).join(', ') : (s['days']?.toString() ?? 'Daily'),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryColor,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],

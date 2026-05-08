@@ -20,20 +20,20 @@ class MoreScreen extends StatelessWidget {
     // Standardized module list using AppColors and theme-aligned colors
     final modules = [
       _ModuleItem('Leads', Iconsax.user_add, AppColors.successColor, route: RouteHelper.getLeadListRoute()),
-      _ModuleItem('Vehicles', Iconsax.bus5, AppColors.primaryColor, route: RouteHelper.getVehicleListRoute()),
-      _ModuleItem('Staff', Iconsax.people5, AppColors.warningColor, route: RouteHelper.getStaffListRoute()),
-      _ModuleItem('Attendance', Iconsax.calendar_tick5, AppColors.successColor, route: RouteHelper.getAttendanceRoute()),
-      _ModuleItem('Corporate', Iconsax.building_35, AppColors.infoColor, route: RouteHelper.getCompanyListRoute()),
-      _ModuleItem('Finance', Iconsax.money, AppColors.warningColor, route: RouteHelper.getCashbookDashboardRoute()),
-      _ModuleItem('Inventory', Iconsax.box5, AppColors.secondaryColor, route: RouteHelper.getInventoryListRoute()),
-      _ModuleItem('Routes', Iconsax.map_15, AppColors.infoColor, route: RouteHelper.getRouteListRoute()),
-      _ModuleItem('Shifts', Iconsax.clock5, AppColors.primaryColor, route: RouteHelper.getShiftListRoute()),
-      _ModuleItem('Reports', Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
-      _ModuleItem('Templates', Iconsax.document_copy5, AppColors.secondaryColor, route: RouteHelper.getTemplateListRoute()),
-      _ModuleItem('Role Management', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
       _ModuleItem('Vehicle Types', Iconsax.bus, AppColors.primaryColor, route: RouteHelper.getVehicleTypeListRoute()),
-      _ModuleItem('Membership', Iconsax.medal_star5, AppColors.warningColor, route: RouteHelper.getMembershipRoute()),
-      _ModuleItem('Profile', Iconsax.profile_circle5, AppColors.primaryColor, route: RouteHelper.getProfileRoute()),
+      _ModuleItem('Vehicles', Iconsax.bus5, AppColors.infoColor, route: RouteHelper.getVehicleListRoute()),
+      _ModuleItem('Role', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
+      _ModuleItem('Shifts', Iconsax.clock5, AppColors.warningColor, route: RouteHelper.getShiftListRoute()),
+      _ModuleItem('Staff', Iconsax.people5, AppColors.successColor, route: RouteHelper.getStaffListRoute()),
+      _ModuleItem('Attendance', Iconsax.calendar_tick5, AppColors.indigo500, route: RouteHelper.getAttendanceRoute()),
+      _ModuleItem('Routes', Iconsax.map_15, AppColors.primaryColor, route: RouteHelper.getRouteListRoute()),
+      _ModuleItem('Corporate', Iconsax.building_35, AppColors.infoColor, route: RouteHelper.getCompanyListRoute()),
+      _ModuleItem('Finance', Iconsax.money, AppColors.successColor, route: RouteHelper.getCashbookDashboardRoute()),
+      _ModuleItem('Inventory', Iconsax.box5, AppColors.warningColor, route: RouteHelper.getInventoryListRoute()),
+      _ModuleItem('Templates', Iconsax.document_copy5, AppColors.primaryColor, route: RouteHelper.getTemplateListRoute()),
+      _ModuleItem('Reports', Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
+      _ModuleItem('Membership', Iconsax.medal_star5, AppColors.infoColor, route: RouteHelper.getMembershipRoute()),
+      _ModuleItem('Profile', Iconsax.profile_circle5, AppColors.successColor, route: RouteHelper.getProfileRoute()),
     ];
 
     return AppScaffold(

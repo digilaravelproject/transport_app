@@ -12,13 +12,28 @@ import '../../../routes/route_helper.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
 
-class StaffDetailsScreen extends GetView<StaffController> {
+class StaffDetailsScreen extends StatefulWidget {
   const StaffDetailsScreen({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    final int staffId = (Get.arguments as StaffModel?)?.id ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
+  State<StaffDetailsScreen> createState() => _StaffDetailsScreenState();
+}
 
+class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
+  final controller = Get.find<StaffController>();
+  late int staffId;
+
+  @override
+  void initState() {
+    super.initState();
+    staffId = (Get.arguments as StaffModel?)?.id ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.refreshStaffDetails(staffId);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Obx(() {
       final StaffModel? staff = controller.staffList.firstWhereOrNull((s) => s.id == staffId);
 
@@ -48,7 +63,7 @@ class StaffDetailsScreen extends GetView<StaffController> {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-            await controller.fetchStaff();
+            await controller.refreshStaffDetails(staffId);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -62,6 +77,9 @@ class StaffDetailsScreen extends GetView<StaffController> {
                 const SizedBox(height: 24),
                 _buildSectionTitle('Work Information'),
                 _buildWorkInfo(staff),
+                const SizedBox(height: 24),
+                _buildSectionTitle('Identification Documents'),
+                _buildDocumentsInfo(staff),
                 const SizedBox(height: 12),
                 _buildSectionTitle('Actions'),
                 _buildActionsGrid(staff),
@@ -88,7 +106,8 @@ class StaffDetailsScreen extends GetView<StaffController> {
               CircleAvatar(
                 radius: 35,
                 backgroundColor: AppColors.primaryLight,
-                child: const Icon(Iconsax.user, size: 40, color: AppColors.primaryColor),
+                backgroundImage: (staff.photoUrl ?? '').isNotEmpty ? NetworkImage(staff.photoUrl!) : null,
+                child: (staff.photoUrl ?? '').isEmpty ? const Icon(Iconsax.user, size: 40, color: AppColors.primaryColor) : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -103,7 +122,7 @@ class StaffDetailsScreen extends GetView<StaffController> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                    AppText(staff.roleName!, style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                    AppText(staff.roleName ?? 'N/A', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                   ],
                 ),
               ),
@@ -115,10 +134,6 @@ class StaffDetailsScreen extends GetView<StaffController> {
           _buildInfoRow(Iconsax.sms, 'Email', staff.email),
           const SizedBox(height: 12),
           _buildInfoRow(Iconsax.location, 'Address', staff.address),
-          if (staff.licenseNumber != null) ...[
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.badge_outlined, 'DL Number', staff.licenseNumber!),
-          ],
         ],
       ),
     );
@@ -128,11 +143,13 @@ class StaffDetailsScreen extends GetView<StaffController> {
     return AppCard(
       child: Column(
         children: [
-          _buildInfoRow(Iconsax.location, 'Address', staff.address),
+          _buildInfoRow(Iconsax.calendar_1, 'Date of Birth', staff.dob != null ? '${staff.dob!.day}/${staff.dob!.month}/${staff.dob!.year}' : 'N/A'),
           const SizedBox(height: 12),
           _buildInfoRow(Iconsax.calendar_1, 'Joining Date', staff.joiningDate != null ? '${staff.joiningDate!.day}/${staff.joiningDate!.month}/${staff.joiningDate!.year}' : 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.badge_outlined, 'Aadhar Number', staff.aadharNumber ?? 'N/A'),
+          _buildInfoRow(Iconsax.user, 'Emergency Name', staff.emergencyContactName ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.call, 'Emergency Phone', staff.emergencyContact ?? 'N/A'),
         ],
       ),
     );
@@ -144,6 +161,10 @@ class StaffDetailsScreen extends GetView<StaffController> {
         children: [
           _buildInfoRow(Iconsax.card, 'Monthly Salary', '₹ ${staff.salary}'),
           const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.money_send, 'DA per Day', '₹ ${staff.daPerDay ?? 0}'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.house, 'HRA', '₹ ${staff.hra ?? 0}'),
+          const SizedBox(height: 12),
           _buildInfoRow(Iconsax.clock, 'Working Shift', staff.shiftName ?? 'N/A'),
           if (staff.assignedVehicleNumber != null) ...[
             const SizedBox(height: 12),
@@ -154,12 +175,42 @@ class StaffDetailsScreen extends GetView<StaffController> {
     );
   }
 
+  Widget _buildDocumentsInfo(StaffModel staff) {
+    return AppCard(
+      child: Column(
+        children: [
+          _buildInfoRow(Icons.badge_outlined, 'Aadhar Number', staff.aadharNumber ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.card_pos, 'PAN Number', staff.panNumber ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Icons.drive_eta, 'License Number', staff.licenseNumber ?? 'N/A'),
+          if (staff.licenseExpiry != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(Iconsax.calendar_tick, 'License Expiry', '${staff.licenseExpiry!.day}/${staff.licenseExpiry!.month}/${staff.licenseExpiry!.year}'),
+          ],
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.verify, 'Badge Number', staff.badgeNumber ?? 'N/A'),
+          if (staff.badgeExpiry != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow(Iconsax.calendar_tick, 'Badge Expiry', '${staff.badgeExpiry!.day}/${staff.badgeExpiry!.month}/${staff.badgeExpiry!.year}'),
+          ],
+          const Divider(height: 32),
+          _buildSectionTitle('Bank Details'),
+          _buildInfoRow(Iconsax.bank, 'Bank Name', staff.bankName ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.card, 'Account No', staff.bankAccount ?? 'N/A'),
+          const SizedBox(height: 12),
+          _buildInfoRow(Iconsax.code, 'IFSC Code', staff.bankIfsc ?? 'N/A'),
+        ],
+      ),
+    );
+  }
 
   Widget _buildActionsGrid(StaffModel staff) {
     final List<Map<String, dynamic>> actions = [
       {'label': 'Duty Hours', 'icon': Icons.more_time_rounded, 'route': RouteHelper.getDutyHoursRoute()},
       {'label': 'Salary', 'icon': Icons.wallet_rounded, 'route': RouteHelper.getSalaryManagementRoute()},
-      {'label': 'Advance', 'icon': Icons.request_quote_rounded, 'route': RouteHelper.getAdvancePaymentEntryRoute()},
+      {'label': 'Advance', 'icon': Icons.request_quote_rounded, 'route': RouteHelper.getAdvanceHistoryRoute()},
       {'label': 'Documents', 'icon': Icons.folder_shared_rounded, 'route': RouteHelper.getStaffDocumentsRoute()},
       {'label': 'Performance', 'icon': Icons.speed_rounded, 'route': RouteHelper.getStaffPerformanceRoute()},
     ];
@@ -201,13 +252,25 @@ class StaffDetailsScreen extends GetView<StaffController> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value, {bool isMultiLine = false}) {
     return Row(
+      crossAxisAlignment: isMultiLine ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
-        Icon(icon, size: 16, color: AppColors.textColorHint),
+        Padding(
+          padding: EdgeInsets.only(top: isMultiLine ? 2 : 0),
+          child: Icon(icon, size: 16, color: AppColors.textColorHint),
+        ),
         const SizedBox(width: 10),
         AppText('$label: ', style: AppTextStyle.body, fontWeight: FontWeight.w500),
-        Expanded(child: AppText(value, style: AppTextStyle.body, color: AppColors.textColorSecondary)),
+        Expanded(
+          child: AppText(
+            value, 
+            style: AppTextStyle.body, 
+            color: AppColors.textColorSecondary,
+            maxLines: isMultiLine ? 2 : 1,
+            overflow: isMultiLine ? TextOverflow.visible : TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }

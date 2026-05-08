@@ -10,6 +10,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
   final bool showBackButton;
   final PreferredSizeWidget? bottom;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   const AppHeader({
     Key? key,
@@ -20,6 +22,8 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.showBackButton = true,
     this.bottom,
+    this.backgroundColor,
+    this.foregroundColor,
   }) : super(key: key);
 
   @override
@@ -28,15 +32,15 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
 
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: AppColors.white,
+      backgroundColor: backgroundColor ?? AppColors.white,
       elevation: 0,
       centerTitle: false,
       toolbarHeight: preferredSize.height,
-      leadingWidth: showLead ? 48 : 16,
+      leadingWidth: showLead ? 40 : 16,
       leading: showLead
           ? IconButton(
               onPressed: onBack ?? () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: AppColors.textColorPrimary),
+              icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: foregroundColor ?? AppColors.textColorPrimary),
               splashRadius: 24,
             )
           : const SizedBox(),
@@ -47,10 +51,10 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
-              color: AppColors.textColorPrimary,
+              color: foregroundColor ?? AppColors.textColorPrimary,
               letterSpacing: -0.5,
             ),
           ),
@@ -58,9 +62,9 @@ class AppHeader extends StatelessWidget implements PreferredSizeWidget {
             const SizedBox(height: 1),
             Text(
               subtitle!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textColorSecondary,
+                color: foregroundColor?.withOpacity(0.7) ?? AppColors.textColorSecondary,
                 fontWeight: FontWeight.w400,
               ),
             ),

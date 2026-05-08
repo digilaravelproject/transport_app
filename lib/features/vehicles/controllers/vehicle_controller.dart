@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../domain/models/vehicle_model.dart';
+import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/service_record_model.dart';
 import '../domain/models/fuel_entry_model.dart';
 import '../domain/models/timeline_record_model.dart';
@@ -103,7 +104,11 @@ class VehicleController extends GetxController {
       }
 
       if (selectedTypeFilter.value != 'All') {
-        queryParams['type[]'] = [selectedTypeFilter.value];
+        final typeController = Get.find<VehicleTypeController>();
+        final type = typeController.vehicleTypes.firstWhereOrNull((e) => e.name == selectedTypeFilter.value);
+        if (type != null) {
+          queryParams['type[]'] = [type.id.toString()];
+        }
       }
 
       if (selectedCapacityFilter.value != 'All') {
@@ -754,6 +759,7 @@ class VehicleController extends GetxController {
 
     try {
       final Map<String, String> body = {
+        'vehicle_id': vehicleId.toString(),
         'document_type': documentType,
         'document_number': documentNumber,
         'issue_date': issueDate.toIso8601String().split('T').first,

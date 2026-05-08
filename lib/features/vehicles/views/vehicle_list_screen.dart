@@ -10,7 +10,9 @@ import '../../../core/widgets/app_search_bar.dart';
 import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/vehicle_controller.dart';
+import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class VehicleListScreen extends GetView<VehicleController> {
   const VehicleListScreen({Key? key}) : super(key: key);
@@ -209,11 +211,18 @@ class VehicleListScreen extends GetView<VehicleController> {
                           ),
                         );
                       }
+                      final isSearchingOrFiltering = controller.searchQuery.isNotEmpty || controller.activeFiltersCount > 0;
                       if (controller.filteredVehicles.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(40.0),
-                          child: Center(
-                            child: AppText('No vehicles found', style: AppTextStyle.body),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: AppEmptyState(
+                            title: isSearchingOrFiltering ? 'No Results Found' : 'No Vehicles Found',
+                            subtitle: isSearchingOrFiltering 
+                                ? 'No vehicles match your search or filter criteria.'
+                                : 'Start by adding a new vehicle to your fleet.',
+                            icon: isSearchingOrFiltering ? Iconsax.search_status : Iconsax.bus,
+                            actionLabel: null,
+                            onActionPressed: null,
                           ),
                         );
                       }
@@ -239,7 +248,10 @@ class VehicleListScreen extends GetView<VehicleController> {
   }
 
   void _showFilterBottomSheet(BuildContext context) {
-    final vehicleTypes = ['All', 'AC Sleeper', 'Non-AC Sleeper', 'AC Seater', 'Non-AC Seater', 'Luxury Volvo'];
+    final vehicleTypeController = Get.isRegistered<VehicleTypeController>() 
+        ? Get.find<VehicleTypeController>() 
+        : Get.put(VehicleTypeController());
+    final List<String> typeNames = ['All', ...vehicleTypeController.vehicleTypes.map((e) => e.name)];
     final capacities = ['All', '< 30', '30 - 45', '> 45'];
 
     Get.bottomSheet(
@@ -272,18 +284,26 @@ class VehicleListScreen extends GetView<VehicleController> {
             const AppText('Vehicle Type',
                 style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
             const SizedBox(height: 12),
-            Obx(() => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: vehicleTypes.map((type) {
-                    final isSelected = controller.selectedTypeFilter.value == type;
-                    return AppFilterChip(
-                      label: type,
-                      isSelected: isSelected,
-                      onTap: () => controller.selectedTypeFilter.value = type,
-                    );
-                  }).toList(),
-                )),
+            Obx(() {
+              if (vehicleTypeController.isLoading.value && vehicleTypeController.vehicleTypes.isEmpty) {
+                return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+              }
+              
+              final typeNames = ['All', ...vehicleTypeController.vehicleTypes.map((e) => e.name)];
+              
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: typeNames.map((type) {
+                  final isSelected = controller.selectedTypeFilter.value == type;
+                  return AppFilterChip(
+                    label: type,
+                    isSelected: isSelected,
+                    onTap: () => controller.selectedTypeFilter.value = type,
+                  );
+                }).toList(),
+              );
+            }),
             const SizedBox(height: 24),
             const AppText('Seating Capacity',
                 style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
@@ -348,7 +368,7 @@ class _VehicleCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     AppText(
-                      '${vehicle.type} • ${vehicle.capacity} Seats',
+                      'Model Year: ${vehicle.modelYear ?? vehicle.year} • ${vehicle.capacity} Seats',
                       style: AppTextStyle.caption,
                       color: AppColors.textColorSecondary,
                     ),
@@ -365,33 +385,49 @@ class _VehicleCard extends StatelessWidget {
           const Divider(height: 24, thickness: 0.5),
 
           // Driver & Last Service
-          Row(
-            children: [
-              _buildInfoColumn(
-                'Last Service',
-                vehicle.lastServiceDate != null
-                    ? '${vehicle.lastServiceDate!.day}/${vehicle.lastServiceDate!.month}/${vehicle.lastServiceDate!.year}'
-                    : 'N/A',
-                Iconsax.setting_2,
-                AppColors.warningColor,
-              ),
-            ],
-          ),
+          // Next Expiry Logic
+          () {
+            final now = DateTime.now();
+            final expiries = [
+              if (vehicle.rcExpiry != null) {'name': 'RC', 'date': vehicle.rcExpiry!},
+              if (vehicle.insuranceExpiry != null) {'name': 'Insurance', 'date': vehicle.insuranceExpiry!},
+              if (vehicle.permitExpiry != null) {'name': 'Permit', 'date': vehicle.permitExpiry!},
+            ];
+
+            if (expiries.isEmpty) {
+              return Row(
+                children: [
+                  _buildInfoColumn('Next Expiry', 'N/A', Iconsax.calendar, AppColors.textColorHint),
+                ],
+              );
+            }
+
+            // Find the one expiring soonest
+            expiries.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+            final next = expiries.first;
+            final nextDate = next['date'] as DateTime;
+            final daysLeft = nextDate.difference(now).inDays;
+            final isExpired = daysLeft < 0;
+
+            return Row(
+              children: [
+                _buildInfoColumn(
+                  '${next['name']} ${isExpired ? 'Expired' : 'Expiry'}',
+                  isExpired 
+                      ? '${nextDate.day}/${nextDate.month}/${nextDate.year} (Expired)'
+                      : '${nextDate.day}/${nextDate.month}/${nextDate.year} ($daysLeft days left)',
+                  Iconsax.calendar_tick,
+                  isExpired ? AppColors.errorColor : (daysLeft < 30 ? AppColors.warningColor : AppColors.successColor),
+                ),
+              ],
+            );
+          }(),
           const SizedBox(height: 12),
 
           // Action Buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              AppButton(
-                text: 'View Details',
-                width: 120,
-                height: 32,
-                fontSize: 12,
-                onPressed: () =>
-                    Get.toNamed(RouteHelper.getVehicleDetailsRoute(), arguments: vehicle),
-              ),
-              const SizedBox(width: 8),
               AppButton.outline(
                 text: 'Edit',
                 width: 80,

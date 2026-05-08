@@ -189,11 +189,6 @@ class EditProfileScreen extends StatelessWidget {
                     }
                   },
                 ),
-                const SizedBox(height: 12),
-                AppButton.outline(
-                  text: 'Cancel',
-                  onPressed: isLoading ? null : () => Get.back(),
-                ),
               ],
             ),
           ),

@@ -10,6 +10,7 @@ class LeadModel {
   final DateTime date;
   final String duration;
   final String vehicleType;
+  final String? vehicleTypeName;
   final int? vehicleTypeId; 
   final int vehicleCount;
   final String? pickupAddress;
@@ -31,6 +32,7 @@ class LeadModel {
     required this.date,
     required this.duration,
     required this.vehicleType,
+    this.vehicleTypeName,
     this.vehicleTypeId,
     required this.vehicleCount,
     this.pickupAddress,
@@ -56,6 +58,7 @@ class LeadModel {
               json['trip_date'] != null ? DateTime.parse(json['trip_date']) : DateTime.now(),
         duration: json['duration'] ?? json['duration_days']?.toString() ?? '',
         vehicleType: json['vehicle_type']?.toString() ?? '',
+        vehicleTypeName: json['vehicle_type_details']?['name']?.toString(),
         vehicleTypeId: int.tryParse(json['vehicle_type']?.toString() ?? ''),
         vehicleCount: json['vehicle_count'] ?? json['seating_capacity'] ?? 1,
         pickupAddress: json['pickup_address'],
@@ -82,6 +85,7 @@ class LeadModel {
         'date': date.toIso8601String(),
         'duration': duration,
         'vehicle_type': vehicleType,
+        'vehicle_type_name': vehicleTypeName,
         'vehicle_count': vehicleCount,
         'pickup_address': pickupAddress,
         'destination_points': destinationPoints,
@@ -105,6 +109,7 @@ class LeadModel {
     date: DateTime.now(),
     duration: '',
     vehicleType: '',
+    vehicleTypeName: null,
     vehicleCount: 1,
     pickupAddress: null,
     destinationPoints: const [],

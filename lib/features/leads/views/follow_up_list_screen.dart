@@ -26,14 +26,13 @@ class _FollowUpListScreenState extends State<FollowUpListScreen> {
   void initState() {
     super.initState();
     lead = Get.arguments as LeadModel;
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   Future<void> _loadData() async {
     await controller.fetchLeadFollowups(lead.id!);
-    if (controller.leadFollowups.isEmpty) {
-      Get.offNamed(RouteHelper.getFollowUpRoute(), arguments: lead);
-    }
   }
 
   @override
@@ -50,7 +49,7 @@ class _FollowUpListScreenState extends State<FollowUpListScreen> {
         child: const Icon(Iconsax.add, color: Colors.white),
       ),
       body: Obx(() {
-        if (controller.isLoading.value && controller.leadFollowups.isEmpty) {
+        if (controller.isFollowupsLoading.value && controller.leadFollowups.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 

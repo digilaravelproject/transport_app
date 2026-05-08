@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/app_validators.dart';
+import '../../../core/utils/custom_snackbar.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -37,9 +38,9 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
 
   final selectedVehicleType = ''.obs;
   final selectedVehicleTypeId = Rxn<int>();
+  final vehicleTypeError = Rxn<String>();
 
   String _dutyType = 'Daily Commute';
-  //String _vehicleType = 'Bus (50 Seater)';
 
   @override
   void dispose() {
@@ -77,16 +78,27 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
       setState(() {
         controller.text = DateFormat('yyyy-MM-dd').format(picked);
       });
+      // Clear error if dates are being selected
+      _formKey.currentState?.validate();
     }
   }
 
   void _saveContract() async {
+    // Clear previous custom errors
+    vehicleTypeError.value = null;
+
     if (_formKey.currentState!.validate()) {
+      // Custom validation for vehicle type
       if (selectedVehicleTypeId.value == null) {
-        Get.snackbar('Error', 'Please select a vehicle type',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.red,
-            colorText: Colors.white);
+        vehicleTypeError.value = 'Please select a vehicle type';
+        return;
+      }
+
+      // Logical validation for dates
+      final startDate = DateFormat('yyyy-MM-dd').parse(_startDateController.text);
+      final endDate = DateFormat('yyyy-MM-dd').parse(_endDateController.text);
+      if (endDate.isBefore(startDate)) {
+        CustomSnackbar.showError('End date cannot be before start date');
         return;
       }
 
@@ -127,7 +139,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Contract Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _vendorNameController,
                       label: 'Vendor Name',
@@ -136,7 +148,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                       isRequired: true,
                       validator: (value) => (value == null || value.isEmpty) ? 'Vendor name is required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _contractNameController,
                       label: 'Contract Name',
@@ -145,7 +157,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                       isRequired: true,
                       validator: (value) => (value == null || value.isEmpty) ? 'Contract name is required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Obx(() => AppInputField(
                       controller: _contractNumberController,
                       label: 'Contract Number',
@@ -160,8 +172,9 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         selectedCode: controller.selectedCountryCode,
                       ),
                     )),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: AppInputField(
@@ -190,22 +203,23 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _buildDropdown('Duty Type', _dutyType, ['Daily Commute', 'Event Transfer', 'Custom Route', 'School Duty'], (val) => setState(() => _dutyType = val!)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
 
                         Expanded(
                           flex: 2,
-                          child: VehicleTypeDropdown(
+                          child: Obx(() => VehicleTypeDropdown(
                             selectedId: selectedVehicleTypeId,
-                            errorText: null, // You can manage error text with another Rx if needed
+                            errorText: vehicleTypeError.value,
                             onChanged: (id, displayName) {
                               selectedVehicleType.value = displayName;
+                              vehicleTypeError.value = null; // Clear error on selection
                             },
-                          ),
+                          )),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -225,7 +239,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _monthlyAmountController,
                       label: 'Monthly Amount',
@@ -239,7 +253,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     AppInputField(
                       controller: _notesController,
                       label: 'Notes',
@@ -256,11 +270,6 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                 isLoading: controller.isLoading.value,
                 onPressed: _saveContract,
               )),
-              const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Cancel',
-                onPressed: () => Get.back(),
-              ),
             ],
           ),
         ),
@@ -273,7 +282,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           value: value,
           items: items.map((item) {

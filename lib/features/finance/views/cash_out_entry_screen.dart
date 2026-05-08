@@ -102,7 +102,7 @@ class _CashOutEntryScreenState extends State<CashOutEntryScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Expense Details', style: AppTextStyle.subheading, color: AppColors.errorColor),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       controller: _amountController,
                       label: 'Amount (₹)',
@@ -115,7 +115,7 @@ class _CashOutEntryScreenState extends State<CashOutEntryScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     GestureDetector(
                       onTap: _selectDate,
                       child: AbsorbPointer(
@@ -131,18 +131,22 @@ class _CashOutEntryScreenState extends State<CashOutEntryScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _buildDropdown('Category', _category, ['Fuel', 'Maintenance', 'Staff Salary', 'Trip Advance', 'Office Expense', 'Other Expense'], (val) => setState(() => _category = val!)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _buildDropdown('Payment Method', _paymentMethod, ['Cash', 'Bank Transfer', 'UPI', 'Cheque'], (val) => setState(() => _paymentMethod = val!)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       controller: _refController,
                       label: 'Reference No. / ID',
                       hint: 'e.g. TRP001 or VHC001',
                       icon: Icons.tag_rounded,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Reference No. is required';
+                        return null;
+                      },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       controller: _descController,
                       label: 'Description',
@@ -163,11 +167,6 @@ class _CashOutEntryScreenState extends State<CashOutEntryScreen> {
                 color: AppColors.errorColor,
                 onPressed: controller.isLoading.value ? () {} : _saveExpense,
               )),
-              const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Cancel',
-                onPressed: () => Get.back(),
-              ),
             ],
           ),
         ),

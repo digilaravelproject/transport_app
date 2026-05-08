@@ -125,13 +125,13 @@ class _StockOutScreenState extends State<StockOutScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Remove / Use Stock', style: AppTextStyle.subheading, color: AppColors.errorColor),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _buildItemDropdown(),
                     if (_selectedItem != null) ...[
                       const SizedBox(height: 8),
                       AppText('Current Stock: ${_selectedItem!.currentStock} units', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                     ],
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Quantity Used',
                       hint: '0',
@@ -149,7 +149,7 @@ class _StockOutScreenState extends State<StockOutScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Unit Price (₹)',
                       hint: '0.00',
@@ -159,7 +159,7 @@ class _StockOutScreenState extends State<StockOutScreen> {
                       isRequired: true,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Date Used',
                       hint: 'YYYY-MM-DD',
@@ -169,14 +169,14 @@ class _StockOutScreenState extends State<StockOutScreen> {
                       onTap: () => _selectDate(context),
                       isRequired: true,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Vehicle Assigned (Optional)',
                       hint: 'e.g. MH 12 AB 1234',
                       controller: _vehicleController,
                       icon: Iconsax.bus,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Assigned To (Mechanic/Driver)',
                       hint: 'e.g. John Doe',
@@ -185,7 +185,7 @@ class _StockOutScreenState extends State<StockOutScreen> {
                       isRequired: true,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Reason / Notes',
                       hint: 'Add details...',
@@ -198,18 +198,13 @@ class _StockOutScreenState extends State<StockOutScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
               Obx(() => AppButton(
                 text: 'Save Stock Update',
                 color: AppColors.errorColor,
                 isLoading: controller.isLoading.value,
                 onPressed: _saveStockUpdate,
               )),
-              const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Cancel',
-                onPressed: () => Get.back(),
-              ),
             ],
           ),
         ),

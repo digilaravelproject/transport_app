@@ -10,6 +10,7 @@ import '../../../core/widgets/app_button.dart';
 import '../controllers/finance_controller.dart';
 import '../domain/models/transaction_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_constants.dart';
 
 class PaymentDetailsScreen extends StatefulWidget {
   const PaymentDetailsScreen({Key? key}) : super(key: key);
@@ -58,17 +59,22 @@ class _PaymentDetailsScreenState extends State<PaymentDetailsScreen> {
           onPressed: () {},
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: AppButton(
-            text: 'Download Receipt',
-            onPressed: () {
-              Get.snackbar('Download Started', 'Receipt is being downloaded...', snackPosition: SnackPosition.BOTTOM);
-            },
+      bottomNavigationBar: Obx(() {
+        final transaction = controller.currentTransaction.value;
+        if (transaction == null || transaction.receiptPath == null || transaction.receiptPath!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: AppButton(
+              text: 'Download Receipt',
+              onPressed: () => Get.toNamed(RouteHelper.getDocumentPreviewRoute(), 
+                arguments: AppConstants.getFileUrl(transaction.receiptPath)),
+            ),
           ),
-        ),
-      ),
+        );
+      }),
       body: Obx(() {
         if (controller.isDetailsLoading.value) {
           return const Center(child: CircularProgressIndicator());

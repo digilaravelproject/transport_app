@@ -53,8 +53,15 @@ class VehicleTypeDropdown extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
+        if (label.isNotEmpty) ...[
+          AppText(
+            label,
+            style: AppTextStyle.body,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textColorPrimary,
+          ),
+          const SizedBox(height: 6),
+        ],
         Obx(() {
           final types = vtController.vehicleTypes;
           final loading = vtController.isLoading.value;
@@ -80,7 +87,9 @@ class VehicleTypeDropdown extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                   SizedBox(width: 10),
-                  AppText('Loading vehicle types...', style: AppTextStyle.body, fontSize: 14),
+                  Expanded(
+                    child: AppText('Loading vehicle types...', style: AppTextStyle.body, fontSize: 14, overflow: TextOverflow.ellipsis),
+                  ),
                 ],
               ),
             );
@@ -105,7 +114,7 @@ class VehicleTypeDropdown extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                 decoration: BoxDecoration(
                   border: Border.all(color: errorText != null ? Colors.red : AppColors.borderColor.withOpacity(0.5)),
                   borderRadius: BorderRadius.circular(12),

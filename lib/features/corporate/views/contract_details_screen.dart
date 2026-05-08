@@ -67,19 +67,27 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                 _buildContractInfo(vendor),
                 const SizedBox(height: 24),
                 _buildSectionHeader('Assigned Vehicles', () async {
+                  if (controller.assignedVehicles.length >= vendor.quantity) {
+                    CustomSnackbar.showInfo('Limit reached: You can only assign ${vendor.quantity} vehicles.');
+                    return;
+                  }
                   final result = await Get.toNamed(RouteHelper.getAssignVehicleToContractRoute(), arguments: vendor.id);
                   if (result == true) {
                     controller.loadVendorDetails(vendor.id);
                   }
-                }),
+                }, isLimitReached: controller.assignedVehicles.length >= vendor.quantity),
                 _buildAssignedVehicles(),
                 const SizedBox(height: 24),
                 _buildSectionHeader('Assigned Driver', () async {
+                  if (controller.assignedDrivers.length >= vendor.quantity) {
+                    CustomSnackbar.showInfo('Limit reached: You can only assign ${vendor.quantity} drivers.');
+                    return;
+                  }
                   final result = await Get.toNamed(RouteHelper.getAssignDriverToContractRoute(), arguments: vendor.id);
                   if (result == true) {
                     controller.loadVendorDetails(vendor.id);
                   }
-                }),
+                }, isLimitReached: controller.assignedDrivers.length >= vendor.quantity),
                 _buildAssignedDriver(),
                 const SizedBox(height: 24),
                 _buildSectionHeader('Billing History', () => _showAddBillModal(context)),
@@ -258,13 +266,15 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
           const Divider(height: 1),
           const SizedBox(height: 16),
           _buildInfoRow('Vendor', vendor.name),
+          _buildInfoRow('Contract Person', vendor.contactPerson ?? 'N/A'),
           _buildInfoRow(
             'Period',
             '${formatDate(vendor.startDate)} to ${formatDate(vendor.endDate)}',
           ),
           _buildInfoRow('Duty Type', vendor.dutyType ?? 'N/A'),
           _buildInfoRow('Vehicle Type', vendor.vehicleTypeName ?? 'N/A'),
-          _buildInfoRow('Monthly Amount', '₹ ${vendor.monthlyAmount ?? '0.00'}', isAmount: true),
+          _buildInfoRow('Quantity', vendor.quantity.toString()),
+          _buildInfoRow('Monthly Amount', '₹ ${vendor.monthlyAmount.toStringAsFixed(2)}', isAmount: true),
         ],
       ),
     );
@@ -294,7 +304,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title, VoidCallback onAdd) {
+  Widget _buildSectionHeader(String title, VoidCallback onAdd, {bool isLimitReached = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12, left: 4, right: 4),
       child: Row(
@@ -307,15 +317,24 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primaryLight,
+                color: isLimitReached ? AppColors.slate200 : AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Iconsax.add, size: 16, color: AppColors.primaryColor),
-                  SizedBox(width: 4),
-                  AppText('Add', style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                  Icon(
+                    isLimitReached ? Icons.block_rounded : Iconsax.add, 
+                    size: 16, 
+                    color: isLimitReached ? AppColors.textColorSecondary : AppColors.primaryColor
+                  ),
+                  const SizedBox(width: 4),
+                  AppText(
+                    isLimitReached ? 'Limit Reached' : 'Add', 
+                    style: AppTextStyle.caption, 
+                    color: isLimitReached ? AppColors.textColorSecondary : AppColors.primaryColor, 
+                    fontWeight: FontWeight.bold
+                  ),
                 ],
               ),
             ),
@@ -343,7 +362,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
               children: [
                 _buildVehicleItem(
                   vehicle['registration_number'] ?? 'N/A',
-                  vehicle['type'] ?? 'N/A',
+                  vehicle,
                   vehicle['id'].toString(),
                   vendor.id,
                   isLast: idx == controller.assignedVehicles.length - 1,
@@ -461,7 +480,11 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     );
   }
 
-  Widget _buildVehicleItem(String vehicleNo, String type, String vehicleId, String vId, {bool isLast = false}) {
+  Widget _buildVehicleItem(String vehicleNo, Map<String, dynamic> vehicle, String vehicleId, String vId, {bool isLast = false}) {
+    final String seating = vehicle['seating_capacity']?.toString() ?? 'N/A';
+    final String year = vehicle['model_year']?.toString() ?? 'N/A';
+    final String price = vehicle['per_km_price']?.toString() ?? '0.00';
+    
     return Padding(
       padding: EdgeInsets.only(bottom: isLast ? 2 : 2, top: 2, left: 8, right: 8),
       child: Row(
@@ -481,7 +504,11 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
               children: [
                 AppText(vehicleNo, style: AppTextStyle.body, fontWeight: FontWeight.bold),
                 const SizedBox(height: 4),
-                AppText(type, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                AppText(
+                  '$seating Seater • $year • ₹$price/km',
+                  style: AppTextStyle.caption,
+                  color: AppColors.textColorSecondary,
+                ),
               ],
             ),
           ),

@@ -141,7 +141,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     InfoTile(
                       label: 'Phone Number',
-                      value: profile?.phone ?? 'Not provided',
+                      value: profile?.phone ?? 'N/A',
                       icon: Iconsax.call,
                     ),
                     Padding(
@@ -150,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     InfoTile(
                       label: 'GST Number',
-                      value: profile?.gstin ?? 'Not provided',
+                      value: profile?.gstin ?? 'N/A',
                       icon: Icons.assignment_outlined,
                     ),
                     Padding(
@@ -159,7 +159,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     InfoTile(
                       label: 'Address',
-                      value: profile?.address ?? 'Not provided',
+                      value: profile?.address ?? 'N/A',
                       icon: Iconsax.location,
                     ),
                   ],

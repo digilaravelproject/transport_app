@@ -24,7 +24,7 @@ class LeadListScreen extends GetView<LeadController> {
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton(
         heroTag: null,
-        onPressed: () => Get.toNamed(RouteHelper.getCreateLeadRoute()),
+        onPressed: () => Get.toNamed(RouteHelper.getCreateLeadRoute())?.then((value) => controller.fetchLeads(isRefresh: true)),
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Iconsax.add, color: Colors.white),
       ),
@@ -56,27 +56,43 @@ class LeadListScreen extends GetView<LeadController> {
                     child: const Icon(Iconsax.arrow_left_2, color: AppColors.textColorPrimary, size: 20),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => _showFilterBottomSheet(context),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.slate100,
-                      borderRadius: BorderRadius.circular(20),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => controller.fetchLeads(isRefresh: true),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.slate100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Iconsax.refresh, color: AppColors.textColorPrimary, size: 20),
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        const Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
-                        const SizedBox(width: 4),
-                        Obx(() => AppText(
-                          controller.selectedDateFilter.value == 'All' ? 'Filter' : controller.selectedDateFilter.value,
-                          color: AppColors.textColorPrimary, 
-                          fontSize: 12, 
-                          fontWeight: FontWeight.w600
-                        )),
-                      ],
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showFilterBottomSheet(context),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.slate100,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
+                            const SizedBox(width: 4),
+                            Obx(() => AppText(
+                              controller.selectedDateFilter.value == 'All' ? 'Filter' : controller.selectedDateFilter.value,
+                              color: AppColors.textColorPrimary, 
+                              fontSize: 12, 
+                              fontWeight: FontWeight.w600
+                            )),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -406,7 +422,10 @@ class _LeadCard extends StatelessWidget {
     return AppCard(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      onTap: () => Get.toNamed(RouteHelper.getLeadDetailsRoute(), arguments: lead),
+      onTap: () {
+        Get.find<LeadController>().setSelectedLead(lead);
+        Get.toNamed(RouteHelper.getLeadDetailsRoute(), arguments: lead)?.then((value) => Get.find<LeadController>().fetchLeads(isRefresh: true, showLoading: false));
+      },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -447,10 +466,39 @@ class _LeadCard extends StatelessWidget {
           ),
           const Divider(height: 24, thickness: 0.5),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.route_rounded, size: 16, color: AppColors.primaryColor),
-              const SizedBox(width: 8),
-              AppText(lead.route, style: AppTextStyle.body, fontSize: 13),
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Icon(Icons.route_rounded, size: 16, color: AppColors.primaryColor),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: lead.route.split(' to ').map((location) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: AppText(location.trim(), style: AppTextStyle.body, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
@@ -466,7 +514,7 @@ class _LeadCard extends StatelessWidget {
               const Spacer(),
               const Icon(Iconsax.bus, size: 16, color: AppColors.primaryColor),
               const SizedBox(width: 8),
-              AppText('${lead.vehicleCount} x ${lead.vehicleType}', style: AppTextStyle.body, fontSize: 13),
+              AppText('${lead.vehicleCount} x ${lead.vehicleTypeName ?? lead.vehicleType}', style: AppTextStyle.body, fontSize: 13),
             ],
           ),
           const SizedBox(height: 12),
@@ -475,15 +523,43 @@ class _LeadCard extends StatelessWidget {
             children: [
               PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, color: AppColors.primaryColor, size: 20),
-                onSelected: (String result) {
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                onSelected: (String result) async {
                   if (lead.id != null) {
-                    Get.find<LeadController>().updateLeadStatus(lead.id!, result);
+                    await Get.find<LeadController>().updateLeadStatusDetail(lead.id!, result, showLoading: false);
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(value: 'Pending', child: AppText('Mark Pending', fontSize: 13)),
-                  const PopupMenuItem<String>(value: 'Confirmed', child: AppText('Mark Confirmed', fontSize: 13)),
-                  const PopupMenuItem<String>(value: 'Cancelled', child: AppText('Mark Cancelled', fontSize: 13, color: Colors.red)),
+                  const PopupMenuItem<String>(
+                    value: 'Pending',
+                    child: Row(
+                      children: [
+                        Icon(Iconsax.timer, size: 16, color: AppColors.primaryColor),
+                        SizedBox(width: 12),
+                        AppText('Mark Pending', fontSize: 13),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'Confirmed',
+                    child: Row(
+                      children: [
+                        Icon(Iconsax.tick_circle, size: 16, color: Colors.green),
+                        SizedBox(width: 12),
+                        AppText('Mark Confirmed', fontSize: 13),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'Cancelled',
+                    child: Row(
+                      children: [
+                        Icon(Iconsax.close_circle, size: 16, color: Colors.red),
+                        SizedBox(width: 12),
+                        AppText('Mark Cancelled', fontSize: 13, color: Colors.red),
+                      ],
+                    ),
+                  ),
                 ],
               ),
               IconButton(
@@ -498,7 +574,10 @@ class _LeadCard extends StatelessWidget {
                 width: 80,
                 height: 32,
                 fontSize: 12,
-                onPressed: () => Get.toNamed(RouteHelper.getLeadDetailsRoute(), arguments: lead),
+                onPressed: () {
+                  Get.find<LeadController>().setSelectedLead(lead);
+                  Get.toNamed(RouteHelper.getLeadDetailsRoute(), arguments: lead)?.then((value) => Get.find<LeadController>().fetchLeads(isRefresh: true, showLoading: false));
+                },
               ),
             ],
           ),

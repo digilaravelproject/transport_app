@@ -11,6 +11,8 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/finance_controller.dart';
 import '../domain/models/transaction_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class PaymentHistoryScreen extends GetView<FinanceController> {
   const PaymentHistoryScreen({Key? key}) : super(key: key);
@@ -57,7 +59,11 @@ class PaymentHistoryScreen extends GetView<FinanceController> {
           Expanded(
             child: Obx(() {
                if (controller.filteredTransactions.isEmpty) {
-                 return const Center(child: AppText('No transactions found.'));
+                 return const AppEmptyState(
+                   title: 'No Results Found',
+                   subtitle: 'We couldn\'t find any transactions matching your search or filters.',
+                   icon: Iconsax.search_status,
+                 );
                }
                return ListView.builder(
                  padding: const EdgeInsets.all(16),
@@ -105,7 +111,27 @@ class PaymentHistoryScreen extends GetView<FinanceController> {
               ],
             ),
           ),
-          AppText('$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}', style: AppTextStyle.subheading, color: amountColor, fontWeight: FontWeight.bold),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              AppText('$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}', style: AppTextStyle.subheading, color: amountColor, fontWeight: FontWeight.bold),
+              if (transaction.receiptPath != null && transaction.receiptPath!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                InkWell(
+                  onTap: () => Get.toNamed(RouteHelper.getDocumentPreviewRoute(), 
+                    arguments: AppConstants.getFileUrl(transaction.receiptPath)),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.eye, size: 16, color: AppColors.primaryColor),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );

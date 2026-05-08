@@ -102,6 +102,7 @@ class _AdvancePaymentEntryScreenState extends State<AdvancePaymentEntryScreen> {
         padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             children: [
               Obx(() {
@@ -128,8 +129,15 @@ class _AdvancePaymentEntryScreenState extends State<AdvancePaymentEntryScreen> {
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
                       validator: (value) {
                         if (value == null || value.isEmpty) return 'Please enter amount';
-                        if (double.tryParse(value) == null) return 'Enter a valid number';
-                        if (double.parse(value) <= 0) return 'Amount must be greater than 0';
+                        final amount = double.tryParse(value);
+                        if (amount == null) return 'Enter a valid number';
+                        if (amount <= 0) return 'Amount must be greater than 0';
+                        
+                        final totalAdvance = controller.staffAdvanceHistory.value?.totalAdvance ?? 0.0;
+                        final remaining = (staff.salary) - totalAdvance;
+                        if (amount > remaining) {
+                          return 'Cannot exceed remaining balance (₹${remaining.toStringAsFixed(2)})';
+                        }
                         return null;
                       },
                     ),

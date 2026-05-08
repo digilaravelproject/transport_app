@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/section_header.dart';
+import '../../../core/utils/phone_helper.dart';
 import '../controllers/lead_controller.dart';
 import '../domain/models/lead_model.dart';
 
@@ -19,20 +20,6 @@ class EditLeadScreen extends GetView<LeadController> {
   Widget build(BuildContext context) {
     final LeadModel lead = Get.arguments;
     
-    // Prefill controllers
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.customerNameController.text = lead.customerName;
-      controller.phoneController.text = lead.phone;
-      controller.routeController.text = lead.route;
-      controller.totalAmountController.text = lead.totalAmount.toString();
-      controller.advancePaymentController.text = lead.advancePayment.toString();
-      controller.selectedDate.value = lead.date;
-      controller.selectedDuration.value = lead.duration;
-      controller.selectedVehicleType.value = lead.vehicleType;
-      controller.vehicleCount.value = lead.vehicleCount;
-      controller.pickupAddressController.text = lead.pickupAddress ?? '';
-    });
-
     return AppScaffold(
       appBar: AppHeader(
         title: 'Edit Lead',
@@ -122,13 +109,18 @@ class EditLeadScreen extends GetView<LeadController> {
                     controller: controller.customerNameController,
                   ),
                   const SizedBox(height: 20),
-                  AppInputField(
+                  Obx(() => AppInputField(
                     label: 'Mobile Number',
                     hint: 'Enter 10 digit number',
                     icon: Iconsax.call,
                     keyboardType: TextInputType.phone,
                     controller: controller.phoneController,
-                  ),
+                    phoneCode: controller.selectedCountryCode.value,
+                    onPhoneCodeTap: () => PhoneHelper.showCountryPicker(
+                      context: context,
+                      selectedCode: controller.selectedCountryCode,
+                    ),
+                  )),
                   const SizedBox(height: 20),
                   AppInputField(
                     label: 'Pickup Address',

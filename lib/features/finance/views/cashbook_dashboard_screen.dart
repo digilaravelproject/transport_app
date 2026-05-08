@@ -10,6 +10,8 @@ import '../../../core/widgets/app_button.dart';
 import '../controllers/finance_controller.dart';
 import '../domain/models/transaction_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/widgets/app_empty_state.dart';
 
 class CashbookDashboardScreen extends GetView<FinanceController> {
   const CashbookDashboardScreen({Key? key}) : super(key: key);
@@ -17,12 +19,8 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppHeader(
+      appBar: const AppHeader(
         title: 'Cashbook',
-        rightWidget: IconButton(
-          icon: const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primaryColor),
-          onPressed: () {},
-        ),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -85,23 +83,10 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
       final recentTransactions = controller.recentTransactions;
       
       if (recentTransactions.isEmpty) {
-        return Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              const Icon(
-                Icons.receipt_long_outlined,
-                size: 64,
-                color: AppColors.textColorSecondary,
-              ),
-              const SizedBox(height: 16),
-              const AppText(
-                'No transactions yet.',
-                style: AppTextStyle.body,
-                color: AppColors.textColorSecondary,
-              ),
-            ],
-          ),
+        return const AppEmptyState(
+          title: 'No Transactions Yet',
+          subtitle: 'Start by adding your first income or expense to track your cash flow.',
+          icon: Iconsax.receipt_item,
         );
       }
 
@@ -269,11 +254,31 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
               ],
             ),
           ),
-          AppText(
-            '$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}',
-            style: AppTextStyle.subheading,
-            color: amountColor,
-            fontWeight: FontWeight.bold,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              AppText(
+                '$prefix\u20B9 ${transaction.amount.toStringAsFixed(0)}',
+                style: AppTextStyle.subheading,
+                color: amountColor,
+                fontWeight: FontWeight.bold,
+              ),
+              if (transaction.receiptPath != null && transaction.receiptPath!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                InkWell(
+                  onTap: () => Get.toNamed(RouteHelper.getDocumentPreviewRoute(), 
+                    arguments: AppConstants.getFileUrl(transaction.receiptPath)),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Iconsax.eye, size: 16, color: AppColors.primaryColor),
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

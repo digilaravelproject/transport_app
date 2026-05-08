@@ -63,13 +63,33 @@ class SalaryManagementScreen extends GetView<StaffController> {
               );
             }),
           ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: AppButton(
-              text: 'Pay Salary',
-              onPressed: () => _showPaymentModal(staff),
-            ),
-          ),
+          Obx(() {
+            final history = controller.staffSalaryHistory.value;
+            final selectedMonth = controller.selectedSalaryMonth.value;
+            final selectedYear = controller.selectedSalaryYear.value;
+            
+            // Don't show "Pay Salary" if "All" is selected or if the selected month is already paid
+            if (selectedMonth == 'All') return const SizedBox.shrink();
+
+            final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            final selectedMonthIdx = months.indexOf(selectedMonth);
+            
+            final isPaid = history?.records.any((r) => 
+              r.year.toString() == selectedYear && 
+              (r.month == selectedMonthIdx.toString() || r.month == selectedMonthIdx.toString().padLeft(2, '0')) &&
+              r.paymentStatus.toLowerCase() == 'paid'
+            ) ?? false;
+
+            if (isPaid) return const SizedBox.shrink();
+
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: AppButton(
+                text: 'Pay Salary',
+                onPressed: () => _showPaymentModal(staff),
+              ),
+            );
+          }),
         ],
       ),
     );
@@ -88,7 +108,8 @@ class SalaryManagementScreen extends GetView<StaffController> {
 
   Widget _buildFilterBar() {
     final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final years = ['2023', '2024', '2025', '2026'];
+    final currentYear = DateTime.now().year;
+    final years = List.generate(currentYear - 2023 + 1, (index) => (2023 + index).toString()).reversed.toList();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -200,24 +221,52 @@ class SalaryManagementScreen extends GetView<StaffController> {
 
   Widget _buildHistoryList(StaffSalaryHistoryModel? history) {
     if (history == null || history.records.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 40),
-          child: Column(
-            children: [
-              Icon(Iconsax.info_circle, size: 40, color: AppColors.slate300),
-              const SizedBox(height: 12),
-              const AppText('No records for the selected period', style: AppTextStyle.body, color: AppColors.textColorSecondary),
-            ],
-          ),
-        ),
-      );
+      return _buildEmptyState();
+    }
+
+    final months = ['All', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final selectedMonthStr = controller.selectedSalaryMonth.value;
+    final selectedYearStr = controller.selectedSalaryYear.value;
+
+    // Filter records locally as a fallback to ensure UI sync
+    final filteredRecords = history.records.where((record) {
+      bool yearMatch = record.year.toString() == selectedYearStr;
+      if (!yearMatch) return false;
+
+      if (selectedMonthStr == 'All') return true;
+      
+      int selectedMonthIdx = months.indexOf(selectedMonthStr);
+      // Backend month can be "5" or "05" or "May"
+      String recordMonth = record.month.toString();
+      bool monthMatch = recordMonth == selectedMonthIdx.toString() || 
+                        recordMonth == selectedMonthIdx.toString().padLeft(2, '0');
+      
+      return monthMatch;
+    }).toList();
+
+    if (filteredRecords.isEmpty) {
+      return _buildEmptyState();
     }
 
     return Column(
-      children: history.records.map((item) {
+      children: filteredRecords.map((item) {
         return _SalaryCard(record: item);
       }).toList(),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          children: [
+            Icon(Iconsax.info_circle, size: 40, color: AppColors.slate300),
+            const SizedBox(height: 12),
+            const AppText('No records for the selected period', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+          ],
+        ),
+      ),
     );
   }
 
@@ -463,43 +512,146 @@ class _SalaryCard extends StatelessWidget {
     final months = ['', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     final monthName = int.tryParse(record.month) != null ? months[int.parse(record.month)] : record.month;
 
-    return AppCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.successColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: Icon(Iconsax.money_send, color: AppColors.successColor, size: 20),
+    return InkWell(
+      onTap: () => _showPaymentHistory(record),
+      borderRadius: BorderRadius.circular(16),
+      child: AppCard(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: AppColors.successColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                  child: Icon(Iconsax.money_send, color: AppColors.successColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText('$monthName ${record.year}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                      AppText('${record.payments.length} Payments • Monthly Salary', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                    ],
+                  ),
+                ),
+                _buildStatusBadge(record.paymentStatus.capitalizeFirst ?? 'Paid'),
+              ],
+            ),
+            const Divider(height: 24),
+            _buildDetailRow('Basic Salary', '₹ ${record.basicSalary}'),
+            const SizedBox(height: 8),
+            _buildDetailRow('Deductions', '₹ ${record.totalDeduction}', color: AppColors.errorColor),
+            const SizedBox(height: 8),
+            _buildDetailRow('Net Paid', '₹ ${record.netSalary}', color: AppColors.successColor),
+            if (record.paidOn != null) ...[
+              const SizedBox(height: 8),
+              _buildDetailRow('Paid On', '${record.paidOn!.day}/${record.paidOn!.month}/${record.paidOn!.year}'),
+            ],
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              width: double.infinity,
+              decoration: BoxDecoration(color: AppColors.slate50, borderRadius: BorderRadius.circular(8)),
+              child: Center(
+                child: AppText('View Payment History', style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppText('$monthName ${record.year}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                    const AppText('Monthly Salary Payment', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                  ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPaymentHistory(SalaryRecord record) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const AppText('Payment History', style: AppTextStyle.heading, fontSize: 20),
+                IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            AppText('${record.payments.length} total transactions found', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+            const SizedBox(height: 16),
+            if (record.payments.isEmpty)
+              const Center(child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: AppText('No payment records found', color: AppColors.textColorSecondary),
+              ))
+            else
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: Get.height * 0.5),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: record.payments.length,
+                  itemBuilder: (context, index) {
+                    final p = record.payments[index];
+                    bool isAdvance = p.type.toLowerCase() == 'advance';
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.slate50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.slate200),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: (isAdvance ? AppColors.warningColor : AppColors.successColor).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              isAdvance ? Iconsax.money_3 : Iconsax.bank,
+                              color: isAdvance ? AppColors.warningColor : AppColors.successColor,
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(p.type.capitalizeFirst!, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                                AppText('${p.date.day}/${p.date.month}/${p.date.year} • ${p.paymentMode.capitalizeFirst}', style: AppTextStyle.caption),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              AppText('₹${p.amount}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                              if (p.notes != null && p.notes!.isNotEmpty)
+                                AppText(p.notes!, style: AppTextStyle.caption, fontSize: 10, color: AppColors.textColorSecondary),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
-              _buildStatusBadge(record.paymentStatus.capitalizeFirst ?? 'Paid'),
-            ],
-          ),
-          const Divider(height: 24),
-          _buildDetailRow('Basic Salary', '₹ ${record.basicSalary}'),
-          const SizedBox(height: 8),
-          _buildDetailRow('Deductions', '₹ ${record.totalDeduction}', color: AppColors.errorColor),
-          const SizedBox(height: 8),
-          _buildDetailRow('Net Paid', '₹ ${record.netSalary}', color: AppColors.successColor),
-          if (record.paidOn != null) ...[
-            const SizedBox(height: 8),
-            _buildDetailRow('Paid On', '${record.paidOn!.day}/${record.paidOn!.month}/${record.paidOn!.year}'),
-          ]
-        ],
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
+      isScrollControlled: true,
     );
   }
 

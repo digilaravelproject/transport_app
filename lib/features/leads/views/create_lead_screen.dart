@@ -57,7 +57,23 @@ class _CreateLeadScreenState extends State<CreateLeadScreen> {
   void _prefillData() {
     final lead = _editLead!;
     controller.customerNameController.text = lead.customerName;
-    controller.phoneController.text = lead.phone;
+    
+    // Split phone and country code
+    String phone = lead.phone.replaceAll(' ', '');
+    if (phone.startsWith('+91')) {
+      controller.selectedCountryCode.value = '+91';
+      phone = phone.substring(3);
+    } else if (phone.startsWith('91') && phone.length > 10) {
+      controller.selectedCountryCode.value = '+91';
+      phone = phone.substring(2);
+    } else if (phone.startsWith('+')) {
+      if (phone.length > 10) {
+        int splitIndex = phone.length - 10;
+        controller.selectedCountryCode.value = phone.substring(0, splitIndex);
+        phone = phone.substring(splitIndex);
+      }
+    }
+    controller.phoneController.text = phone;
     controller.routeController.text = lead.route;
     controller.totalAmountController.text = lead.totalAmount.toString();
     controller.advancePaymentController.text = lead.advancePayment.toString();

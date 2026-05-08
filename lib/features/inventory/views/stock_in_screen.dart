@@ -119,9 +119,9 @@ class _StockInScreenState extends State<StockInScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     AppText('Add Stock', style: AppTextStyle.subheading, color: AppColors.successColor),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     _buildItemDropdown(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Quantity Added',
                       hint: '0',
@@ -136,7 +136,7 @@ class _StockInScreenState extends State<StockInScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Date Received',
                       hint: 'YYYY-MM-DD',
@@ -146,7 +146,7 @@ class _StockInScreenState extends State<StockInScreen> {
                       onTap: () => _selectDate(context),
                       isRequired: true,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Unit Price (₹)',
                       hint: '0.00',
@@ -156,7 +156,7 @@ class _StockInScreenState extends State<StockInScreen> {
                       isRequired: true,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Supplier / Vendor',
                       hint: 'e.g. Auto Parts Ltd',
@@ -165,7 +165,7 @@ class _StockInScreenState extends State<StockInScreen> {
                       isRequired: true,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Bill / Invoice No.',
                       hint: 'e.g. INV-1234',
@@ -174,7 +174,7 @@ class _StockInScreenState extends State<StockInScreen> {
                       isRequired: true,
                       validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       label: 'Notes',
                       hint: 'Add details...',
@@ -185,18 +185,13 @@ class _StockInScreenState extends State<StockInScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
               Obx(() => AppButton(
                 text: 'Save Stock Update',
                 color: AppColors.successColor,
                 isLoading: controller.isLoading.value,
                 onPressed: _saveStock,
               )),
-              const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Cancel',
-                onPressed: () => Get.back(),
-              ),
             ],
           ),
         ),

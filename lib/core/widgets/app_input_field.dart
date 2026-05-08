@@ -25,6 +25,7 @@ class AppInputField extends StatefulWidget {
   final VoidCallback? onPhoneCodeTap;
   final bool isRequired;
   final String? errorText;
+  final bool autoFocus;
 
   const AppInputField({
     Key? key,
@@ -50,6 +51,7 @@ class AppInputField extends StatefulWidget {
     this.onPhoneCodeTap,
     this.isRequired = false,
     this.errorText,
+    this.autoFocus = false,
   }) : super(key: key);
 
   @override
@@ -94,9 +96,10 @@ class _AppInputFieldState extends State<AppInputField> {
             fontWeight: FontWeight.w600,
             color: AppColors.textColorPrimary,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         TextFormField(
+          autofocus: widget.autoFocus,
           controller: widget.controller,
           keyboardType: widget.keyboardType,
           obscureText: widget.obscureText ?? (widget.isPassword || widget.obscure),

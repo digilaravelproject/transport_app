@@ -110,13 +110,90 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
     );
   }
 
+  void _showDeleteConfirmationDialog(String leadId) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.trash, color: Colors.red, size: 32),
+              ),
+              const SizedBox(height: 24),
+              const AppText('Delete Lead', style: AppTextStyle.subheading, fontSize: 20),
+              const SizedBox(height: 12),
+              AppText(
+                'Are you sure you want to delete this lead? This action cannot be undone.',
+                style: AppTextStyle.body,
+                color: AppColors.textColorSecondary,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.outline(
+                      text: 'Cancel',
+                      onPressed: () => Get.back(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: AppButton(
+                      text: 'Delete',
+                      color: Colors.red,
+                      onPressed: () async {
+                        Get.back();
+                        final success = await controller.deleteLead(leadId);
+                        if (success) {
+                          Get.back(); // Return to list screen
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
         title: 'Lead Details',
         onBack: () => Get.back(),
-
+        trailing: Obx(() {
+          final details = controller.selectedLeadDetails.value;
+          final displayLead = details != null ? LeadModel.fromJson(details) : lead;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Iconsax.edit, size: 20, color: AppColors.primaryColor),
+                onPressed: () {
+                  controller.setSelectedLead(displayLead);
+                  Get.toNamed(RouteHelper.getCreateLeadRoute(), arguments: displayLead);
+                },
+              ),
+              IconButton(
+                icon: const Icon(Iconsax.trash, size: 20, color: Colors.red),
+                onPressed: () => _showDeleteConfirmationDialog(displayLead.id!),
+              ),
+            ],
+          );
+        }),
       ),
       body: RefreshIndicator(
         onRefresh: () => controller.fetchLeadDetails(lead.id!),
@@ -228,9 +305,55 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                   children: [
                     _InfoRow(label: 'Lead ID', value: displayLead.leadNo),
                     _InfoRow(label: 'Date', value: '${displayLead.date.day}/${displayLead.date.month}/${displayLead.date.year}'),
-                    _InfoRow(label: 'Route', value: displayLead.route),
-                    _InfoRow(label: 'Duration', value: displayLead.duration),
-                    _InfoRow(label: 'Vehicle', value: '${displayLead.vehicleCount} x ${displayLead.vehicleType}'),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          AppText('Route', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                if (displayLead.rawPoints != null && displayLead.rawPoints!.isNotEmpty)
+                                  ...displayLead.rawPoints!.map((p) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            p['type'] == 'start' 
+                                              ? Icons.circle_outlined 
+                                              : (p['type'] == 'end' ? Icons.location_on : Icons.circle),
+                                            size: 10,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Flexible(
+                                            child: AppText(
+                                              p['name'] ?? 'N/A',
+                                              style: AppTextStyle.body,
+                                              fontSize: 13,
+                                              align: TextAlign.right,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList()
+                                else
+                                  AppText(displayLead.route, style: AppTextStyle.body, align: TextAlign.right),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _InfoRow(label: 'Duration', value: displayLead.duration.contains('Day') ? displayLead.duration : '${displayLead.duration} Days'),
+                    _InfoRow(label: 'Vehicle', value: '${displayLead.vehicleCount} x ${displayLead.vehicleTypeName ?? displayLead.vehicleType}'),
                     if (displayLead.pickupAddress != null)
                       _InfoRow(label: 'Pickup', value: displayLead.pickupAddress!),
                   ],
@@ -330,11 +453,6 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                   crossAxisSpacing: 12,
                   childAspectRatio: 1,
                   children: [
-                    _GridActionButton(
-                      icon: Iconsax.edit,
-                      label: 'Edit Lead',
-                      onTap: () => Get.toNamed(RouteHelper.getCreateLeadRoute(), arguments: displayLead),
-                    ),
                     _GridActionButton(
                       icon: Icons.note_add_rounded,
                       label: 'Add Notes',

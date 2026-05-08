@@ -37,11 +37,11 @@ class FollowUpScreen extends GetView<LeadController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const AppText('Set Reminder for this Lead', style: AppTextStyle.subheading, fontSize: 16),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 16),
                   
                   // Date Picker
                   AppText('Reminder Date', style: AppTextStyle.label),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   _PickerTile(
                     icon: Iconsax.calendar_1,
                     onTap: () async {
@@ -56,11 +56,11 @@ class FollowUpScreen extends GetView<LeadController> {
                     child: Obx(() => AppText('${reminderDate.value.day}/${reminderDate.value.month}/${reminderDate.value.year}', style: AppTextStyle.body)),
                   ),
                   
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
                   
                   // Time Picker
                   AppText('Reminder Time', style: AppTextStyle.label),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   _PickerTile(
                     icon: Icons.access_time_rounded,
                     onTap: () async {
@@ -73,7 +73,7 @@ class FollowUpScreen extends GetView<LeadController> {
                     child: Obx(() => AppText(reminderTime.value.format(context), style: AppTextStyle.body)),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
                   // Note
                   AppInputField(
@@ -86,7 +86,7 @@ class FollowUpScreen extends GetView<LeadController> {
               ),
             ),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
             
             Obx(() => AppButton(
               text: 'Save Reminder',

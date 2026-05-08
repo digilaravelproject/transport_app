@@ -28,11 +28,17 @@ class AdvanceHistoryScreen extends GetView<StaffController> {
         title: 'Advance History',
         subtitle: staff?.name ?? 'All Staff',
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed(RouteHelper.getAdvancePaymentEntryRoute(), arguments: staff),
-        backgroundColor: AppColors.primaryColor,
-        child: const Icon(Iconsax.add, color: Colors.white),
-      ),
+      floatingActionButton: Obx(() {
+        final history = controller.staffAdvanceHistory.value;
+        final pending = (staff?.salary ?? 0) - (history?.totalAdvance ?? 0);
+        if (pending <= 0) return const SizedBox.shrink();
+        
+        return FloatingActionButton(
+          onPressed: () => Get.toNamed(RouteHelper.getAdvancePaymentEntryRoute(), arguments: staff),
+          backgroundColor: AppColors.primaryColor,
+          child: const Icon(Iconsax.add, color: Colors.white),
+        );
+      }),
       body: Obx(() {
         if (controller.isLoading.value && controller.staffAdvanceHistory.value == null) {
           return const Center(child: CircularProgressIndicator());
@@ -124,7 +130,7 @@ class AdvanceHistoryScreen extends GetView<StaffController> {
                 color: Colors.white.withValues(alpha: 0.3),
                 margin: const EdgeInsets.symmetric(horizontal: 20),
               ),
-              _buildSummaryItem('Pending', '₹${history?.pendingAmount ?? 0}', Colors.white),
+              _buildSummaryItem('Pending', '₹${(staff.salary) - (history?.totalAdvance ?? 0)}', Colors.white),
             ],
           ),
         ],

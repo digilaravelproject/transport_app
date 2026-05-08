@@ -21,6 +21,7 @@ class LeadController extends GetxController {
   final leadExpenses = <Map<String, dynamic>>[].obs;
   final leadDutySheets = <Map<String, dynamic>>[].obs;
   final isDetailsLoading = false.obs;
+  final isFollowupsLoading = false.obs;
 
   // Pagination state
   final currentPage = 1.obs;
@@ -117,7 +118,7 @@ class LeadController extends GetxController {
     ever(customDateRange, (_) => fetchLeads(isRefresh: true));
   }
 
-  Future<void> fetchLeads({bool isRefresh = false}) async {
+  Future<void> fetchLeads({bool isRefresh = false, bool showLoading = true}) async {
     if (isRefresh) {
       currentPage.value = 1;
       hasMoreData.value = true;
@@ -127,7 +128,7 @@ class LeadController extends GetxController {
     if (!hasMoreData.value || (isLoading.value || isMoreLoading.value)) return;
 
     if (currentPage.value == 1) {
-      isLoading.value = true;
+      if (showLoading) isLoading.value = true;
     } else {
       isMoreLoading.value = true;
     }
@@ -387,7 +388,38 @@ class LeadController extends GetxController {
     }
   }
 
-  void updateLeadStatus(String id, String newStatus) async {
+  void setSelectedLead(LeadModel lead) {
+    customerNameController.text = lead.customerName;
+    
+    // Split phone and country code
+    String phone = lead.phone.replaceAll(' ', '');
+    if (phone.startsWith('+91')) {
+      selectedCountryCode.value = '+91';
+      phone = phone.substring(3);
+    } else if (phone.startsWith('91') && phone.length > 10) {
+      selectedCountryCode.value = '+91';
+      phone = phone.substring(2);
+    } else if (phone.startsWith('+')) {
+      if (phone.length > 10) {
+        int splitIndex = phone.length - 10;
+        selectedCountryCode.value = phone.substring(0, splitIndex);
+        phone = phone.substring(splitIndex);
+      }
+    }
+    phoneController.text = phone;
+    
+    routeController.text = lead.route;
+    totalAmountController.text = lead.totalAmount.toString();
+    advancePaymentController.text = lead.advancePayment.toString();
+    selectedDate.value = lead.date;
+    selectedDuration.value = lead.duration;
+    selectedVehicleType.value = lead.vehicleType;
+    selectedVehicleTypeId.value = lead.vehicleTypeId;
+    vehicleCount.value = lead.vehicleCount;
+    pickupAddressController.text = lead.pickupAddress ?? '';
+  }
+
+  Future<void> updateLeadStatus(String id, String newStatus) async {
     // Logic to update status via API if needed
     final index = leads.indexWhere((l) => l.id == id);
     if (index != -1) {
@@ -481,7 +513,7 @@ class LeadController extends GetxController {
         'pickup_address': pickupAddressController.text,
         'points': destinationPoints,
         'customer_name': customerNameController.text,
-        'customer_contact': phoneController.text,
+        'customer_contact': "${selectedCountryCode.value}${phoneController.text.trim()}",
         'total_amount': double.tryParse(totalAmountController.text) ?? 0.0,
         'advance_amount': double.tryParse(advancePaymentController.text) ?? 0.0,
         'pending_amount': pendingAmount,
@@ -526,8 +558,8 @@ class LeadController extends GetxController {
     }
   }
 
-  Future<bool> updateLeadStatusDetail(String id, String newStatus) async {
-    isLoading.value = true;
+  Future<bool> updateLeadStatusDetail(String id, String newStatus, {bool showLoading = true}) async {
+    if (showLoading) isLoading.value = true;
     try {
       final response = await _apiClient.patch(
         '/api/v1/leads/$id/status',
@@ -536,8 +568,10 @@ class LeadController extends GetxController {
       
       if (response.isSuccess) {
         CustomSnackbar.showSuccess('Status updated to $newStatus');
-        await fetchLeadDetails(id);
-        fetchLeads(isRefresh: true); // Refresh list screen too
+        if (selectedLeadDetails.value != null && selectedLeadDetails.value!['id'].toString() == id) {
+          await fetchLeadDetails(id);
+        }
+        fetchLeads(isRefresh: true, showLoading: false); // Soft refresh list
         return true;
       } else {
         CustomSnackbar.showError(response.message);
@@ -547,12 +581,12 @@ class LeadController extends GetxController {
       CustomSnackbar.showError('Error updating status: $e');
       return false;
     } finally {
-      isLoading.value = false;
+      if (showLoading) isLoading.value = false;
     }
   }
 
   Future<bool> addLeadFollowup(String leadId, Map<String, dynamic> data) async {
-    isLoading.value = true;
+    isFollowupsLoading.value = true;
     try {
       final response = await _apiClient.post('/api/v1/leads/$leadId/followups', data: data);
       if (response.isSuccess) {
@@ -568,12 +602,12 @@ class LeadController extends GetxController {
       CustomSnackbar.showError('Error adding follow up: $e');
       return false;
     } finally {
-      isLoading.value = false;
+      isFollowupsLoading.value = false;
     }
   }
 
   Future<void> fetchLeadFollowups(String leadId) async {
-    isLoading.value = true;
+    isFollowupsLoading.value = true;
     try {
       final response = await _apiClient.get('/api/v1/leads/$leadId/followups');
       if (response.isSuccess && response.body != null) {
@@ -583,7 +617,7 @@ class LeadController extends GetxController {
     } catch (e) {
       print('Error fetching followups: $e');
     } finally {
-      isLoading.value = false;
+      isFollowupsLoading.value = false;
     }
   }
 }

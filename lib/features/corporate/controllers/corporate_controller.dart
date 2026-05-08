@@ -56,7 +56,7 @@ class CorporateController extends GetxController {
       _companies.clear();
     }
 
-    if (!hasMoreData.value || (isLoading.value || isMoreLoading.value)) return;
+    if (!hasMoreData.value || (!isRefresh && (isLoading.value || isMoreLoading.value))) return;
 
     try {
       if (currentPage.value == 1) {

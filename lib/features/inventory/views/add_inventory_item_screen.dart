@@ -114,27 +114,29 @@ class _AddInventoryItemScreenState extends State<AddInventoryItemScreen> {
                       label: 'Item Name',
                       hint: 'e.g. Engine Oil (1L)',
                       icon: Iconsax.box,
+                      isRequired: true,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return 'Item name is required';
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _buildDropdown('Category', _category, ['Spare Parts', 'Tools', 'Office Supplies', 'Oils & Fluids'], (val) => setState(() => _category = val!)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     _buildDropdown('Unit', _unit, ['piece', 'litre', 'kg', 'set'], (val) => setState(() => _unit = val!)),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _skuController,
                       label: 'SKU / Item Code',
                       hint: 'e.g. OIL-1L-001',
                       icon: Icons.qr_code_2_rounded,
+                      isRequired: true,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return 'SKU / Item Code is required';
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
@@ -144,9 +146,10 @@ class _AddInventoryItemScreenState extends State<AddInventoryItemScreen> {
                             hint: '0',
                             icon: Icons.numbers_rounded,
                             keyboardType: TextInputType.number,
+                            isRequired: true,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) return 'Required';
-                              if (double.tryParse(value) == null) return 'Invalid number';
+                              if (double.tryParse(value) == null) return 'Invalid';
                               return null;
                             },
                           ),
@@ -159,46 +162,50 @@ class _AddInventoryItemScreenState extends State<AddInventoryItemScreen> {
                             hint: '10',
                             icon: Iconsax.warning_2,
                             keyboardType: TextInputType.number,
+                            isRequired: true,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) return 'Required';
-                              if (double.tryParse(value) == null) return 'Invalid number';
+                              if (double.tryParse(value) == null) return 'Invalid';
                               return null;
                             },
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _unitPriceController,
                       label: 'Unit Price (₹)',
                       hint: '0.00',
                       icon: Iconsax.card,
                       keyboardType: TextInputType.number,
+                      isRequired: true,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Unit price is required';
-                        if (double.tryParse(value) == null) return 'Invalid number';
+                        if (value == null || value.trim().isEmpty) return 'Price is required';
+                        if (double.tryParse(value) == null) return 'Invalid';
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     AppInputField(
                       controller: _locationController,
                       label: 'Storage Location',
                       hint: 'e.g. Warehouse A1',
                       icon: Icons.place_outlined,
+                      isRequired: true,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) return 'Storage location is required';
+                        if (value == null || value.trim().isEmpty) return 'Location is required';
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                     AppInputField(
                       controller: _descriptionController,
                       label: 'Description',
                       hint: 'Enter item description...',
                       icon: Icons.notes_rounded,
-                      maxLines: 3,
+                      maxLines: 2,
+                      isRequired: true,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) return 'Description is required';
                         return null;
@@ -207,18 +214,13 @@ class _AddInventoryItemScreenState extends State<AddInventoryItemScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
               Obx(() => AppButton(
                 text: controller.isLoading.value 
                     ? (_isEditMode ? 'Updating...' : 'Saving...') 
                     : (_isEditMode ? 'Update Item' : 'Save Item'),
                 onPressed: controller.isLoading.value ? () {} : _saveItem,
               )),
-              const SizedBox(height: 12),
-              AppButton.outline(
-                text: 'Cancel',
-                onPressed: () => Get.back(),
-              ),
             ],
           ),
         ),
@@ -231,7 +233,7 @@ class _AddInventoryItemScreenState extends State<AddInventoryItemScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppText(label, style: AppTextStyle.label),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         DropdownButtonFormField<String>(
           value: value,
           items: items.map((item) {

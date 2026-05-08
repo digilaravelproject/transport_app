@@ -400,7 +400,7 @@ class _RouteDetailsScreenState extends State<RouteDetailsScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         AppText(
-                                          '${route.assignedVehicles.first.make} ${route.assignedVehicles.first.model} • ${route.assignedVehicles.first.seatingCapacity} Seater',
+                                          route.assignedVehicles.first.fullDisplayText.split(' • ').sublist(1).join(' • '),
                                           fontSize: 12,
                                           color: AppColors.textColorSecondary,
                                           fontWeight: FontWeight.w500,

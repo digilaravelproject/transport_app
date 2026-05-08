@@ -38,6 +38,67 @@ class _LeadNotesScreenState extends State<LeadNotesScreen> {
     super.dispose();
   }
 
+  void _showAddNoteSheet(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const AppText('Add New Note', style: AppTextStyle.subheading, fontSize: 18),
+                IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(Icons.close, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            AppInputField(
+              hint: 'Type your note here...',
+              maxLines: 4,
+              controller: noteController,
+              autoFocus: true,
+              onChanged: (value) {
+                if (noteError.value != null) noteError.value = null;
+              },
+            ),
+            const SizedBox(height: 20),
+            AppButton(
+              text: 'Save Note',
+              onPressed: () async {
+                final text = noteController.text.trim();
+                if (text.isEmpty) {
+                  return;
+                }
+                if (lead.id == null) return;
+                
+                final success = await controller.addLeadNote(lead.id!.toString(), text);
+                if (success) {
+                  noteController.clear();
+                  Get.back();
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -46,73 +107,28 @@ class _LeadNotesScreenState extends State<LeadNotesScreen> {
         subtitle: lead.customerName,
         onBack: () => Navigator.of(context).pop(),
       ),
-      body: Column(
-        children: [
-          // Add Note Section
-          AppCard(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Obx(() => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppInputField(
-                      hint: 'Add a new note...',
-                      maxLines: 3,
-                      controller: noteController,
-                      errorText: noteError.value,
-                      onChanged: (value) {
-                        if (noteError.value != null) noteError.value = null;
-                      },
-                    ),
-                  ],
-                )),
-                const SizedBox(height: 12),
-                AppButton(
-                  text: 'Add Note',
-                  height: 40,
-                  onPressed: () async {
-                    final text = noteController.text.trim();
-                    if (text.isEmpty) {
-                      noteError.value = 'Please enter a note';
-                      return;
-                    }
-                    if (lead.id == null) return;
-                    
-                    noteError.value = null;
-                    final success = await controller.addLeadNote(lead.id!.toString(), text);
-                    if (success) {
-                      noteController.clear();
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-          // Notes Timeline
-          Expanded(
-            child: Obx(() {
-              if (controller.isNotesLoading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final notes = controller.leadNotes;
-              if (notes.isEmpty) {
-                return const Center(child: AppText('No notes yet.', style: AppTextStyle.body));
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: notes.length,
-                itemBuilder: (context, index) {
-                  final note = notes[index];
-                  return _NoteItem(note: note, isLast: index == notes.length - 1);
-                },
-              );
-            }),
-          ),
-        ],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddNoteSheet(context),
+        backgroundColor: AppColors.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
+      body: Obx(() {
+        if (controller.isNotesLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final notes = controller.leadNotes;
+        if (notes.isEmpty) {
+          return const Center(child: AppText('No notes yet.', style: AppTextStyle.body));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: notes.length,
+          itemBuilder: (context, index) {
+            final note = notes[index];
+            return _NoteItem(note: note, isLast: index == notes.length - 1);
+          },
+        );
+      }),
     );
   }
 }
@@ -125,60 +141,88 @@ class _NoteItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Timeline Column
-          Column(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.primaryLight, width: 2),
-                ),
-              ),
-              if (!isLast)
-                Expanded(
-                  child: Container(
-                    width: 2,
-                    color: AppColors.slate200,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Timeline Column
+        Column(
+          children: [
+            const SizedBox(height: 18), // Align dot with title
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withOpacity(0.3),
+                    blurRadius: 4,
+                    spreadRadius: 1,
                   ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          // Note Card
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: AppCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        AppText(note.userName, style: AppTextStyle.label, color: AppColors.primaryColor),
-                        AppText(
-                          '${note.createdAt.hour.toString().padLeft(2, '0')}:${note.createdAt.minute.toString().padLeft(2, '0')} • ${note.createdAt.day}/${note.createdAt.month}',
-                          style: AppTextStyle.caption,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    AppText(note.note, style: AppTextStyle.body),
-                  ],
-                ),
+                ],
+              ),
+            ),
+            if (!isLast)
+              Container(
+                width: 1.5,
+                height: 80, // Fixed height or dynamic via intrinsic height
+                color: AppColors.slate200,
+              ),
+          ],
+        ),
+        const SizedBox(width: 16),
+        // Note Card
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.slate100),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      AppText(
+                        note.userName, 
+                        style: AppTextStyle.label, 
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      AppText(
+                        '${note.createdAt.hour.toString().padLeft(2, '0')}:${note.createdAt.minute.toString().padLeft(2, '0')} • ${note.createdAt.day}/${note.createdAt.month}',
+                        style: AppTextStyle.caption,
+                        color: AppColors.textColorSecondary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  AppText(
+                    note.note, 
+                    style: AppTextStyle.body,
+                    fontSize: 14,
+                    color: AppColors.textColorPrimary,
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

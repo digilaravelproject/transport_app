@@ -12,6 +12,8 @@ class VehicleModel {
   final bool isActive;
   final int tripsCount;
   final String createdAt;
+  final double perKmPrice;
+  final double acPricePerKm;
 
   VehicleModel({
     required this.id,
@@ -27,6 +29,8 @@ class VehicleModel {
     required this.isActive,
     required this.tripsCount,
     required this.createdAt,
+    this.perKmPrice = 0.0,
+    this.acPricePerKm = 0.0,
   });
 
   factory VehicleModel.fromJson(Map<String, dynamic> json) {
@@ -44,6 +48,8 @@ class VehicleModel {
       isActive: json['is_active'] ?? true,
       tripsCount: json['trips_count'] ?? 0,
       createdAt: json['created_at'] ?? '',
+      perKmPrice: double.tryParse(json['per_km_price']?.toString() ?? '0') ?? 0.0,
+      acPricePerKm: double.tryParse(json['ac_price_per_km']?.toString() ?? '0') ?? 0.0,
     );
   }
 
@@ -62,10 +68,18 @@ class VehicleModel {
       'is_active': isActive,
       'trips_count': tripsCount,
       'created_at': createdAt,
+      'per_km_price': perKmPrice,
+      'ac_price_per_km': acPricePerKm,
     };
   }
 
-  String get displayName => '$make $model';
+  String get displayName => make.isNotEmpty || model.isNotEmpty ? '$make $model'.trim() : '';
   String get capacityText => '$seatingCapacity Seater';
-  String get fullDisplayText => '$registrationNumber • $displayName • $capacityText';
+  String get fullDisplayText {
+    List<String> parts = [registrationNumber];
+    if (displayName.isNotEmpty) parts.add(displayName);
+    parts.add(capacityText);
+    if (acPricePerKm > 0) parts.add('AC');
+    return parts.join(' • ');
+  }
 }

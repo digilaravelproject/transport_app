@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/utils/custom_snackbar.dart';
 
 class PdfViewerScreen extends StatefulWidget {
   const PdfViewerScreen({Key? key}) : super(key: key);
@@ -18,6 +23,29 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   late final WebViewController controller;
   bool isLoading = true;
   String? url;
+
+  Future<void> _downloadAndOpenPdf() async {
+    if (url == null || url!.isEmpty) return;
+    
+    try {
+      final dio = Dio();
+      final tempDir = await getTemporaryDirectory();
+      // Ensure we have a .pdf extension
+      String fileName = url!.split('/').last;
+      if (!fileName.toLowerCase().endsWith('.pdf')) {
+        fileName = "$fileName.pdf";
+      }
+      final savePath = "${tempDir.path}/$fileName";
+      
+      CustomSnackbar.showInfo('Downloading quotation...');
+      
+      await dio.download(url!, savePath);
+      
+      await OpenFilex.open(savePath);
+    } catch (e) {
+      CustomSnackbar.showError('Error downloading quotation: $e');
+    }
+  }
 
   @override
   void initState() {
@@ -58,9 +86,16 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      backgroundColor: Colors.black,
       appBar: AppHeader(
         title: 'Quotation Viewer',
         onBack: () => Get.back(),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        trailing: IconButton(
+          icon: const Icon(Iconsax.document_download, color: Colors.white),
+          onPressed: _downloadAndOpenPdf,
+        ),
       ),
       body: Stack(
         children: [

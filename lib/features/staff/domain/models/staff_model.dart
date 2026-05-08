@@ -383,6 +383,35 @@ class MonthlyTripHistory {
   }
 }
 
+class PaymentItem {
+  final String type;
+  final int id;
+  final double amount;
+  final DateTime date;
+  final String paymentMode;
+  final String? notes;
+
+  PaymentItem({
+    required this.type,
+    required this.id,
+    required this.amount,
+    required this.date,
+    required this.paymentMode,
+    this.notes,
+  });
+
+  factory PaymentItem.fromJson(Map<String, dynamic> json) {
+    return PaymentItem(
+      type: json['type'] ?? '',
+      id: json['id'] ?? 0,
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0,
+      date: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
+      paymentMode: json['payment_mode'] ?? '',
+      notes: json['notes'],
+    );
+  }
+}
+
 class AttendanceRecord {
   final DateTime date;
   final DateTime? checkIn;
@@ -412,6 +441,7 @@ class SalaryRecord {
   final String? paymentMode;
   final DateTime? paidOn;
   final String? transactionRef;
+  final List<PaymentItem> payments;
 
   SalaryRecord({
     required this.id,
@@ -424,6 +454,7 @@ class SalaryRecord {
     this.paymentMode,
     this.paidOn,
     this.transactionRef,
+    required this.payments,
   });
 
   factory SalaryRecord.fromJson(Map<String, dynamic> json) {
@@ -438,6 +469,7 @@ class SalaryRecord {
       paymentMode: json['payment_mode'],
       paidOn: json['paid_on'] != null ? DateTime.tryParse(json['paid_on']) : null,
       transactionRef: json['transaction_ref'],
+      payments: (json['payments'] as List? ?? []).map((e) => PaymentItem.fromJson(e)).toList(),
     );
   }
 }
@@ -524,13 +556,29 @@ class StaffAdvanceHistoryModel {
   });
 
   factory StaffAdvanceHistoryModel.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] ?? {};
-    final advancesData = data['advances']?['data'] as List? ?? [];
+    // Handle both {success: true, data: {...}} and the unwrapped {...}
+    final Map<String, dynamic> root = json.containsKey('data') && json['data'] is Map ? json['data'] : json;
     
+    // Total amounts are usually in the root of the data object
+    final double total = double.tryParse(root['total_advance']?.toString() ?? '0') ?? 0;
+    final double pending = double.tryParse(root['pending_amount']?.toString() ?? '0') ?? 0;
+    
+    // Advances list can be nested in different ways depending on pagination
+    List advancesRawList = [];
+    if (root['advances'] != null) {
+      if (root['advances'] is Map && root['advances']['data'] is List) {
+        advancesRawList = root['advances']['data'];
+      } else if (root['advances'] is List) {
+        advancesRawList = root['advances'];
+      }
+    } else if (root['data'] != null && root['data'] is List) {
+      advancesRawList = root['data'];
+    }
+
     return StaffAdvanceHistoryModel(
-      totalAdvance: double.tryParse(data['total_advance']?.toString() ?? '0') ?? 0,
-      pendingAmount: double.tryParse(data['pending_amount']?.toString() ?? '0') ?? 0,
-      advances: advancesData.map((e) => AdvancePayment.fromJson(e)).toList(),
+      totalAdvance: total,
+      pendingAmount: pending,
+      advances: advancesRawList.map((e) => AdvancePayment.fromJson(Map<String, dynamic>.from(e))).toList(),
     );
   }
 }

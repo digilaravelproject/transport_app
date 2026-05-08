@@ -64,7 +64,21 @@ class CompanyListScreen extends GetView<CorporateController> {
                 return const Center(child: CircularProgressIndicator());
               }
               
-              if (controller.companies.isEmpty) {
+              if (controller.filteredCompanies.isEmpty) {
+                final bool isSearching = controller.searchQuery.value.isNotEmpty;
+                final bool isFiltered = controller.selectedFilter.value != 'All';
+                
+                String emptyTitle = 'No Vendors Found';
+                String emptySubtitle = 'Start by adding your first vendor to manage corporate partners.';
+                
+                if (isSearching) {
+                  emptyTitle = 'No Matching Vendors';
+                  emptySubtitle = 'No vendors match your search "${controller.searchQuery.value}".';
+                } else if (isFiltered) {
+                  emptyTitle = 'No ${controller.selectedFilter.value} Vendors';
+                  emptySubtitle = 'There are no vendors currently marked as ${controller.selectedFilter.value.toLowerCase()}.';
+                }
+
                 return RefreshIndicator(
                   onRefresh: () => controller.loadVendors(isRefresh: true),
                   child: SingleChildScrollView(
@@ -72,11 +86,11 @@ class CompanyListScreen extends GetView<CorporateController> {
                     child: SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: AppEmptyState(
-                        title: controller.searchQuery.value.isNotEmpty ? 'No Matching Vendors' : 'No Vendors Found',
-                        subtitle: controller.searchQuery.value.isNotEmpty 
-                            ? 'No vendors match your search "${controller.searchQuery.value}".'
-                            : 'Start by adding your first vendor to manage corporate partners.',
-                        icon: Iconsax.building_3,
+                        title: emptyTitle,
+                        subtitle: emptySubtitle,
+                        icon: isSearching ? Iconsax.search_status : Iconsax.building_3,
+                        actionLabel: null,
+                        onActionPressed: null,
                       ),
                     ),
                   ),

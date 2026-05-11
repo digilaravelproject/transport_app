@@ -1,21 +1,26 @@
 import 'package:get/get.dart';
 import '../../../core/utils/custom_snackbar.dart';
+import '../domain/models/finance_dashboard_model.dart';
 import '../domain/models/transaction_model.dart';
 import '../domain/models/transaction_request_model.dart';
 import '../domain/services/finance_service.dart';
+import 'package:intl/intl.dart';
 
 class FinanceController extends GetxController {
   final GetFinanceDataUseCase _getFinanceDataUseCase;
   final GetTransactionByIdUseCase _getTransactionByIdUseCase;
   final AddTransactionUseCase _addTransactionUseCase;
+  final GetFinanceDashboardUseCase _getFinanceDashboardUseCase;
 
   FinanceController({
     required GetFinanceDataUseCase getFinanceDataUseCase,
     required GetTransactionByIdUseCase getTransactionByIdUseCase,
     required AddTransactionUseCase addTransactionUseCase,
+    required GetFinanceDashboardUseCase getFinanceDashboardUseCase,
   }) : _getFinanceDataUseCase = getFinanceDataUseCase,
        _getTransactionByIdUseCase = getTransactionByIdUseCase,
-       _addTransactionUseCase = addTransactionUseCase;
+       _addTransactionUseCase = addTransactionUseCase,
+       _getFinanceDashboardUseCase = getFinanceDashboardUseCase;
 
   // Observable state
   final RxList<TransactionModel> _transactions = <TransactionModel>[].obs;
@@ -28,6 +33,11 @@ class FinanceController extends GetxController {
 
   // Finance summary
   final Rx<FinanceSummary?> _summary = Rx<FinanceSummary?>(null);
+  
+  // Dashboard data
+  final Rx<FinanceDashboardModel?> dashboardData = Rx<FinanceDashboardModel?>(null);
+  final RxString selectedMonth = ''.obs;
+  final RxBool isDashboardLoading = false.obs;
   
   // Pagination
   final RxInt currentPage = 1.obs;
@@ -77,7 +87,32 @@ class FinanceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    selectedMonth.value = DateFormat('yyyy-MM').format(DateTime.now());
     loadFinanceData();
+    fetchFinanceDashboard(selectedMonth.value);
+  }
+
+  Future<void> fetchFinanceDashboard(String month) async {
+    try {
+      isDashboardLoading.value = true;
+      final response = await _getFinanceDashboardUseCase.call(month);
+      
+      if (response.isSuccess && response.body != null) {
+        dashboardData.value = FinanceDashboardModel.fromJson(response.body);
+      } else {
+        CustomSnackbar.showError(response.message ?? 'Failed to load dashboard');
+      }
+    } catch (e) {
+      print('Error fetching dashboard: $e');
+      CustomSnackbar.showError('Error fetching dashboard data');
+    } finally {
+      isDashboardLoading.value = false;
+    }
+  }
+
+  void updateSelectedMonth(String month) {
+    selectedMonth.value = month;
+    fetchFinanceDashboard(month);
   }
 
   // Load finance data

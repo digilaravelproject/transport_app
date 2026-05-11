@@ -14,6 +14,8 @@ abstract class FinanceRepository {
   Future<ResponseModel> getTransactionById(int id);
 
   Future<ResponseModel> addTransaction(TransactionRequestModel request);
+
+  Future<ResponseModel> getFinanceDashboardData(String month);
 }
 
 class FinanceRepositoryImpl implements FinanceRepository {
@@ -150,6 +152,24 @@ class FinanceRepositoryImpl implements FinanceRepository {
         isSuccess: false,
         statusCode: 500,
         message: 'Error adding transaction: $e',
+      );
+    }
+  }
+  @override
+  Future<ResponseModel> getFinanceDashboardData(String month) async {
+    try {
+      final response = await _apiClient.get(
+        '/api/v1/dashboard/finance?month=$month',
+        handleError: false,
+        showToaster: false,
+      );
+      return response;
+    } catch (e) {
+      print('Error fetching finance dashboard data: $e');
+      return ResponseModel(
+        isSuccess: false,
+        statusCode: 500,
+        message: 'Error fetching dashboard: $e',
       );
     }
   }

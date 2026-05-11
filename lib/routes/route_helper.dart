@@ -322,6 +322,7 @@ class RouteHelper {
         Get.lazyPut(() => VehicleController(), fenix: true);
         Get.lazyPut(() => StaffController(), fenix: true);
         Get.lazyPut(() => RouteController(), fenix: true);
+        FinanceBinding().dependencies();
       }),
       transition: Transition.fadeIn,
     ),

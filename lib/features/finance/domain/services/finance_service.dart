@@ -41,3 +41,13 @@ class AddTransactionUseCase {
     return await _repository.addTransaction(request);
   }
 }
+
+class GetFinanceDashboardUseCase {
+  final FinanceRepository _repository;
+
+  GetFinanceDashboardUseCase(this._repository);
+
+  Future<ResponseModel> call(String month) async {
+    return await _repository.getFinanceDashboardData(month);
+  }
+}

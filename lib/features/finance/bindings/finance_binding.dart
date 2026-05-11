@@ -27,6 +27,10 @@ class FinanceBinding extends Bindings {
       () => AddTransactionUseCase(Get.find<FinanceRepository>()),
       fenix: true,
     );
+    Get.lazyPut(
+      () => GetFinanceDashboardUseCase(Get.find<FinanceRepository>()),
+      fenix: true,
+    );
 
     // Controller
     Get.lazyPut(
@@ -34,6 +38,7 @@ class FinanceBinding extends Bindings {
         getFinanceDataUseCase: Get.find<GetFinanceDataUseCase>(),
         getTransactionByIdUseCase: Get.find<GetTransactionByIdUseCase>(),
         addTransactionUseCase: Get.find<AddTransactionUseCase>(),
+        getFinanceDashboardUseCase: Get.find<GetFinanceDashboardUseCase>(),
       ),
       fenix: true,
     );

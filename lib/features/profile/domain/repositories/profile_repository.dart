@@ -43,11 +43,13 @@ class ProfileRepository implements ProfileRepositoryInterface {
     String? address,
     File? logo,
   }) async {
+
     try {
       // Prepare form data
       Map<String, String> formData = {};
       
       if (phone != null && phone.isNotEmpty) formData['phone'] = phone;
+      if (name != null && name.isNotEmpty) formData['name'] = name;
       if (companyName != null && companyName.isNotEmpty) formData['vendor_name'] = companyName;
       if (ownerName != null && ownerName.isNotEmpty) formData['owner_name'] = ownerName;
       if (gstin != null && gstin.isNotEmpty) formData['gstin'] = gstin;
@@ -69,6 +71,11 @@ class ProfileRepository implements ProfileRepositoryInterface {
         handleError: false,
         showToaster: false,
       );
+      print("========== FORMDATA ==========");
+
+      formData.forEach((key, value) {
+        print("$key : $value");
+      });
 
       return response;
     } catch (e) {

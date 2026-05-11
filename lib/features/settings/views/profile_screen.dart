@@ -72,8 +72,8 @@ class ProfileScreen extends StatelessWidget {
                           : null,
                       child: (profile?.logoUrl == null || profile!.logoUrl!.isEmpty)
                           ? Text(
-                        (profile?.companyName != null && profile!.companyName!.isNotEmpty)
-                            ? profile.companyName![0].toUpperCase()
+                        (profile?.name != null && profile!.name!.isNotEmpty)
+                            ? profile.name![0].toUpperCase()
                             : '?',
                         style: const TextStyle(
                           color: AppColors.primaryColor,
@@ -90,7 +90,7 @@ class ProfileScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AppText(
-                            profile?.companyName ?? 'Loading...',
+                            profile?.ownerName ?? 'Loading...',
                             style: AppTextStyle.heading,
                             fontSize: 18,
                           ),

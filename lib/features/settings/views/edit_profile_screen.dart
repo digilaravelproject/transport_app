@@ -78,11 +78,18 @@ class EditProfileScreen extends StatelessWidget {
                     children: [
                       AppText('Personal Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
                       const SizedBox(height: 16),
+                      // AppInputField(
+                      //   label: 'Full Name',
+                      //   hint: 'Enter your full name',
+                      //   controller: controller.nameController,
+                      //   icon: Iconsax.user,
+                      //   validator: controller.validateName,
+                      // ),
                       AppInputField(
-                        label: 'Full Name',
-                        hint: 'Enter your full name',
-                        controller: controller.nameController,
-                        icon: Iconsax.user,
+                        label: 'Owner Name',
+                        hint: 'Enter owner name',
+                        controller: controller.ownerNameController,
+                        icon: Iconsax.user_octagon,
                         validator: controller.validateName,
                       ),
                       const SizedBox(height: 16),
@@ -153,13 +160,13 @@ class EditProfileScreen extends StatelessWidget {
                         controller: controller.companyNameController,
                         icon: Iconsax.building,
                       ),
-                      const SizedBox(height: 16),
-                      AppInputField(
+                     // const SizedBox(height: 16),
+                     /* AppInputField(
                         label: 'Owner Name',
                         hint: 'Enter owner name',
                         controller: controller.ownerNameController,
                         icon: Iconsax.user_octagon,
-                      ),
+                      ),*/
                       const SizedBox(height: 16),
                       AppInputField(
                         label: 'GST Number',

@@ -68,6 +68,7 @@ class AppConstants {
   // Inventory Endpoints
   static const String inventoryListUrl = '/api/v1/inventories';
   static String inventoryDetailsUrl(int id) => '/api/v1/inventories/$id';
+  static String inventoryDeleteUrl(int id) => '/api/v1/inventories/$id?force=1';
   static String inventoryStocksUrl(int id) => '/api/v1/inventories/$id/stocks';
   static String stockInUrl(int id) => '/api/v1/inventories/$id/stock-in';
   static String stockOutUrl(int id) => '/api/v1/inventories/$id/stock-out';

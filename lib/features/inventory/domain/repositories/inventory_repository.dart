@@ -140,7 +140,7 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<ResponseModel> deleteInventoryItem(int id) async {
     try {
-      final response = await _apiClient.delete(AppConstants.inventoryDetailsUrl(id));
+      final response = await _apiClient.delete(AppConstants.inventoryDeleteUrl(id));
       return response;
     } catch (e) {
       print('Error deleting inventory item: $e');

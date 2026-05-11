@@ -28,7 +28,7 @@ class DriverRepositoryImpl implements DriverRepository {
     String? search,
   }) async {
     try {
-      String endpoint = '/api/v1/drivers'; 
+      String endpoint = '/api/v1/drivers/$shiftId';
       
       if (search != null && search.isNotEmpty) {
         endpoint += '?search=$search';
@@ -163,13 +163,17 @@ class DriverRepositoryImpl implements DriverRepository {
     required int driverId,
   }) async {
     try {
-      final endpoint = '/api/v1/shifts/$shiftId/remove-driver/$driverId';
+      final endpoint = '/api/v1/shifts/$shiftId/remove-driver';
+      final body = {
+        'driver_id': driverId,
+      };
 
       print('Removing driver $driverId from shift $shiftId');
       print('Endpoint: $endpoint');
 
-      final response = await _apiClient.delete(
+      final response = await _apiClient.post(
         endpoint,
+        data: body,
         handleError: false,
         showToaster: false,
       );

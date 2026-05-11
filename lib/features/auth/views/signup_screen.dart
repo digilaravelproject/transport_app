@@ -219,12 +219,12 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                   children: [
                                     // Agency Name
                                     AppInputField(
-                                      label: 'Vendor Name',
-                                      hint: 'Enter your bus vendor name',
+                                      label: 'Company Name',
+                                      hint: 'Enter your  Company name',
                                       icon: Iconsax.building,
                                       validator: (value) => AppValidators.validateEmpty(
                                         value,
-                                        fieldName: "Vendor Name",
+                                        fieldName: "Company Name",
                                       ),
                                       controller: authController.companyNameController,
                                     ),

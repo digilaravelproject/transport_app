@@ -562,7 +562,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                 _buildInvoiceItem(
                   inv['invoice_number'] ?? 'N/A',
                   inv['amount']?.toString() ?? '0.00',
-                  inv['status'] ?? 'pending',
+                  inv['status'] ?? '',
                   inv['billing_date'] ?? 'N/A',
                   filePath: inv['file_path'],
                 //  filePath: "${AppConstants.imageBaseUrl}${inv['file_path'] ?? ''}",

@@ -463,11 +463,11 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                       label: 'Follow Up',
                       onTap: () => Get.toNamed(RouteHelper.getFollowUpListRoute(), arguments: displayLead),
                     ),
-                    // _GridActionButton(
-                    //   icon: Iconsax.add,
-                    //   label: 'Create Trip',
-                    //   onTap: () {},
-                    // ),
+                    _GridActionButton(
+                      icon: Iconsax.add,
+                      label: 'Create Trip',
+                      onTap: () {},
+                    ),
                     _GridActionButton(
                       icon: Icons.description_rounded,
                       label: 'Quotation',
@@ -480,11 +480,11 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                         // }
                       },
                     ),
-                    // _GridActionButton(
-                    //   icon: Iconsax.receipt_2_1,
-                    //   label: 'Invoice',
-                    //   onTap: () {},
-                    // ),
+                    _GridActionButton(
+                      icon: Iconsax.receipt_2_1,
+                      label: 'Invoice',
+                      onTap: () {},
+                    ),
                   ],
                 ),
                 const SizedBox(height: 40),

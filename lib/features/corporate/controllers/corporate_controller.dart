@@ -53,13 +53,13 @@ class CorporateController extends GetxController {
     if (isRefresh) {
       currentPage.value = 1;
       hasMoreData.value = true;
-      _companies.clear();
     }
 
     if (!hasMoreData.value || (!isRefresh && (isLoading.value || isMoreLoading.value))) return;
 
     try {
-      if (currentPage.value == 1) {
+      final int requestPage = currentPage.value;
+      if (requestPage == 1) {
         isLoading.value = true;
       } else {
         isMoreLoading.value = true;
@@ -67,7 +67,7 @@ class CorporateController extends GetxController {
 
       final response = await _repository.getVendors(
         search: searchQuery.value,
-        page: currentPage.value,
+        page: requestPage,
       );
 
       if (response.isSuccess && response.body != null) {
@@ -77,11 +77,18 @@ class CorporateController extends GetxController {
         
         final List<CompanyModel> newVendors = data.map((json) => CompanyModel.fromJson(json)).toList();
         
-        if (newVendors.isEmpty && currentPage.value > 1) {
-          hasMoreData.value = false;
+        if (requestPage == 1) {
+          _companies.assignAll(newVendors);
         } else {
           _companies.addAll(newVendors);
-          currentPage.value++;
+        }
+        
+        if (newVendors.isEmpty && requestPage > 1) {
+          hasMoreData.value = false;
+        } else {
+          if (currentPage.value == requestPage) {
+            currentPage.value++;
+          }
           
           if (meta != null && meta['current_page'] != null && meta['last_page'] != null) {
             if (meta['current_page'] >= meta['last_page']) {
@@ -326,7 +333,6 @@ class CorporateController extends GetxController {
       
       if (response.isSuccess) {
         CustomSnackbar.showSuccess(response.message ?? 'Contract created successfully');
-        loadVendors(isRefresh: true);
         return true;
       } else {
         CustomSnackbar.showError(response.message ?? 'Failed to create contract');

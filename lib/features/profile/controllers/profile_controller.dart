@@ -79,7 +79,7 @@ class ProfileController extends GetxController {
     }
   }
 
-  Future<void> updateProfile() async {
+  Future<void> updateProfile({bool shouldGoBack = true}) async {
     try {
       isLoading.value = true;
 
@@ -108,8 +108,11 @@ class ProfileController extends GetxController {
         CustomSnackbar.showSuccess(
           response.message ?? 'Profile updated successfully',
         );
-        await Future.delayed(const Duration(milliseconds: 500));
-        Get.back(); // Go back to profile screen
+
+        if (shouldGoBack) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          Get.back(); // Go back to profile screen
+        }
       } else {
         CustomSnackbar.showError(
           response.message ?? 'Failed to update profile',
@@ -135,7 +138,7 @@ class ProfileController extends GetxController {
 
       if (image != null) {
         selectedImage.value = File(image.path);
-        CustomSnackbar.showSuccess('Image selected successfully');
+        updateProfile();
       }
     } catch (e) {
       print('❌ Error picking image: $e');
@@ -198,7 +201,7 @@ class ProfileController extends GetxController {
   }
 
   void _populateControllers(ProfileModel profile) {
-    nameController.text = profile.name;
+    nameController.text = profile.ownerName ?? '';
     emailController.text = profile.email;
     phoneController.text = profile.phone ?? '';
     companyNameController.text = profile.companyName ?? '';

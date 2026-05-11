@@ -86,7 +86,7 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Obx(() {
-                                final userName = authController.currentUser.value?.name ?? 'Partner';
+                                final userName = authController.currentUser.value?.ownerName ?? 'Partner';
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

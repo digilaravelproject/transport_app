@@ -108,6 +108,7 @@ class AppRoutes {
   static const String staffReports = '/staff-reports';
   static const String complianceReports = '/compliance-reports';
   static const String profitLossReport = '/profit-loss-report';
+  static const String allReports = '/all-reports';
   static const String repairHistory = '/repair-history';
 
   // Settings & Profile

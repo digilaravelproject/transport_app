@@ -132,6 +132,7 @@ import '../features/vehicles/views/document_viewer_screen.dart';
 import '../features/vehicles/views/vehicle_type_list_screen.dart';
 import '../features/vehicles/views/add_edit_vehicle_type_screen.dart';
 import '../features/vehicles/controllers/vehicle_type_controller.dart';
+import '../features/reports/views/all_reports_screen.dart';
 import 'app_routes.dart';
 
 class RouteHelper {
@@ -247,6 +248,7 @@ class RouteHelper {
   static String getStaffReportsRoute() => AppRoutes.staffReports;
   static String getComplianceReportsRoute() => AppRoutes.complianceReports;
   static String getProfitLossReportRoute() => AppRoutes.profitLossReport;
+  static String getAllReportsRoute() => AppRoutes.allReports;
   static String getRepairHistoryRoute() => AppRoutes.repairHistory;
 
   // Phase 11 Modules
@@ -778,6 +780,14 @@ class RouteHelper {
       binding: BindingsBuilder(() {
         Get.lazyPut(() => ReportsController());
         FinanceBinding().dependencies();
+      }),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.allReports,
+      page: () => const AllReportsScreen(),
+      binding: BindingsBuilder(() {
+        Get.lazyPut(() => ReportsController());
       }),
       transition: Transition.rightToLeft,
     ),

@@ -8,8 +8,11 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/widgets/vehicle_type_dropdown.dart';
+import '../../../core/widgets/section_header.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/trip_controller.dart';
+import '../../routes_management/views/location_search_screen.dart';
 import '../../../routes/route_helper.dart';
 import '../../../core/utils/app_validators.dart';
 
@@ -25,6 +28,56 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
   String? vehicleTypeError;
+  Map<String, dynamic>? _pickupPoint;
+  final List<TextEditingController> _destinationControllers = [];
+  final List<Map<String, dynamic>?> _destinationPoints = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _destinationControllers.add(TextEditingController());
+    _destinationPoints.add(null);
+  }
+
+  @override
+  void dispose() {
+    for (var c in _destinationControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _addDestination() {
+    setState(() {
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+    });
+  }
+
+  void _removeDestination(int index) {
+    if (_destinationControllers.length > 1) {
+      setState(() {
+        _destinationControllers[index].dispose();
+        _destinationControllers.removeAt(index);
+        _destinationPoints.removeAt(index);
+      });
+    }
+  }
+
+  Future<void> _selectLocation(int? index) async {
+    final result = await Get.to(() => const LocationSearchScreen(title: 'Search Location'));
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        if (index == null) {
+          _pickupPoint = result;
+          controller.pickupAddressController.text = result['name'];
+        } else {
+          _destinationPoints[index] = result;
+          _destinationControllers[index].text = result['name'];
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +90,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Trip Information'),
+              const SectionHeader(title: 'Trip Information'),
+              const SizedBox(height: 8),
               AppCard(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -62,15 +116,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       },
                       validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Trip Date'),
                     ),
-                    const SizedBox(height: 8),
-                    AppInputField(
-                      label: 'Trip Route',
-                      controller: controller.routeController,
-                      hint: 'e.g. Delhi to Jaipur',
-                      icon: Icons.route_rounded,
-                      validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Trip Route'),
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -95,17 +141,73 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 ),
               ),
               
-              const SizedBox(height: 12),
-              _buildSectionHeader('Vehicle Information'),
+              const SizedBox(height: 16),
+              const SectionHeader(title: 'Route Details'),
+              const SizedBox(height: 8),
               AppCard(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
-                    _buildDropdown(
-                      'Vehicle Type',
-                      controller.selectedVehicleType,
-                      ['Luxury Bus', 'Mini Bus', 'Innova', 'Tempo Traveller'],
+                    AppInputField(
+                      label: 'Pickup Point',
+                      hint: 'Search pickup location',
+                      icon: Iconsax.location,
+                      controller: controller.pickupAddressController,
+                      readOnly: true,
+                      onTap: () => _selectLocation(null),
+                      validator: (val) => (val == null || val.isEmpty) ? 'Pickup point required' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    ...List.generate(_destinationControllers.length, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AppInputField(
+                                label: index == _destinationControllers.length - 1 ? 'End Point' : 'Stop Point ${index + 1}',
+                                hint: 'Search destination',
+                                icon: Iconsax.map,
+                                controller: _destinationControllers[index],
+                                readOnly: true,
+                                onTap: () => _selectLocation(index),
+                                validator: (val) => (val == null || val.isEmpty) ? 'Destination required' : null,
+                              ),
+                            ),
+                            if (_destinationControllers.length > 1)
+                              IconButton(
+                                icon: const Icon(Iconsax.trash, color: Colors.red, size: 20),
+                                onPressed: () => _removeDestination(index),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                    AppButton.outline(
+                      text: 'Add Stop',
+                      height: 40,
+                      icon: const Icon(Iconsax.add, size: 18),
+                      onPressed: _addDestination,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              const SectionHeader(title: 'Vehicle Information'),
+              const SizedBox(height: 8),
+              AppCard(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    VehicleTypeDropdown(
+                      selectedId: controller.selectedVehicleTypeId,
                       errorText: vehicleTypeError,
+                      onChanged: (id, name) {
+                        setState(() => vehicleTypeError = null);
+                        if (id != null) controller.selectedVehicleTypeId.value = id;
+                        if (name != null) controller.selectedVehicleType.value = name;
+                      },
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -119,24 +221,25 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                             validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Count'),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: AppInputField(
-                            label: 'Capacity',
-                            controller: controller.seatingCapacityController,
-                            hint: 'e.g. 45',
-                            keyboardType: TextInputType.number,
-                            validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Capacity'),
-                          ),
-                        ),
+                        // const SizedBox(width: 8),
+                        // Expanded(
+                        //   child: AppInputField(
+                        //     label: 'Capacity',
+                        //     controller: controller.seatingCapacityController,
+                        //     hint: 'e.g. 45',
+                        //     keyboardType: TextInputType.number,
+                        //     validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Capacity'),
+                        //   ),
+                        // ),
                       ],
                     ),
                   ],
                 ),
               ),
               
-              const SizedBox(height: 12),
-              _buildSectionHeader('Customer Details (Optional)'),
+              const SizedBox(height: 16),
+              const SectionHeader(title: 'Customer Details (Optional)'),
+              const SizedBox(height: 8),
               AppCard(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -147,7 +250,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       hint: 'Enter customer name',
                       icon: Iconsax.user,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Obx(() => AppInputField(
                       label: 'Phone Number',
                       controller: controller.customerPhoneController,
@@ -165,8 +268,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 ),
               ),
               
-              const SizedBox(height: 12),
-              _buildSectionHeader('Payment Details'),
+              const SizedBox(height: 16),
+              const SectionHeader(title: 'Payment Details'),
+              const SizedBox(height: 8),
               AppCard(
                 padding: const EdgeInsets.all(12),
                 child: Column(
@@ -179,7 +283,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       keyboardType: TextInputType.number,
                       validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Total Amount'),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -193,10 +297,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Obx(() {
-                            double pending = controller.totalAmount.value - controller.advanceAmount.value;
                             return AppInputField(
                               label: 'Pending',
-                              hint: pending.toStringAsFixed(2),
+                              hint: controller.pendingAmount.toStringAsFixed(2),
                               readOnly: true,
                               keyboardType: TextInputType.number,
                             );
@@ -211,17 +314,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               const SizedBox(height: 24),
               AppButton(
                 text: 'Save Trip',
-                onPressed: () {
-                  setState(() => vehicleTypeError = null);
-                  bool isValid = formKey.currentState!.validate();
-                  if (controller.selectedVehicleType.value.isEmpty) {
-                    setState(() => vehicleTypeError = 'Please select vehicle type');
-                    isValid = false;
-                  }
-                  if (isValid) {
-                    Get.back();
-                  }
-                },
+                onPressed: _handleSave,
               ),
               const SizedBox(height: 8),
               AppButton.outline(
@@ -236,30 +329,62 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 6),
-      child: AppText(
-        title,
-        style: AppTextStyle.subheading,
-        fontSize: 13,
-        color: AppColors.primaryColor,
-        fontWeight: FontWeight.w600,
-      ),
-    );
+  void _handleSave() {
+    setState(() => vehicleTypeError = null);
+    bool isValid = formKey.currentState!.validate();
+    
+    if (controller.selectedVehicleTypeId.value == null || controller.selectedVehicleTypeId.value == 0) {
+      setState(() => vehicleTypeError = 'Please select vehicle type');
+      isValid = false;
+    }
+
+    if (!isValid) return;
+
+    if (_pickupPoint == null || _destinationPoints.any((p) => p == null)) {
+      Get.snackbar('Error', 'Please select all locations', 
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    // Prepare points like in CreateLeadScreen
+    final List<Map<String, dynamic>> points = [];
+    points.add({
+      "type": "start",
+      "name": _pickupPoint!['name'],
+      "lat": _pickupPoint!['lat'],
+      "lng": _pickupPoint!['lng'],
+      "order": 0
+    });
+
+    for (int i = 0; i < _destinationPoints.length; i++) {
+      final isLast = i == _destinationPoints.length - 1;
+      points.add({
+        "type": isLast ? "end" : "stop",
+        "name": _destinationPoints[i]!['name'],
+        "lat": _destinationPoints[i]!['lat'],
+        "lng": _destinationPoints[i]!['lng'],
+        "order": i + 1
+      });
+    }
+
+    controller.destinationPoints.assignAll(points);
+    controller.routeController.text = "${_pickupPoint!['name']} to ${_destinationPoints.last!['name']}";
+
+    // For now, just go back like the original code did on success
+    Get.back();
   }
 
   Widget _buildDropdown(String label, RxString value, List<String> items, {String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppText(label, style: AppTextStyle.body, fontSize: 13, fontWeight: FontWeight.w500),
+        AppText(label, style: AppTextStyle.label, fontSize: 13, fontWeight: FontWeight.w500),
         const SizedBox(height: 6),
         Container(
           height: 48,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: AppColors.slate50,
+            color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: errorText != null ? Colors.red : AppColors.slate200),
           ),

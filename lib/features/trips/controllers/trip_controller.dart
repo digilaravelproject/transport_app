@@ -16,6 +16,8 @@ class TripController extends GetxController {
   final durationController = TextEditingController();
   final vehicleCountController = TextEditingController();
   final seatingCapacityController = TextEditingController();
+  final pickupAddressController = TextEditingController();
+  final destinationController = TextEditingController();
   
   // Customer & Payment Controllers
   final customerNameController = TextEditingController();
@@ -31,6 +33,10 @@ class TripController extends GetxController {
   var selectedDriver = ''.obs;
   var tripDate = DateTime.now().obs;
   var selectedCountryCode = '+91'.obs;
+  final selectedVehicleTypeId = Rxn<int>();
+  final destinationPoints = <Map<String, dynamic>>[].obs;
+
+  double get pendingAmount => totalAmount.value - advanceAmount.value;
 
   @override
   void onInit() {
@@ -160,6 +166,8 @@ class TripController extends GetxController {
     durationController.dispose();
     vehicleCountController.dispose();
     seatingCapacityController.dispose();
+    pickupAddressController.dispose();
+    destinationController.dispose();
     super.onClose();
   }
 }

@@ -158,8 +158,8 @@ class FinanceScreen extends GetView<FinanceController> {
                                 child: _StatCard(
                                   title: 'Profit',
                                   value: '₹${_formatAmount(data.totalProfit)}',
-                                  color: const Color(0xFF3B82F6),
-                                  icon: Iconsax.trend_up5,
+                                  color: AppColors.successColor,
+                                  icon: Iconsax.trend_up,
                                 ),
                               ),
                             ],
@@ -252,48 +252,114 @@ class FinanceScreen extends GetView<FinanceController> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: AppCard(
-                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-                            child: SizedBox(
-                              height: 250,
-                              child: BarChart(
-                                BarChartData(
-                                  alignment: BarChartAlignment.spaceAround,
-                                  maxY: _getMaxValue(data),
-                                  barTouchData: BarTouchData(enabled: true),
-                                  titlesData: FlTitlesData(
-                                    show: true,
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        getTitlesWidget: (value, meta) {
-                                          const titles = ['Rev', 'Exp', 'Profit', 'Pend'];
-                                          if (value.toInt() >= 0 && value.toInt() < titles.length) {
-                                            return Padding(
-                                              padding: const EdgeInsets.only(top: 8.0),
-                                              child: AppText(titles[value.toInt()], 
-                                                  fontSize: 10, 
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppColors.textColorSecondary),
+                            padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 220,
+                                  child: BarChart(
+                                    BarChartData(
+                                      alignment: BarChartAlignment.spaceAround,
+                                      maxY: _getMaxValue(data) > 0 ? _getMaxValue(data) : 100,
+                                      barTouchData: BarTouchData(
+                                        enabled: true,
+                                        touchTooltipData: BarTouchTooltipData(
+                                          getTooltipColor: (_) => AppColors.slate800.withOpacity(0.9),
+                                          tooltipRoundedRadius: 8,
+                                          tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                            String category = '';
+                                            switch (group.x.toInt()) {
+                                              case 0: category = 'Revenue'; break;
+                                              case 1: category = 'Expenses'; break;
+                                              case 2: category = 'Profit'; break;
+                                              case 3: category = 'Pending'; break;
+                                            }
+                                            return BarTooltipItem(
+                                              '$category\n',
+                                              const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.normal),
+                                              children: [
+                                                TextSpan(
+                                                  text: '₹${rod.toY.toStringAsFixed(0)}',
+                                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                                ),
+                                              ],
                                             );
-                                          }
-                                          return const SizedBox();
-                                        },
+                                          },
+                                        ),
                                       ),
+                                      titlesData: FlTitlesData(
+                                        show: true,
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            getTitlesWidget: (value, meta) {
+                                              const titles = ['Rev', 'Exp', 'Profit', 'Pend'];
+                                              if (value.toInt() >= 0 && value.toInt() < titles.length) {
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(top: 10.0),
+                                                  child: AppText(titles[value.toInt()], 
+                                                      fontSize: 11, 
+                                                      fontWeight: FontWeight.w600,
+                                                      color: AppColors.textColorSecondary),
+                                                );
+                                              }
+                                              return const SizedBox();
+                                            },
+                                          ),
+                                        ),
+                                        leftTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            reservedSize: 40,
+                                            getTitlesWidget: (value, meta) {
+                                              if (value == 0) return const SizedBox();
+                                              return AppText(
+                                                _formatAmount(value),
+                                                fontSize: 10,
+                                                color: AppColors.textColorHint,
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                      ),
+                                      gridData: FlGridData(
+                                        show: true,
+                                        drawVerticalLine: false,
+                                        horizontalInterval: _getMaxValue(data) > 0 ? _getMaxValue(data) / 4 : 25,
+                                        getDrawingHorizontalLine: (value) => FlLine(
+                                          color: AppColors.slate200.withOpacity(0.6),
+                                          strokeWidth: 1,
+                                          dashArray: [5, 5],
+                                        ),
+                                      ),
+                                      borderData: FlBorderData(show: false),
+                                      barGroups: [
+                                        _makeGroupData(0, data.totalRevenue, AppColors.primaryColor),
+                                        _makeGroupData(1, data.totalExpenses, AppColors.errorColor),
+                                        _makeGroupData(2, data.totalProfit, AppColors.successColor),
+                                        _makeGroupData(3, data.pendingAmount, AppColors.warningColor),
+                                      ],
                                     ),
-                                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                                   ),
-                                  gridData: const FlGridData(show: false),
-                                  borderData: FlBorderData(show: false),
-                                  barGroups: [
-                                    _makeGroupData(0, data.totalRevenue, const Color(0xFF10B981)),
-                                    _makeGroupData(1, data.totalExpenses, const Color(0xFFEF4444)),
-                                    _makeGroupData(2, data.totalProfit, const Color(0xFF3B82F6)),
-                                    _makeGroupData(3, data.pendingAmount, const Color(0xFFF59E0B)),
+                                ),
+                                const SizedBox(height: 16),
+                                // Legend
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _buildLegendItem('Revenue', AppColors.primaryColor),
+                                    const SizedBox(width: 12),
+                                    _buildLegendItem('Expense', AppColors.errorColor),
+                                    const SizedBox(width: 12),
+                                    _buildLegendItem('Profit', AppColors.successColor),
+                                    const SizedBox(width: 12),
+                                    _buildLegendItem('Pending Payment', AppColors.warningColor),
                                   ],
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         ),
@@ -301,7 +367,7 @@ class FinanceScreen extends GetView<FinanceController> {
                         const SizedBox(height: 24),
                         
                         // Summary List or Trip list if needed
-                        if (data.completedTrips.isNotEmpty) ...[
+                        /*if (data.completedTrips.isNotEmpty) ...[
                           const Padding(
                             padding: EdgeInsets.symmetric(horizontal: 20),
                             child: AppText(
@@ -313,7 +379,7 @@ class FinanceScreen extends GetView<FinanceController> {
                           ),
                           const SizedBox(height: 12),
                           ...data.completedTrips.map((trip) => _TripItem(trip: trip)).toList(),
-                        ],
+                        ],*/
                       ],
                     ),
                   ),
@@ -339,7 +405,7 @@ class FinanceScreen extends GetView<FinanceController> {
   double _getMaxValue(dynamic data) {
     double maxVal = [data.totalRevenue, data.totalExpenses, data.totalProfit, data.pendingAmount]
         .reduce((curr, next) => curr > next ? curr : next);
-    return maxVal * 1.2; // Add 20% padding
+    return maxVal > 0 ? maxVal * 1.2 : 0;
   }
 
   BarChartGroupData _makeGroupData(int x, double y, Color color) {
@@ -348,8 +414,12 @@ class FinanceScreen extends GetView<FinanceController> {
       barRods: [
         BarChartRodData(
           toY: y,
-          color: color,
-          width: 30,
+          gradient: LinearGradient(
+            colors: [color, color.withOpacity(0.7)],
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+          ),
+          width: 22,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
@@ -358,7 +428,25 @@ class FinanceScreen extends GetView<FinanceController> {
           ),
         ),
       ],
-      showingTooltipIndicators: [0],
+      showingTooltipIndicators: [],
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        AppText(label, fontSize: 10, color: AppColors.textColorSecondary),
+      ],
     );
   }
 

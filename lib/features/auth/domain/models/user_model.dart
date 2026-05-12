@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../../core/constants/app_constants.dart';
 
 class UserModel {
   final int id;
@@ -39,7 +40,7 @@ class UserModel {
       ownerName: json['owner_name'],
       gstin: json['gstin'],
       address: json['address'],
-      logoUrl: json['logo_url'],
+      logoUrl: AppConstants.getFileUrl(json['logo_url']),
     );
   }
 

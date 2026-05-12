@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -67,21 +68,48 @@ class ProfileScreen extends StatelessWidget {
                     CircleAvatar(
                       radius: 35,
                       backgroundColor: AppColors.primaryLight,
-                      backgroundImage: (profile?.logoUrl != null && profile!.logoUrl!.isNotEmpty)
-                          ? NetworkImage(profile.logoUrl!)
-                          : null,
-                      child: (profile?.logoUrl == null || profile!.logoUrl!.isEmpty)
-                          ? Text(
-                        (profile?.name != null && profile!.name!.isNotEmpty)
-                            ? profile.name![0].toUpperCase()
-                            : '?',
-                        style: const TextStyle(
-                          color: AppColors.primaryColor,
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                          : null,
+                      child: (profile?.logoUrl != null && profile!.logoUrl!.isNotEmpty)
+                          ? CachedNetworkImage(
+                              imageUrl: profile.logoUrl!,
+                              imageBuilder: (context, imageProvider) => Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              placeholder: (context, url) => const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              errorWidget: (context, url, error) => Text(
+                                (profile.ownerName != null && profile.ownerName!.isNotEmpty)
+                                    ? profile.ownerName![0].toUpperCase()
+                                    : (profile.name != null && profile.name!.isNotEmpty)
+                                        ? profile.name![0].toUpperCase()
+                                        : '?',
+                                style: const TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : Text(
+                              (profile?.ownerName != null && profile!.ownerName!.isNotEmpty)
+                                  ? profile.ownerName![0].toUpperCase()
+                                  : (profile?.name != null && profile!.name!.isNotEmpty)
+                                      ? profile.name![0].toUpperCase()
+                                      : '?',
+                              style: const TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
 
                     const SizedBox(width: 20),

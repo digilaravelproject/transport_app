@@ -7,7 +7,11 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import '../controllers/trip_controller.dart';
+import '../../../core/widgets/app_input_field.dart';
+import 'package:path/path.dart';
 
 class DutySheetUploadScreen extends StatefulWidget {
   const DutySheetUploadScreen({Key? key}) : super(key: key);
@@ -17,7 +21,24 @@ class DutySheetUploadScreen extends StatefulWidget {
 }
 
 class _DutySheetUploadScreenState extends State<DutySheetUploadScreen> {
-  bool isUploaded = false;
+  XFile? selectedFile;
+  final controller = Get.find<TripController>();
+  final notesController = TextEditingController();
+  late String tripId;
+
+  @override
+  void initState() {
+    super.initState();
+    tripId = Get.arguments?.toString() ?? "";
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: source);
+    if (image != null) {
+      setState(() => selectedFile = image);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,28 +66,48 @@ class _DutySheetUploadScreenState extends State<DutySheetUploadScreen> {
                     align: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
-                  if (!isUploaded)
+                  if (selectedFile == null)
                     Row(
                       children: [
                         Expanded(
-                          child: _buildUploadOption(Iconsax.camera, 'Camera', () => setState(() => isUploaded = true)),
+                          child: _buildUploadOption(Iconsax.camera, 'Camera', () => _pickImage(ImageSource.camera)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: _buildUploadOption(Icons.photo_library_rounded, 'Gallery', () => setState(() => isUploaded = true)),
+                          child: _buildUploadOption(Icons.photo_library_rounded, 'Gallery', () => _pickImage(ImageSource.gallery)),
                         ),
                       ],
                     )
                   else
                     _buildPreview(),
+                  const SizedBox(height: 24),
+                  AppInputField(
+                    label: 'Notes',
+                    controller: notesController,
+                    hint: 'Enter any notes (optional)',
+                    icon: Iconsax.note_2,
+                  ),
                 ],
               ),
             ),
             const Spacer(),
-            AppButton(
+            Obx(() => AppButton(
               text: 'Submit Duty Sheet',
-              onPressed: isUploaded ? () => Get.back() : null,
-            ),
+              isLoading: controller.isLoading.value,
+              onPressed: selectedFile != null ? () async {
+                final success = await controller.uploadDutySheet(tripId, selectedFile!, notesController.text);
+                if (success) {
+                  Get.back(closeOverlays: true);
+                  Get.snackbar(
+                    'Success', 
+                    'Duty sheet uploaded successfully',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.green.withOpacity(0.1),
+                    colorText: Colors.green,
+                  );
+                }
+              } : null,
+            )),
           ],
         ),
       ),
@@ -106,14 +147,17 @@ class _DutySheetUploadScreenState extends State<DutySheetUploadScreen> {
                 color: AppColors.slate50,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.successColor.withOpacity(0.5)),
+                image: DecorationImage(
+                  image: FileImage(File(selectedFile!.path)),
+                  fit: BoxFit.cover,
+                ),
               ),
-              child: const Icon(Icons.description_rounded, size: 48, color: AppColors.successColor),
             ),
             Positioned(
               top: 8,
               right: 8,
               child: GestureDetector(
-                onTap: () => setState(() => isUploaded = false),
+                onTap: () => setState(() => selectedFile = null),
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   decoration: const BoxDecoration(color: AppColors.errorColor, shape: BoxShape.circle),
@@ -124,7 +168,7 @@ class _DutySheetUploadScreenState extends State<DutySheetUploadScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        const AppText('duty_sheet_001.pdf', style: AppTextStyle.body, fontWeight: FontWeight.w600),
+        AppText(basename(selectedFile!.path), style: AppTextStyle.body, fontWeight: FontWeight.w600),
       ],
     );
   }

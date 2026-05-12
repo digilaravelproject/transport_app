@@ -168,6 +168,63 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
     );
   }
 
+  void _showConvertToTripDialog(String leadId) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Iconsax.routing, color: AppColors.primaryColor, size: 32),
+              ),
+              const SizedBox(height: 24),
+              const AppText('Convert to Trip', style: AppTextStyle.subheading, fontSize: 20),
+              const SizedBox(height: 12),
+              AppText(
+                'Do you want to convert this lead into a trip? This will create a new trip record.',
+                style: AppTextStyle.body,
+                color: AppColors.textColorSecondary,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.outline(
+                      text: 'No',
+                      onPressed: () => Get.back(),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Obx(() => AppButton(
+                      text: 'Yes',
+                      isLoading: controller.isLoading.value,
+                      onPressed: () async {
+                        final success = await controller.convertToTrip(leadId);
+                        if (success) {
+                          Get.back(); // Close dialog
+                        }
+                      },
+                    )),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -466,24 +523,17 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                     _GridActionButton(
                       icon: Iconsax.add,
                       label: 'Create Trip',
-                      onTap: () {},
+                      onTap: () => _showConvertToTripDialog(displayLead.id!),
                     ),
                     _GridActionButton(
                       icon: Icons.description_rounded,
                       label: 'Quotation',
-                      onTap: () {
-                       // if (displayLead.quotationPath != null && displayLead.quotationPath!.isNotEmpty) {
-                          final String fullUrl = AppConstants.getFileUrl(displayLead.quotationPath);
-                          Get.toNamed(RouteHelper.getPdfViewerRoute(), arguments: fullUrl);
-                        // } else {
-                        //   Get.toNamed(RouteHelper.getQuotationPreviewRoute(), arguments: displayLead);
-                        // }
+                      onTap: () async {
+                        final String? url = await controller.getLeadQuotationUrl(displayLead.id!);
+                        if (url != null) {
+                          Get.toNamed(RouteHelper.getPdfViewerRoute(), arguments: url);
+                        }
                       },
-                    ),
-                    _GridActionButton(
-                      icon: Iconsax.receipt_2_1,
-                      label: 'Invoice',
-                      onTap: () {},
                     ),
                   ],
                 ),

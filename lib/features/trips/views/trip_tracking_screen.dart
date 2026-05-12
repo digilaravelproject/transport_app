@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -13,9 +14,47 @@ import '../domain/models/trip_model.dart';
 class TripTrackingScreen extends GetView<TripController> {
   const TripTrackingScreen({Key? key}) : super(key: key);
 
+  Future<void> _makeCall(String phone) async {
+    final Uri launchUri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
+
+  Future<void> _openMap(TripModel trip) async {
+    if (trip.pickupAddress == null) return;
+
+    String origin = Uri.encodeComponent(trip.pickupAddress!);
+    String destination = "";
+    String waypoints = "";
+
+    final points = trip.destinationPoints ?? [];
+    if (points.isNotEmpty) {
+      destination = Uri.encodeComponent(points.last['name']?.toString() ?? '');
+      if (points.length > 1) {
+        waypoints = points
+            .take(points.length - 1)
+            .map((p) => Uri.encodeComponent(p['name']?.toString() ?? ''))
+            .join('|');
+      }
+    } else {
+      destination = origin;
+    }
+
+    String url = "https://www.google.com/maps/dir/?api=1&origin=$origin&destination=$destination";
+    if (waypoints.isNotEmpty) {
+      url += "&waypoints=$waypoints";
+    }
+
+    final Uri googleMapsUri = Uri.parse(url);
+    if (await canLaunchUrl(googleMapsUri)) {
+      await launchUrl(googleMapsUri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final TripModel trip = Get.arguments ?? controller.trips.first;
+    final TripModel trip = (Get.arguments is TripModel) ? Get.arguments : controller.selectedTrip.value!;
 
     return AppScaffold(
       appBar: AppHeader(
@@ -31,26 +70,39 @@ class TripTrackingScreen extends GetView<TripController> {
             color: AppColors.slate100,
             child: Stack(
               children: [
-                const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Iconsax.map, size: 64, color: AppColors.slate300),
-                      SizedBox(height: 12),
-                      AppText('Map View Placeholder', color: AppColors.textColorSecondary),
-                    ],
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Horizontal Route Line
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildMapPoint('Pickup', trip.pickupAddress ?? ''),
+                              ... (trip.destinationPoints ?? []).map((p) => Row(
+                                children: [
+                                  Container(width: 40, height: 2, color: AppColors.primaryColor.withOpacity(0.3)),
+                                  _buildMapPoint(p['type']?.toString().capitalizeFirst ?? 'Point', p['name']?.toString() ?? ''),
+                                ],
+                              )).toList(),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const AppText('Route Overview', color: AppColors.slate400, fontSize: 12),
+                      ],
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 100,
-                  left: 150,
-                  child: Icon(Iconsax.location, color: AppColors.primaryColor, size: 40),
                 ),
                 Positioned(
                   bottom: 16,
                   right: 16,
                   child: FloatingActionButton.small(heroTag: null,
-                    onPressed: () {},
+                    onPressed: () => _openMap(trip),
                     backgroundColor: AppColors.white,
                     child: const Icon(Icons.my_location_rounded, color: AppColors.primaryColor),
                   ),
@@ -65,30 +117,16 @@ class TripTrackingScreen extends GetView<TripController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDriverCard(trip),
+                  _buildAssignedAssets(trip),
                   const SizedBox(height: 24),
                   AppText('Trip Progress', style: AppTextStyle.subheading, fontSize: 16),
                   const SizedBox(height: 16),
-                  _buildVerticalTimeline(),
+                  _buildVerticalTimeline(trip),
                   const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AppButton(
-                          text: 'Call Driver',
-                          icon: const Icon(Iconsax.call, size: 18),
-                          onPressed: () {},
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppButton.outline(
-                          text: 'Open Map',
-                          icon: const Icon(Icons.near_me_rounded, size: 18),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
+                  AppButton(
+                    text: 'Open Map for Navigation',
+                    icon: const Icon(Icons.near_me_rounded, size: 18),
+                    onPressed: () => _openMap(trip),
                   ),
                 ],
               ),
@@ -99,44 +137,90 @@ class TripTrackingScreen extends GetView<TripController> {
     );
   }
 
-  Widget _buildDriverCard(TripModel trip) {
-    return AppCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: AppColors.primaryLight,
-            child: const Icon(Iconsax.user, color: AppColors.primaryColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildAssignedAssets(TripModel trip) {
+    if (trip.assignedDrivers.isEmpty && trip.assignedVehicles.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AppText('Drivers & Vehicles', style: AppTextStyle.subheading, fontSize: 16),
+        const SizedBox(height: 12),
+        ...trip.assignedDrivers.asMap().entries.map((entry) {
+          final int idx = entry.key;
+          final driver = entry.value;
+          final vehicle = trip.assignedVehicles.length > idx ? trip.assignedVehicles[idx] : null;
+          
+          final String dName = driver['name']?.toString() ?? 'N/A';
+          final String dPhone = driver['phone']?.toString() ?? '';
+          final String vNum = vehicle?['registration_number']?.toString() ?? 'N/A';
+          final String vType = vehicle?['type']?.toString() ?? trip.vehicleType;
+
+          return AppCard(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(12),
+            child: Row(
               children: [
-                AppText(trip.driverName ?? 'Rajesh Kumar', style: AppTextStyle.subheading, fontSize: 16),
-                AppText(trip.vehicleNumber ?? 'DL 01 AB 1234', style: AppTextStyle.caption),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.primaryLight,
+                  child: const Icon(Iconsax.user, color: AppColors.primaryColor, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AppText(dName, style: AppTextStyle.body, fontWeight: FontWeight.w600),
+                      AppText("$vType - $vNum", style: AppTextStyle.caption, fontSize: 11),
+                      if (dPhone.isNotEmpty)
+                        AppText(dPhone, style: AppTextStyle.caption, fontSize: 10),
+                    ],
+                  ),
+                ),
+                if (dPhone.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Iconsax.call, color: AppColors.primaryColor, size: 20),
+                    onPressed: () => _makeCall(dPhone),
+                  ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.message_rounded, color: AppColors.primaryColor),
-            onPressed: () {},
-          ),
-        ],
-      ),
+          );
+        }).toList(),
+      ],
     );
   }
 
-  Widget _buildVerticalTimeline() {
-    return Column(
-      children: [
-        _buildTimelineStep('Start Point', 'Delhi - 08:00 AM', true, true),
-        _buildTimelineStep('Current Location', 'Gurgaon - 09:30 AM', true, false, isCurrent: true),
-        _buildTimelineStep('Pickup Point', 'Manesar - 10:15 AM', false, false),
-        _buildTimelineStep('Destination', 'Jaipur - 02:00 PM', false, false, isLast: true),
-      ],
-    );
+  Widget _buildVerticalTimeline(TripModel trip) {
+    List<Widget> children = [];
+    
+    // Pickup Point
+    children.add(_buildTimelineStep(
+      'Pickup Point', 
+      trip.pickupAddress ?? 'N/A', 
+      true, 
+      true,
+      isCurrent: false,
+    ));
+
+    // Destination Points
+    final points = trip.destinationPoints ?? [];
+    for (int i = 0; i < points.length; i++) {
+      final point = points[i];
+      final bool isLast = i == points.length - 1;
+      
+      children.add(_buildTimelineStep(
+        point['type']?.toString().capitalizeFirst ?? 'Point',
+        point['name']?.toString() ?? 'N/A',
+        false,
+        false,
+        isLast: isLast,
+        isCurrent: false,
+      ));
+    }
+
+    return Column(children: children);
   }
 
   Widget _buildTimelineStep(String title, String sub, bool isDone, bool isFirst, {bool isLast = false, bool isCurrent = false}) {
@@ -183,6 +267,38 @@ class TripTrackingScreen extends GetView<TripController> {
               ),
               AppText(sub, style: AppTextStyle.caption),
             ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapPoint(String title, String address) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primaryColor, width: 2),
+          ),
+          child: Icon(
+            title.toLowerCase() == 'pickup' ? Iconsax.location : Icons.circle, 
+            size: 16, 
+            color: AppColors.primaryColor
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 100,
+          child: AppText(
+            address, 
+            fontSize: 10, 
+            align: TextAlign.center, 
+            maxLines: 2, 
+            overflow: TextOverflow.ellipsis
           ),
         ),
       ],

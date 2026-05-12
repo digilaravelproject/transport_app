@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -41,17 +42,62 @@ class EditProfileScreen extends StatelessWidget {
 
                       return Stack(
                         children: [
-                          CircleAvatar(
-                            radius: 50,
-                            backgroundColor: AppColors.primaryLight,
-                            backgroundImage: selectedImage != null
-                                ? FileImage(selectedImage)
-                                : (logoUrl != null && logoUrl.isNotEmpty
-                                ? NetworkImage(logoUrl)
-                                : null) as ImageProvider?,
-                            child: (selectedImage == null && (logoUrl == null || logoUrl.isEmpty))
-                                ? const Icon(Iconsax.building, color: AppColors.primaryColor, size: 50)
-                                : null,
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: selectedImage != null
+                                ? ClipOval(
+                                    child: Image.file(
+                                      selectedImage,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
+                                : (logoUrl != null && logoUrl.isNotEmpty)
+                                    ? CachedNetworkImage(
+                                        imageUrl: logoUrl,
+                                        imageBuilder: (context, imageProvider) => Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: DecorationImage(
+                                              image: imageProvider,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        ),
+                                        placeholder: (context, url) => const Center(
+                                          child: SizedBox(
+                                            width: 30,
+                                            height: 30,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        ),
+                                        errorWidget: (context, url, error) => const Center(
+                                          child: Icon(
+                                            Iconsax.building,
+                                            color: AppColors.primaryColor,
+                                            size: 50,
+                                          ),
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(
+                                          Iconsax.building,
+                                          color: AppColors.primaryColor,
+                                          size: 50,
+                                        ),
+                                      ),
                           ),
                           Positioned(
                             bottom: 0,

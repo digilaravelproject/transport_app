@@ -33,6 +33,7 @@ import '../features/trips/views/trip_expense_entry_screen.dart';
 import '../features/trips/views/trip_expense_list_screen.dart';
 import '../features/trips/views/trip_invoice_screen.dart';
 import '../features/trips/views/duty_sheet_upload_screen.dart';
+import '../features/trips/views/duty_sheet_list_screen.dart';
 import '../features/trips/views/trip_status_update_screen.dart';
 import '../features/trips/views/trip_summary_screen.dart';
 import '../features/trips/controllers/trip_controller.dart';
@@ -158,6 +159,7 @@ class RouteHelper {
   static String getTripExpenseListRoute() => AppRoutes.tripExpenseList;
   static String getTripInvoiceRoute() => AppRoutes.tripInvoice;
   static String getDutySheetUploadRoute() => AppRoutes.dutySheetUpload;
+  static String getDutySheetListRoute() => AppRoutes.dutySheetList;
   static String getTripStatusUpdateRoute() => AppRoutes.tripStatusUpdate;
   static String getTripSummaryRoute() => AppRoutes.tripSummary;
 
@@ -421,6 +423,10 @@ class RouteHelper {
     GetPage(
       name: AppRoutes.dutySheetUpload,
       page: () => const DutySheetUploadScreen(),
+    ),
+    GetPage(
+      name: AppRoutes.dutySheetList,
+      page: () => const DutySheetListScreen(),
     ),
     GetPage(
       name: AppRoutes.tripStatusUpdate,

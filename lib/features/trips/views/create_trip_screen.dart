@@ -16,6 +16,8 @@ import '../../routes_management/views/location_search_screen.dart';
 import '../../../routes/route_helper.dart';
 import '../../../core/utils/app_validators.dart';
 
+import '../domain/models/trip_model.dart';
+
 class CreateTripScreen extends StatefulWidget {
   const CreateTripScreen({Key? key}) : super(key: key);
 
@@ -31,12 +33,65 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   Map<String, dynamic>? _pickupPoint;
   final List<TextEditingController> _destinationControllers = [];
   final List<Map<String, dynamic>?> _destinationPoints = [];
+  TripModel? _editTrip;
 
   @override
   void initState() {
     super.initState();
-    _destinationControllers.add(TextEditingController());
-    _destinationPoints.add(null);
+    
+    // Check for edit mode
+    if (Get.arguments != null && Get.arguments is TripModel) {
+      _editTrip = Get.arguments as TripModel;
+      _prefillData();
+    } else {
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+    }
+  }
+
+  void _prefillData() {
+    if (_editTrip == null) return;
+    
+    // Trip Info
+    controller.tripDate.value = DateTime.tryParse(_editTrip!.tripDate ?? '') ?? DateTime.now();
+    controller.dateController.text = _editTrip!.tripDate ?? '';
+    controller.durationController.text = _editTrip!.durationDays?.toString() ?? '';
+    controller.selectedTripType.value = _editTrip!.tripRoute ?? 'One Way';
+    
+    // Route Info
+    final points = _editTrip!.destinationPoints ?? [];
+    final startPoint = points.firstWhereOrNull((p) => p['type'] == 'start');
+    if (startPoint != null) {
+      _pickupPoint = startPoint;
+      controller.pickupAddressController.text = startPoint['name'];
+    }
+    
+    final otherPoints = points.where((p) => p['type'] != 'start').toList();
+    otherPoints.sort((a, b) => (a['order'] as int).compareTo(b['order'] as int));
+    
+    for (var p in otherPoints) {
+      _destinationControllers.add(TextEditingController(text: p['name']));
+      _destinationPoints.add(p);
+    }
+    
+    // If no destination points (shouldn't happen), add one empty
+    if (_destinationControllers.isEmpty) {
+      _destinationControllers.add(TextEditingController());
+      _destinationPoints.add(null);
+    }
+    
+    // Vehicle Info
+    controller.selectedVehicleTypeId.value = _editTrip!.vehicleTypeDetails?['id'] ?? 0;
+    controller.selectedVehicleType.value = _editTrip!.vehicleTypeDetails?['name'] ?? '';
+    controller.vehicleCountController.text = _editTrip!.vehicleCount.toString();
+    
+    // Customer Info
+    controller.customerNameController.text = _editTrip!.customer?['name'] ?? '';
+    controller.customerPhoneController.text = _editTrip!.customer?['contact'] ?? '';
+    
+    // Payment Info
+    controller.totalAmountController.text = _editTrip!.payment?['total']?.toString() ?? '';
+    controller.advanceAmountController.text = _editTrip!.payment?['advance']?.toString() ?? '';
   }
 
   @override
@@ -44,6 +99,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     for (var c in _destinationControllers) {
       c.dispose();
     }
+    // Clear controller fields on exit if not editing? 
+    // Actually TripController is likely shared, so we should be careful.
     super.dispose();
   }
 
@@ -82,7 +139,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(title: 'Create Trip'),
+      appBar: AppHeader(title: _editTrip != null ? 'Edit Trip' : 'Create Trip'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Form(
@@ -105,13 +162,13 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       onTap: () async {
                         final date = await showDatePicker(
                           context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime.now(),
+                          initialDate: controller.tripDate.value,
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
                           lastDate: DateTime.now().add(const Duration(days: 365)),
                         );
                         if (date != null) {
                           controller.tripDate.value = date;
-                          controller.dateController.text = '${date.day}/${date.month}/${date.year}';
+                          controller.dateController.text = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
                         }
                       },
                       validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Trip Date'),
@@ -221,16 +278,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                             validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Count'),
                           ),
                         ),
-                        // const SizedBox(width: 8),
-                        // Expanded(
-                        //   child: AppInputField(
-                        //     label: 'Capacity',
-                        //     controller: controller.seatingCapacityController,
-                        //     hint: 'e.g. 45',
-                        //     keyboardType: TextInputType.number,
-                        //     validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Capacity'),
-                        //   ),
-                        // ),
                       ],
                     ),
                   ],
@@ -249,6 +296,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       controller: controller.customerNameController,
                       hint: 'Enter customer name',
                       icon: Iconsax.user,
+                      validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Customer Name'),
                     ),
                     const SizedBox(height: 12),
                     Obx(() => AppInputField(
@@ -262,7 +310,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                         context: context,
                         selectedCode: controller.selectedCountryCode,
                       ),
-                      validator: (v) => v != null && v.isNotEmpty ? AppValidators.validateMobile(v) : null,
+                      validator: (v) => AppValidators.validateMobile(v),
                     )),
                   ],
                 ),
@@ -292,6 +340,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                             controller: controller.advanceAmountController,
                             hint: '0.00',
                             keyboardType: TextInputType.number,
+                            validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Advance Amount'),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -312,15 +361,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               ),
               
               const SizedBox(height: 24),
-              AppButton(
-                text: 'Save Trip',
+              Obx(() => AppButton(
+                text: _editTrip != null ? 'Update Trip' : 'Save Trip',
+                isLoading: controller.isLoading.value,
                 onPressed: _handleSave,
-              ),
-              const SizedBox(height: 8),
-              AppButton.outline(
-                text: 'Assign Vehicle',
-                onPressed: () => Get.toNamed(RouteHelper.getAssignVehicleRoute()),
-              ),
+              )),
               const SizedBox(height: 32),
             ],
           ),
@@ -329,7 +374,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  void _handleSave() {
+  void _handleSave() async {
     setState(() => vehicleTypeError = null);
     bool isValid = formKey.currentState!.validate();
     
@@ -346,7 +391,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       return;
     }
 
-    // Prepare points like in CreateLeadScreen
+    // Prepare points
     final List<Map<String, dynamic>> points = [];
     points.add({
       "type": "start",
@@ -367,11 +412,31 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
       });
     }
 
-    controller.destinationPoints.assignAll(points);
-    controller.routeController.text = "${_pickupPoint!['name']} to ${_destinationPoints.last!['name']}";
+    final data = {
+      "trip_date": controller.dateController.text,
+      "duration_days": int.tryParse(controller.durationController.text) ?? 1,
+      "trip_route": controller.selectedTripType.value,
+      "pickup_address": controller.pickupAddressController.text,
+      "points": points,
+      "vehicle_type": controller.selectedVehicleTypeId.value.toString(),
+      "number_of_vehicles": int.tryParse(controller.vehicleCountController.text) ?? 1,
+      "customer_name": controller.customerNameController.text,
+      "customer_contact": controller.customerPhoneController.text,
+      "total_amount": double.tryParse(controller.totalAmountController.text) ?? 0,
+      "advance_amount": double.tryParse(controller.advanceAmountController.text) ?? 0,
+    };
 
-    // For now, just go back like the original code did on success
-    Get.back();
+    bool success;
+    if (_editTrip != null) {
+      success = await controller.updateTrip(_editTrip!.id.toString(), data);
+    } else {
+      success = await controller.createTrip(data: data);
+    }
+
+    if (success) {
+      debugPrint('Update successful, navigating back...');
+      Get.back(closeOverlays: true);
+    }
   }
 
   Widget _buildDropdown(String label, RxString value, List<String> items, {String? errorText}) {

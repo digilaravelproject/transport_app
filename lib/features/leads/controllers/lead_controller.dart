@@ -4,6 +4,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
 import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/lead_model.dart';
+import '../../trips/controllers/trip_controller.dart';
 
 class LeadController extends GetxController {
   final ApiClient _apiClient = Get.find<ApiClient>();
@@ -618,6 +619,51 @@ class LeadController extends GetxController {
       print('Error fetching followups: $e');
     } finally {
       isFollowupsLoading.value = false;
+    }
+  }
+
+  Future<bool> convertToTrip(String leadId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.post(AppConstants.convertLeadToTripUrl(leadId));
+      if (response.isSuccess) {
+        CustomSnackbar.showSuccess('Lead converted to trip successfully');
+        await fetchLeadDetails(leadId);
+        fetchLeads(isRefresh: true, showLoading: false);
+        
+        // Refresh Trip List if controller is available
+        if (Get.isRegistered<TripController>()) {
+          Get.find<TripController>().fetchTrips();
+        }
+        
+        return true;
+      } else {
+        CustomSnackbar.showError(response.message);
+        return false;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error converting lead to trip: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<String?> getLeadQuotationUrl(String leadId) async {
+    isLoading.value = true;
+    try {
+      final response = await _apiClient.get(AppConstants.getLeadBillUrl(leadId));
+      if (response.isSuccess && response.json != null) {
+        return response.json!['data']?['url'];
+      } else {
+        CustomSnackbar.showError(response.message);
+        return null;
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error fetching quotation: $e');
+      return null;
+    } finally {
+      isLoading.value = false;
     }
   }
 }

@@ -43,6 +43,20 @@ class AppConstants {
   static const String profileData = 'profile_data';
   static const String isLoggedIn = 'is_logged_in';
   static const String leadsUrl = '/api/v1/leads';
+  static String convertLeadToTripUrl(dynamic id) => '/api/v1/leads/$id/convert-to-trip';
+  static String getLeadBillUrl(dynamic id) => '/api/v1/leads/$id/bill';
+  static const String tripsUrl = '/api/v1/trips';
+  static String getTripDetailsUrl(dynamic id) => '/api/v1/trips/$id';
+  static const String availableVehiclesUrl = '/api/v1/trips/vehicles/list';
+  static const String availableDriversUrl = '/api/v1/trips/drivers/list';
+  static String assignVehiclesUrl(dynamic id) => '/api/v1/trips/$id/assign-vehicles';
+  static String assignDriversUrl(dynamic id) => '/api/v1/trips/$id/assign-drivers';
+  static String updateTripUrl(dynamic id) => '/api/v1/trips/$id';
+  static String deleteTripUrl(dynamic id) => '/api/v1/trips/$id';
+  static String getTripInvoiceUrl(dynamic id) => '/api/v1/trips/$id/invoice';
+  static String removeTripVehicles(dynamic id) => '/api/v1/trips/$id/remove-vehicles';
+  static String removeTripDrivers(dynamic id) => '/api/v1/trips/$id/remove-drivers';
+  static String updateTripStatusUrl(dynamic id) => '/api/v1/trips/$id/status';
 
 
   static const String createShift = '/api/v1/shifts';

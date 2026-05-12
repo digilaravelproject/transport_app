@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -8,64 +9,133 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../controllers/trip_controller.dart';
 import '../domain/models/trip_model.dart';
+import '../../../core/widgets/app_image_preview.dart';
+import '../../../core/constants/app_constants.dart';
 
-class TripExpenseListScreen extends GetView<TripController> {
+class TripExpenseListScreen extends StatefulWidget {
   const TripExpenseListScreen({Key? key}) : super(key: key);
 
   @override
+  State<TripExpenseListScreen> createState() => _TripExpenseListScreenState();
+}
+
+class _TripExpenseListScreenState extends State<TripExpenseListScreen> {
+  final controller = Get.find<TripController>();
+  late TripModel trip;
+
+  @override
+  void initState() {
+    super.initState();
+    trip = Get.arguments ?? controller.trips.first;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchTripExpenses(trip.id.toString());
+    });
+  }
+  @override
   Widget build(BuildContext context) {
-    final TripModel trip = Get.arguments ?? controller.trips.first;
-
-    // Mock expenses
-    final expenses = [
-      {'type': 'Fuel', 'amount': 4500.0, 'date': 'Today', 'note': 'Full tank at Delhi'},
-      {'type': 'Toll', 'amount': 850.0, 'date': 'Today', 'note': 'Gurgaon Toll'},
-      {'type': 'Driver Allowance', 'amount': 1200.0, 'date': 'Yesterday', 'note': 'Night stay allowance'},
-    ];
-
     return AppScaffold(
       appBar: AppHeader(
         title: 'Trip Expenses',
-        subtitle: trip.route,
+        subtitle: trip.tripNumber ?? 'Round Trip',
       ),
-      body: Column(
-        children: [
-          _buildTotalCard(6550.0),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: expenses.length,
-              itemBuilder: (context, index) {
-                final e = expenses[index];
-                return AppCard(
-                  margin: const EdgeInsets.only(bottom: 12),
+      body: Obx(() {
+        if (controller.isLoading.value && controller.tripExpenses.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.tripExpenses.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return Column(
+          children: [
+            _buildTotalCard(controller.totalExpenseAmount),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => controller.fetchTripExpenses(trip.id.toString()),
+                child: ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      _getExpenseIcon(e['type'] as String),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  itemCount: controller.tripExpenses.length,
+                  itemBuilder: (context, index) {
+                    final e = controller.tripExpenses[index];
+                    final amount = double.tryParse(e['amount'].toString()) ?? 0.0;
+                    final category = e['category']?.toString() ?? 'Other';
+                    final note = e['description']?.toString() ?? '';
+                    final dateStr = e['entry_date']?.toString() ?? '';
+                    
+                    String displayDate = 'N/A';
+                    if (dateStr.isNotEmpty) {
+                      try {
+                        final date = DateTime.parse(dateStr);
+                        displayDate = DateFormat('dd MMM, yyyy').format(date);
+                      } catch (_) {}
+                    }
+
+                    final String path = e['receipt_path']?.toString() ?? '';
+                    final String? imageUrl = path.isEmpty 
+                        ? null 
+                        : (path.startsWith('http') ? path : "${AppConstants.imageBaseUrl}/$path");
+
+                    return AppCard(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.zero,
+                      onTap: imageUrl != null ? () => AppImagePreview.show(
+                        context, 
+                        imageUrl: imageUrl, 
+                        title: '$category Receipt',
+                      ) : null,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
                           children: [
-                            AppText(e['type'] as String, style: AppTextStyle.subheading, fontSize: 16),
-                            AppText(e['note'] as String, style: AppTextStyle.caption),
+                            _getExpenseIcon(category),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  AppText(category, style: AppTextStyle.subheading, fontSize: 16),
+                                  if (note.isNotEmpty)
+                                    AppText(note, style: AppTextStyle.caption),
+                                ],
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                AppText('₹$amount', style: AppTextStyle.body, fontWeight: FontWeight.bold, color: AppColors.errorColor),
+                                AppText(displayDate, style: AppTextStyle.caption),
+                              ],
+                            ),
+                            if (imageUrl != null) ...[
+                              const SizedBox(width: 8),
+                              const Icon(Iconsax.eye, color: AppColors.primaryColor, size: 20),
+                            ],
                           ],
                         ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          AppText('₹${e['amount']}', style: AppTextStyle.body, fontWeight: FontWeight.bold, color: AppColors.errorColor),
-                          AppText(e['date'] as String, style: AppTextStyle.caption),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Iconsax.receipt_2_1, size: 80, color: AppColors.slate300),
+          const SizedBox(height: 16),
+          AppText('No Expenses Found', style: AppTextStyle.subheading, color: AppColors.slate500),
+          const SizedBox(height: 8),
+          AppText('No expenses have been recorded for this trip yet.', 
+            style: AppTextStyle.caption, align: TextAlign.center),
         ],
       ),
     );

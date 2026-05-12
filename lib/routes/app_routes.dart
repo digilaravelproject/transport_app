@@ -28,6 +28,7 @@ class AppRoutes {
   static const String tripExpenseList = '/trip-expense-list';
   static const String tripInvoice = '/trip-invoice';
   static const String dutySheetUpload = '/duty-sheet-upload';
+  static const String dutySheetList = '/duty-sheet-list';
   static const String tripStatusUpdate = '/trip-status-update';
   static const String leadSummary = '/leadSummary';
   static const String tripSummary = '/trip-summary';

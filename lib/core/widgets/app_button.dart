@@ -17,6 +17,8 @@ class AppButton extends StatelessWidget {
   final double? fontSize;
   final FontWeight? fontWeight;
 
+  final EdgeInsetsGeometry? padding;
+
   const AppButton({
     Key? key,
     required this.text,
@@ -33,6 +35,7 @@ class AppButton extends StatelessWidget {
     this.borderSide,
     this.fontSize,
     this.fontWeight,
+    this.padding,
   }) : super(key: key);
 
   @override
@@ -54,7 +57,7 @@ class AppButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius),
             side: borderSide ?? BorderSide.none,
           ),
-          padding: EdgeInsets.symmetric(horizontal: icon != null ? 12 : 16),
+          padding: padding ?? EdgeInsets.symmetric(horizontal: icon != null ? 12 : 16),
         ),
         child: isLoading
             ? const SizedBox(
@@ -67,22 +70,21 @@ class AppButton extends StatelessWidget {
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: isFullWidth ? MainAxisSize.max : MainAxisSize.min,
                 children: [
                   if (icon != null) ...[
                     icon!,
                     const SizedBox(width: 8),
                   ],
-                  Flexible(
-                    child: Text(
-                      text,
-                      style: TextStyle(
-                        fontSize: fontSize ?? 16,
-                        fontWeight: fontWeight ?? FontWeight.w600,
-                        color: effectiveTextColor,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
+                  Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: fontSize ?? 16,
+                      fontWeight: fontWeight ?? FontWeight.w600,
+                      color: effectiveTextColor,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ],
               ),

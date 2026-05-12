@@ -10,95 +10,152 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_status_chip.dart';
 import '../controllers/trip_controller.dart';
 
-class AssignVehicleScreen extends GetView<TripController> {
+class AssignVehicleScreen extends StatefulWidget {
   const AssignVehicleScreen({Key? key}) : super(key: key);
 
   @override
+  State<AssignVehicleScreen> createState() => _AssignVehicleScreenState();
+}
+
+class _AssignVehicleScreenState extends State<AssignVehicleScreen> {
+  final controller = Get.find<TripController>();
+  late String tripId;
+  final selectedIds = <int>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    tripId = Get.arguments.toString();
+    controller.fetchAvailableVehicles();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Mock vehicles for selection
-    final vehicles = [
-      {'no': 'DL 01 AB 1234', 'type': 'Luxury Bus', 'capacity': '45 Seater', 'status': 'Available'},
-      {'no': 'DL 01 CD 5678', 'type': 'Mini Bus', 'capacity': '25 Seater', 'status': 'Available'},
-      {'no': 'HR 55 XY 9012', 'type': 'Luxury Bus', 'capacity': '45 Seater', 'status': 'On Trip'},
-      {'no': 'UP 14 ZE 3456', 'type': 'Innova', 'capacity': '7 Seater', 'status': 'Available'},
-    ];
+    final trip = controller.selectedTrip.value;
+    final maxAllowed = trip != null ? trip.vehicleCount - trip.assignedVehicles.length : 1;
 
     return AppScaffold(
-      appBar: const AppHeader(title: 'Assign Vehicle'),
+      appBar: const AppHeader(title: 'Assign Vehicles'),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search vehicle number or type...',
-                prefixIcon: const Icon(Iconsax.search_normal),
-                filled: true,
-                fillColor: AppColors.slate50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppText('Select up to $maxAllowed vehicles', style: AppTextStyle.caption, color: AppColors.primaryColor),
+                const SizedBox(height: 12),
+                TextField(
+                  onChanged: (v) {
+                    // TODO: Implement local search
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search vehicle number or type...',
+                    prefixIcon: const Icon(Iconsax.search_normal),
+                    filled: true,
+                    fillColor: AppColors.slate50,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: vehicles.length,
-              itemBuilder: (context, index) {
-                final v = vehicles[index];
-                final bool isAvailable = v['status'] == 'Available';
-                
-                return AppCard(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          v['type'] == 'Innova' ? Icons.directions_car_rounded : Iconsax.bus,
-                          color: AppColors.primaryColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            AppText(v['no']!, style: AppTextStyle.subheading, fontSize: 16),
-                            AppText('${v['type']} • ${v['capacity']}', style: AppTextStyle.caption),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+            child: Obx(() {
+              if (controller.isLoading.value && controller.availableVehicles.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (controller.availableVehicles.isEmpty) {
+                return const Center(child: AppText('No available vehicles found'));
+              }
+
+              return ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: controller.availableVehicles.length,
+                itemBuilder: (context, index) {
+                  final v = controller.availableVehicles[index];
+                  final bool isAvailable = v['status'] == 'available';
+                  final int id = int.tryParse(v['id'].toString()) ?? 0;
+                  
+                  return Obx(() {
+                    final isSelected = selectedIds.contains(id);
+                    return AppCard(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      onTap: isAvailable ? () {
+                        if (isSelected) {
+                          selectedIds.remove(id);
+                        } else {
+                          if (selectedIds.length < maxAllowed) {
+                            selectedIds.add(id);
+                          } else {
+                            Get.snackbar(
+                              'Limit Reached', 
+                              'You can only select up to $maxAllowed vehicles.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                          }
+                        }
+                      } : null,
+                      child: Row(
                         children: [
-                          AppStatusChip(status: v['status']!),
-                          const SizedBox(height: 8),
-                          if (isAvailable)
-                            AppButton(
-                              text: 'Assign',
-                              width: 70,
-                              height: 30,
-                              fontSize: 12,
-                              onPressed: () => Get.back(),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.primaryColor : AppColors.primaryLight,
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            child: Icon(
+                              Iconsax.bus,
+                              color: isSelected ? Colors.white : AppColors.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                AppText(v['registration_number'] ?? 'N/A', style: AppTextStyle.subheading, fontSize: 16),
+                                AppText('${v['type']} • ${v['seating_capacity']} Seats', style: AppTextStyle.caption),
+                              ],
+                            ),
+                          ),
+                          if (isAvailable)
+                            Icon(
+                              isSelected ? Iconsax.tick_circle5 : Iconsax.add_circle,
+                              color: isSelected ? AppColors.primaryColor : AppColors.slate300,
+                            )
+                          else
+                            AppStatusChip(status: v['status'].toString().capitalizeFirst!),
                         ],
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                    );
+                  });
+                },
+              );
+            }),
           ),
         ],
       ),
+      bottomNavigationBar: Obx(() => Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: AppButton(
+          text: selectedIds.isEmpty ? 'Select Vehicles' : 'Assign ${selectedIds.length} Vehicles',
+          isLoading: controller.isAssigning.value,
+          onPressed: selectedIds.isEmpty ? null : () async {
+            final success = await controller.assignVehicles(tripId, selectedIds);
+            if (success) {
+              Get.back(closeOverlays: true);
+            }
+          },
+        ),
+      )),
     );
   }
 }

@@ -12,6 +12,7 @@ import '../../../routes/route_helper.dart';
 import '../controllers/vehicle_controller.dart';
 import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 
 class VehicleListScreen extends GetView<VehicleController> {
@@ -81,8 +82,8 @@ class VehicleListScreen extends GetView<VehicleController> {
                         const SizedBox(width: 4),
                         AppText(
                           controller.activeFiltersCount > 0 
-                              ? 'Filter (${controller.activeFiltersCount})' 
-                              : 'Filter',
+                              ? '${AppTextConstants.filter.tr} (${controller.activeFiltersCount})' 
+                              : AppTextConstants.filter.tr,
                           color: controller.activeFiltersCount > 0 ? AppColors.primaryColor : AppColors.textColorPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600
@@ -110,20 +111,20 @@ class VehicleListScreen extends GetView<VehicleController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header Title
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AppText(
-                            'Vehicles Dashboard',
+                            AppTextConstants.vehiclesDashboard.tr,
                             style: AppTextStyle.heading,
                             fontSize: 28,
                             color: AppColors.textColorPrimary,
                           ),
                           SizedBox(height: 4),
                           AppText(
-                            'Manage and monitor your entire fleet',
+                            AppTextConstants.manageMonitorFleet.tr,
                             style: AppTextStyle.body,
                             color: AppColors.textColorSecondary,
                           ),
@@ -139,7 +140,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                             children: [
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Total',
+                                  title: AppTextConstants.total.tr,
                                   value: controller.totalVehicles.value.toString(),
                                   color: const Color(0xFF3B82F6),
                                   icon: Iconsax.bus,
@@ -148,7 +149,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Active',
+                                  title: AppTextConstants.active.tr,
                                   value: controller.activeVehicles.value.toString(),
                                   color: const Color(0xFF10B981),
                                   icon: Iconsax.tick_circle5,
@@ -157,7 +158,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Service',
+                                  title: AppTextConstants.service.tr,
                                   value: controller.serviceVehicles.value.toString(),
                                   color: const Color(0xFFF59E0B),
                                   icon: Iconsax.setting_25,
@@ -172,7 +173,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: AppSearchBar(
-                        hint: 'Search vehicle number or type...',
+                        hint: AppTextConstants.searchVehicleHint.tr,
                         onChanged: controller.updateSearch,
                       ),
                     ),
@@ -185,15 +186,15 @@ class VehicleListScreen extends GetView<VehicleController> {
                           child: Row(
                             children: [
                               AppFilterChip(
-                                  label: 'All',
+                                  label: AppTextConstants.all.tr,
                                   isSelected: controller.selectedFilter.value == 'All',
                                   onTap: () => controller.setFilter('All')),
                               AppFilterChip(
-                                  label: 'Active',
+                                  label: AppTextConstants.active.tr,
                                   isSelected: controller.selectedFilter.value == 'Active',
                                   onTap: () => controller.setFilter('Active')),
                               AppFilterChip(
-                                  label: 'Maintenance',
+                                  label: AppTextConstants.maintenance.tr,
                                   isSelected: controller.selectedFilter.value == 'Maintenance',
                                   onTap: () => controller.setFilter('Maintenance')),
                             ],
@@ -216,10 +217,10 @@ class VehicleListScreen extends GetView<VehicleController> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: AppEmptyState(
-                            title: isSearchingOrFiltering ? 'No Results Found' : 'No Vehicles Found',
+                            title: isSearchingOrFiltering ? AppTextConstants.noResultsFound.tr : AppTextConstants.noVehiclesFound.tr,
                             subtitle: isSearchingOrFiltering 
-                                ? 'No vehicles match your search or filter criteria.'
-                                : 'Start by adding a new vehicle to your fleet.',
+                                ? AppTextConstants.noResultsFound.tr
+                                : AppTextConstants.startAddingVehicle.tr,
                             icon: isSearchingOrFiltering ? Iconsax.search_status : Iconsax.bus,
                             actionLabel: null,
                             onActionPressed: null,
@@ -268,20 +269,20 @@ class VehicleListScreen extends GetView<VehicleController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const AppText('Filter Vehicles',
+                AppText(AppTextConstants.filterVehicles.tr,
                     style: AppTextStyle.subheading, fontSize: 18, fontWeight: FontWeight.bold),
                 TextButton(
                   onPressed: () {
                     controller.resetFilters();
                     Get.back();
                   },
-                  child: const AppText('Reset',
+                  child: AppText(AppTextConstants.reset.tr,
                       color: AppColors.errorColor, fontWeight: FontWeight.w600, fontSize: 14),
                 ),
               ],
             ),
             const SizedBox(height: 24),
-            const AppText('Vehicle Type',
+            AppText(AppTextConstants.vehicleType.tr,
                 style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
             const SizedBox(height: 12),
             Obx(() {
@@ -305,7 +306,7 @@ class VehicleListScreen extends GetView<VehicleController> {
               );
             }),
             const SizedBox(height: 24),
-            const AppText('Seating Capacity',
+            AppText(AppTextConstants.seatingCapacity.tr,
                 style: AppTextStyle.body, fontWeight: FontWeight.bold, fontSize: 15),
             const SizedBox(height: 12),
             Obx(() => Wrap(
@@ -322,7 +323,7 @@ class VehicleListScreen extends GetView<VehicleController> {
                 )),
             const SizedBox(height: 32),
             Obx(() => AppButton(
-              text: 'Apply Filters',
+              text: AppTextConstants.applyFilters.tr,
               isLoading: controller.isLoading.value,
               onPressed: () async {
                 await controller.fetchVehicles();
@@ -368,7 +369,7 @@ class _VehicleCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     AppText(
-                      'Model Year: ${vehicle.modelYear ?? vehicle.year} • ${vehicle.capacity} Seats',
+                      '${AppTextConstants.modelYear.tr}: ${vehicle.modelYear ?? vehicle.year} • ${vehicle.capacity} ${AppTextConstants.seats.tr}',
                       style: AppTextStyle.caption,
                       color: AppColors.textColorSecondary,
                     ),
@@ -378,7 +379,7 @@ class _VehicleCard extends StatelessWidget {
               InkWell(
                 onTap: () => _showStatusPicker(context, vehicle),
                 borderRadius: BorderRadius.circular(20),
-                child: AppStatusChip(status: vehicle.status.name.capitalizeFirst!, fontSize: 10),
+                child: AppStatusChip(status: vehicle.status.name, fontSize: 10),
               ),
             ],
           ),
@@ -397,7 +398,7 @@ class _VehicleCard extends StatelessWidget {
             if (expiries.isEmpty) {
               return Row(
                 children: [
-                  _buildInfoColumn('Next Expiry', 'N/A', Iconsax.calendar, AppColors.textColorHint),
+                  _buildInfoColumn(AppTextConstants.nextExpiry.tr, 'N/A', Iconsax.calendar, AppColors.textColorHint),
                 ],
               );
             }
@@ -412,9 +413,9 @@ class _VehicleCard extends StatelessWidget {
             return Row(
               children: [
                 _buildInfoColumn(
-                  '${next['name']} ${isExpired ? 'Expired' : 'Expiry'}',
+                  '${next['name']} ${isExpired ? AppTextConstants.expired.tr : AppTextConstants.expiry.tr}',
                   isExpired 
-                      ? '${nextDate.day}/${nextDate.month}/${nextDate.year} (Expired)'
+                      ? '${nextDate.day}/${nextDate.month}/${nextDate.year} (${AppTextConstants.expired.tr})'
                       : '${nextDate.day}/${nextDate.month}/${nextDate.year} ($daysLeft days left)',
                   Iconsax.calendar_tick,
                   isExpired ? AppColors.errorColor : (daysLeft < 30 ? AppColors.warningColor : AppColors.successColor),
@@ -429,7 +430,7 @@ class _VehicleCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               AppButton.outline(
-                text: 'Edit',
+                text: AppTextConstants.edit.tr,
                 width: 80,
                 height: 32,
                 fontSize: 12,
@@ -456,7 +457,7 @@ class _VehicleCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppText('Change Vehicle Status',
+            AppText(AppTextConstants.changeVehicleStatus.tr,
                 style: AppTextStyle.subheading, fontSize: 18, fontWeight: FontWeight.bold),
             const SizedBox(height: 8),
             AppText('For ${vehicle.vehicleNumber}',
@@ -482,7 +483,7 @@ class _VehicleCard extends StatelessWidget {
                   ),
                   child: Row(
                     children: [
-                      AppStatusChip(status: status.name.capitalizeFirst!, fontSize: 13),
+                      AppStatusChip(status: status.name, fontSize: 13),
                       const Spacer(),
                       if (isSelected)
                         const Icon(Iconsax.tick_circle5, color: Colors.green, size: 22),

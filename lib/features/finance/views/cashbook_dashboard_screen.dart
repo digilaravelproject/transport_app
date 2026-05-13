@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -19,8 +20,8 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Cashbook',
+      appBar: AppHeader(
+        title: AppTextConstants.cashbook.tr,
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -53,13 +54,13 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const AppText('Recent Transactions', style: AppTextStyle.subheading),
+                    AppText(AppTextConstants.recentTransactions.tr, style: AppTextStyle.subheading),
                     TextButton(
                       onPressed: () {
                         Get.toNamed(RouteHelper.getPaymentHistoryRoute());
                       },
-                      child: const AppText(
-                        'View All',
+                      child: AppText(
+                        AppTextConstants.viewAll.tr,
                         style: AppTextStyle.caption,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.bold,
@@ -83,9 +84,9 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
       final recentTransactions = controller.recentTransactions;
       
       if (recentTransactions.isEmpty) {
-        return const AppEmptyState(
-          title: 'No Transactions Yet',
-          subtitle: 'Start by adding your first income or expense to track your cash flow.',
+        return AppEmptyState(
+          title: AppTextConstants.noTransactionsYet.tr,
+          subtitle: AppTextConstants.startAddingTransaction.tr,
           icon: Iconsax.receipt_item,
         );
       }
@@ -114,7 +115,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const AppText('Current Balance', style: AppTextStyle.caption, color: Colors.white70),
+                    AppText(AppTextConstants.currentBalance.tr, style: AppTextStyle.caption, color: Colors.white70),
                     const SizedBox(height: 4),
                     AppText('\u20B9 ${controller.currentBalance.toStringAsFixed(2)}', 
                         style: AppTextStyle.heading, fontSize: 28, color: Colors.white),
@@ -147,7 +148,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const AppText('Total In', style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
+                            AppText(AppTextConstants.totalIn.tr, style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
                             AppText('\u20B9 ${controller.totalIncome.toStringAsFixed(0)}', 
                                 style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
                           ],
@@ -165,7 +166,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const AppText('Total Out', style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
+                            AppText(AppTextConstants.totalOut.tr, style: AppTextStyle.caption, color: Colors.white70, fontSize: 10),
                             AppText('\u20B9 ${controller.totalExpense.toStringAsFixed(0)}', 
                                 style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
                           ],
@@ -187,7 +188,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
       children: [
         Expanded(
           child: AppButton(
-            text: 'Cash In',
+            text: AppTextConstants.cashIn.tr,
             color: AppColors.successColor,
             icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white, size: 20),
             onPressed: () => Get.toNamed(RouteHelper.getCashInEntryRoute()),
@@ -196,7 +197,7 @@ class CashbookDashboardScreen extends GetView<FinanceController> {
         const SizedBox(width: 16),
         Expanded(
           child: AppButton(
-            text: 'Cash Out',
+            text: AppTextConstants.cashOut.tr,
             color: AppColors.errorColor,
             icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.white, size: 20),
             onPressed: () => Get.toNamed(RouteHelper.getCashOutEntryRoute()),

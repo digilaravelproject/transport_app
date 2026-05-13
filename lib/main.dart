@@ -8,6 +8,8 @@ import 'core/utils/custom_snackbar.dart';
 import 'init_app.dart';
 import 'routes/route_helper.dart';
 import 'core/bindings/initial_bindings.dart';
+import 'core/services/translations/localization_controller.dart';
+import 'core/services/translations/messages.dart';
 
 void main() async {
   await initApp();
@@ -19,12 +21,18 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizationController = Get.find<LocalizationController>();
+    final Map<String, Map<String, String>> languages = Get.find(tag: 'languages');
+
     return GetMaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       navigatorKey: Get.key,
       initialBinding: InitialBindings(),
       scaffoldMessengerKey: CustomSnackbar.messengerKey,
+      translations: Messages(languages: languages),
+      locale: localizationController.locale,
+      fallbackLocale: const Locale('en', 'US'),
       theme: lightTheme,
       themeMode: ThemeMode.light,
       initialRoute: RouteHelper.getSplashRoute(),

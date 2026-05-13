@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_constants.dart';
@@ -22,15 +23,15 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Reports & Analytics',
+      appBar: AppHeader(
+        title: AppTextConstants.reportsAnalytics.tr,
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         onPressed: () => _showGenerateReportBottomSheet(context),
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Iconsax.add, color: Colors.white),
-        label: const AppText('Generate Report', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+        label: AppText(AppTextConstants.generateReport.tr, style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -42,7 +43,7 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText('Generate Specific Reports', style: AppTextStyle.subheading),
+                AppText(AppTextConstants.generateSpecificReports.tr, style: AppTextStyle.subheading),
               ],
             ),
             const SizedBox(height: 12),
@@ -51,17 +52,17 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                AppText('Recent Reports', style: AppTextStyle.subheading),
+                AppText(AppTextConstants.recentReports.tr, style: AppTextStyle.subheading),
                 TextButton(
                   onPressed: () => Get.toNamed(RouteHelper.getAllReportsRoute()),
-                  child: const AppText('View All', style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                  child: AppText(AppTextConstants.viewAll.tr, style: AppTextStyle.caption, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Obx(() {
               if (controller.recentReports.isEmpty) {
-                return const Center(child: AppText('No recent reports.'));
+                return Center(child: AppText(AppTextConstants.noRecentReports.tr));
               }
               return ListView.builder(
                 shrinkWrap: true,
@@ -90,25 +91,25 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
         childAspectRatio: 1.5,
         children: [
           _buildMetricCard(
-            'Total Trips (M)',
+            AppTextConstants.totalTripsMonth.tr,
             '${controller.totalTripsThisMonth}',
             Icons.route_outlined,
             AppColors.primaryColor,
           ),
           _buildMetricCard(
-            'Revenue (M)',
+            AppTextConstants.revenueMonth.tr,
             '\u20B9 ${(controller.totalRevenueThisMonth.value / 1000).toStringAsFixed(1)}k',
             Iconsax.card,
             AppColors.successColor,
           ),
           _buildMetricCard(
-            'Active Vehicles',
+            AppTextConstants.activeVehicles.tr,
             '${controller.activeVehiclesCount}',
             Iconsax.bus,
             AppColors.warningColor,
           ),
           _buildMetricCard(
-            'Active Drivers',
+            AppTextConstants.activeDrivers.tr,
             '${controller.activeDriversCount}',
             Icons.group_outlined,
             AppColors.infoColor,
@@ -144,23 +145,23 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
       children: [
         Row(
           children: [
-            Expanded(child: _buildCategoryCard('Trip Reports', Icons.commute_outlined, () => Get.toNamed(RouteHelper.getTripReportsRoute()))),
+            Expanded(child: _buildCategoryCard(AppTextConstants.tripReports.tr, Icons.commute_outlined, () => Get.toNamed(RouteHelper.getTripReportsRoute()))),
             const SizedBox(width: 16),
-            Expanded(child: _buildCategoryCard('Financial Reports', Iconsax.empty_wallet, () => Get.toNamed(RouteHelper.getFinancialReportsRoute()))),
+            Expanded(child: _buildCategoryCard(AppTextConstants.financialReports.tr, Iconsax.empty_wallet, () => Get.toNamed(RouteHelper.getFinancialReportsRoute()))),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildCategoryCard('Vehicle Reports', Icons.local_shipping_outlined, () => Get.toNamed(RouteHelper.getVehicleReportsRoute()))),
+            Expanded(child: _buildCategoryCard(AppTextConstants.vehicleReports.tr, Icons.local_shipping_outlined, () => Get.toNamed(RouteHelper.getVehicleReportsRoute()))),
             const SizedBox(width: 16),
-            Expanded(child: _buildCategoryCard('Staff Reports', Icons.badge_outlined, () => Get.toNamed(RouteHelper.getStaffReportsRoute()))),
+            Expanded(child: _buildCategoryCard(AppTextConstants.staffReports.tr, Icons.badge_outlined, () => Get.toNamed(RouteHelper.getStaffReportsRoute()))),
           ],
         ),
         const SizedBox(height: 16),
         Row(
           children: [
-            Expanded(child: _buildCategoryCard('Profit / Loss', Iconsax.chart_2, () => Get.toNamed(RouteHelper.getProfitLossReportRoute()))),
+            Expanded(child: _buildCategoryCard(AppTextConstants.profitLoss.tr, Iconsax.chart_2, () => Get.toNamed(RouteHelper.getProfitLossReportRoute()))),
             const SizedBox(width: 16),
             const Spacer(),
           ],
@@ -235,7 +236,7 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
-      Get.snackbar('Error', 'Could not open report');
+      Get.snackbar(AppTextConstants.error.tr, 'Could not open report');
     }
   }
 
@@ -247,7 +248,7 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
       await launchUrl(url, mode: LaunchMode.externalApplication);
       Get.snackbar('Downloading', 'Report download started...', snackPosition: SnackPosition.BOTTOM);
     } else {
-      Get.snackbar('Error', 'Could not download report');
+      Get.snackbar(AppTextConstants.error.tr, 'Could not download report');
     }
   }
 
@@ -280,23 +281,23 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const AppText('Generate Report', style: AppTextStyle.subheading, fontSize: 20),
+                    AppText(AppTextConstants.generateReport.tr, style: AppTextStyle.subheading, fontSize: 20),
                     IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
                   ],
                 ),
                 const SizedBox(height: 24),
                 AppInputField(
-                  label: 'Report Name',
-                  hint: 'Enter report name',
+                  label: AppTextConstants.reportName.tr,
+                  hint: AppTextConstants.enterReportName.tr,
                   controller: nameController,
-                  validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Report Name'),
+                  validator: (v) => AppValidators.validateEmpty(v, fieldName: AppTextConstants.reportName.tr),
                 ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
                       child: _buildDropdown(
-                        'Report Type',
+                        AppTextConstants.reportType.tr,
                         selectedType,
                         ['Financial', 'Operational', 'Compliance', 'Performance'],
                       ),
@@ -304,7 +305,7 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildDropdown(
-                        'Format',
+                        AppTextConstants.format.tr,
                         selectedFormat,
                         ['pdf', 'csv', 'excel'],
                       ),
@@ -316,7 +317,7 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
                   children: [
                     Expanded(
                       child: AppInputField(
-                        label: 'From Date',
+                        label: AppTextConstants.fromDate.tr,
                         hint: 'YYYY-MM-DD',
                         controller: fromDateController,
                         readOnly: true,
@@ -333,13 +334,13 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
                             fromDateController.text = DateFormat('yyyy-MM-dd').format(date);
                           }
                         },
-                        validator: (v) => AppValidators.validateEmpty(v, fieldName: 'From Date'),
+                        validator: (v) => AppValidators.validateEmpty(v, fieldName: AppTextConstants.fromDate.tr),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: AppInputField(
-                        label: 'To Date',
+                        label: AppTextConstants.toDate.tr,
                         hint: 'YYYY-MM-DD',
                         controller: toDateController,
                         readOnly: true,
@@ -356,14 +357,14 @@ class ReportsDashboardScreen extends GetView<ReportsController> {
                             toDateController.text = DateFormat('yyyy-MM-dd').format(date);
                           }
                         },
-                        validator: (v) => AppValidators.validateEmpty(v, fieldName: 'To Date'),
+                        validator: (v) => AppValidators.validateEmpty(v, fieldName: AppTextConstants.toDate.tr),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 32),
                 Obx(() => AppButton(
-                  text: 'Generate Report',
+                  text: AppTextConstants.generateReport.tr,
                   isLoading: controller.isLoading.value,
                   onPressed: () async {
                     if (formKey.currentState!.validate()) {

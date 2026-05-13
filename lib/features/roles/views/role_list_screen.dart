@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -27,9 +28,9 @@ class RoleListScreen extends GetView<RoleController> {
 
     return AppScaffold(
       useScaffold: false,
-      appBar: const AppHeader(
-        title: 'Roles & Permissions',
-        subtitle: 'Manage agency access levels',
+      appBar: AppHeader(
+        title: AppTextConstants.rolesPermissions.tr,
+        subtitle: AppTextConstants.manageAgencyAccess.tr,
       ),
       floatingActionButton: FloatingActionButton(heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getAddRoleRoute()),
@@ -41,7 +42,7 @@ class RoleListScreen extends GetView<RoleController> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: AppSearchBar(
-              hint: 'Search roles...',
+              hint: AppTextConstants.searchRolesHint.tr,
               onChanged: (val) => controller.searchQuery.value = val,
             ),
           ),
@@ -53,17 +54,17 @@ class RoleListScreen extends GetView<RoleController> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
                 AppFilterChip(
-                  label: 'All',
+                  label: AppTextConstants.all.tr,
                   isSelected: controller.selectedFilter.value == 'All',
                   onTap: () => controller.selectedFilter.value = 'All',
                 ),
                 AppFilterChip(
-                  label: 'Active',
+                  label: AppTextConstants.active.tr,
                   isSelected: controller.selectedFilter.value == 'Active',
                   onTap: () => controller.selectedFilter.value = 'Active',
                 ),
                 AppFilterChip(
-                  label: 'Inactive',
+                  label: AppTextConstants.inactive.tr,
                   isSelected: controller.selectedFilter.value == 'Inactive',
                   onTap: () => controller.selectedFilter.value = 'Inactive',
                 ),
@@ -82,12 +83,12 @@ class RoleListScreen extends GetView<RoleController> {
               }
               if (controller.filteredRoles.isEmpty) {
                 return AppEmptyState(
-                  title: controller.searchQuery.value.isNotEmpty ? 'No Matching Roles' : 'No Roles Found',
+                  title: controller.searchQuery.value.isNotEmpty ? AppTextConstants.noResultsFound.tr : AppTextConstants.noResultsFound.tr,
                   subtitle: controller.searchQuery.value.isNotEmpty 
-                      ? 'We couldn\'t find any roles matching "${controller.searchQuery.value}"'
-                      : 'Manage your agency access levels by adding your first role.',
+                      ? '${AppTextConstants.noResultsFound.tr} "${controller.searchQuery.value}"'
+                      : AppTextConstants.manageAgencyAccess.tr,
                   icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.shield_tick,
-                  actionLabel: controller.searchQuery.value.isNotEmpty ? null : 'Add New Role',
+                  actionLabel: controller.searchQuery.value.isNotEmpty ? null : AppTextConstants.add.tr,
                   onActionPressed: controller.searchQuery.value.isNotEmpty 
                       ? null 
                       : () => Get.toNamed(RouteHelper.getAddRoleRoute()),
@@ -150,7 +151,7 @@ class _RoleCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         AppText(role.roleName, style: AppTextStyle.subheading, fontSize: 16),
-                        AppStatusChip(status: role.isActive ? 'Active' : 'Inactive'),
+                        AppStatusChip(status: role.isActive ? 'active' : 'inactive'),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -163,7 +164,7 @@ class _RoleCard extends StatelessWidget {
           const Divider(height: 24, thickness: 0.5, color: AppColors.borderColor),
           Row(
             children: [
-              const AppText('Access: ', style: AppTextStyle.caption, color: AppColors.textColorHint),
+              AppText('${AppTextConstants.access.tr}: ', style: AppTextStyle.caption, color: AppColors.textColorHint),
               Expanded(
                 child: Wrap(
                   spacing: 6,

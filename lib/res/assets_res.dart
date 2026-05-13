@@ -12,4 +12,6 @@ class AssetsRes {
   static const String INTRO_2_V2 = 'assets/images/intro_2_v2.png';
   static const String INTRO_3_V2 = 'assets/images/intro_3_v2.png';
   static const String INTRO_4_V2 = 'assets/images/intro_4_v2.png';
+  static const String GU_IN = 'assets/translations/gu_IN.json';
+  static const String MR_IN = 'assets/translations/mr_IN.json';
 }

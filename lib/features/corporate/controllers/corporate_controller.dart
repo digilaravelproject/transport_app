@@ -5,6 +5,7 @@ import '../../../core/utils/custom_snackbar.dart';
 import '../domain/models/company_model.dart';
 import '../domain/models/corporate_contract_request_model.dart';
 import '../domain/repositories/corporate_repository.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class CorporateController extends GetxController {
   final CorporateRepository _repository = CorporateRepositoryImpl(Get.find<ApiClient>());
@@ -100,11 +101,11 @@ class CorporateController extends GetxController {
           }
         }
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to load vendors');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToLoadVendors.tr);
       }
     } catch (e) {
       print('Error loading vendors: $e');
-      CustomSnackbar.showError('Error loading vendors');
+      CustomSnackbar.showError(AppTextConstants.errorLoadingVendors.tr);
     } finally {
       isLoading.value = false;
       isMoreLoading.value = false;
@@ -136,11 +137,11 @@ class CorporateController extends GetxController {
           billingHistory.assignAll(List<Map<String, dynamic>>.from(data['billing_history']));
         }
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to load vendor details');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToLoadVendorDetails.tr);
       }
     } catch (e) {
       print('Error loading vendor details: $e');
-      CustomSnackbar.showError('Error loading vendor details');
+      CustomSnackbar.showError(AppTextConstants.errorLoadingVendorDetails.tr);
     } finally {
       isDetailsLoading.value = false;
     }
@@ -165,11 +166,11 @@ class CorporateController extends GetxController {
         final List<dynamic> data = response.body is List ? response.body : [];
         availableVehicles.assignAll(List<Map<String, dynamic>>.from(data));
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to load available vehicles');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToLoadAvailableVehicles.tr);
       }
     } catch (e) {
       print('Error loading available vehicles: $e');
-      CustomSnackbar.showError('Error loading available vehicles');
+      CustomSnackbar.showError(AppTextConstants.errorLoadingAvailableVehicles.tr);
     } finally {
       isAvailableVehiclesLoading.value = false;
     }
@@ -194,11 +195,11 @@ class CorporateController extends GetxController {
         final List<dynamic> data = response.body is List ? response.body : [];
         availableDrivers.assignAll(List<Map<String, dynamic>>.from(data));
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to load available drivers');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToLoadAvailableDrivers.tr);
       }
     } catch (e) {
       print('Error loading available drivers: $e');
-      CustomSnackbar.showError('Error loading available drivers');
+      CustomSnackbar.showError(AppTextConstants.errorLoadingAvailableDrivers.tr);
     } finally {
       isAvailableDriversLoading.value = false;
     }
@@ -210,15 +211,15 @@ class CorporateController extends GetxController {
       final response = await _repository.assignDrivers(vendorId, staffIds);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Drivers assigned successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.driversAssignedSuccessfully.tr);
         return true;
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to assign drivers');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToAssignDrivers.tr);
         return false;
       }
     } catch (e) {
       print('Error assigning drivers: $e');
-      CustomSnackbar.showError('Error assigning drivers');
+      CustomSnackbar.showError(AppTextConstants.errorAssigningDrivers.tr);
       return false;
     } finally {
       isLoading.value = false;
@@ -231,14 +232,14 @@ class CorporateController extends GetxController {
       final response = await _repository.removeDriver(vendorId, driverId);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Driver removed successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.driverRemovedSuccessfully.tr);
         loadVendorDetails(vendorId); // Refresh details list
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to remove driver');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToRemoveDriver.tr);
       }
     } catch (e) {
       print('Error removing driver: $e');
-      CustomSnackbar.showError('Error removing driver');
+      CustomSnackbar.showError(AppTextConstants.errorRemovingDriver.tr);
     } finally {
       isLoading.value = false;
     }
@@ -260,15 +261,15 @@ class CorporateController extends GetxController {
       final response = await _repository.assignVehicles(vendorId, vehicleIds);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Vehicles assigned successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.vehiclesAssignedSuccessfully.tr);
         return true;
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to assign vehicles');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToAssignVehicles.tr);
         return false;
       }
     } catch (e) {
       print('Error assigning vehicles: $e');
-      CustomSnackbar.showError('Error assigning vehicles');
+      CustomSnackbar.showError(AppTextConstants.errorAssigningVehicles.tr);
       return false;
     } finally {
       isLoading.value = false;
@@ -281,14 +282,14 @@ class CorporateController extends GetxController {
       final response = await _repository.removeVehicle(vendorId, vehicleId);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Vehicle removed successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.vehicleRemovedSuccessfully.tr);
         loadVendorDetails(vendorId); // Refresh details list
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to remove vehicle');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToRemoveVehicle.tr);
       }
     } catch (e) {
       print('Error removing vehicle: $e');
-      CustomSnackbar.showError('Error removing vehicle');
+      CustomSnackbar.showError(AppTextConstants.errorRemovingVehicle.tr);
     } finally {
       isLoading.value = false;
     }
@@ -300,16 +301,16 @@ class CorporateController extends GetxController {
       final response = await _repository.addVendorBill(vendorId, body, files);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Bill added successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.billAddedSuccessfully.tr);
         loadVendorDetails(vendorId); // Refresh details and billing history
         return true;
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to add bill');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToAddBill.tr);
         return false;
       }
     } catch (e) {
       print('Error adding bill: $e');
-      CustomSnackbar.showError('Error adding bill');
+      CustomSnackbar.showError(AppTextConstants.errorAddingBill.tr);
       return false;
     } finally {
       isLoading.value = false;
@@ -332,10 +333,10 @@ class CorporateController extends GetxController {
       final response = await _repository.createContract(request);
       
       if (response.isSuccess) {
-        CustomSnackbar.showSuccess(response.message ?? 'Contract created successfully');
+        CustomSnackbar.showSuccess(response.message ?? AppTextConstants.contractCreatedSuccessfully.tr);
         return true;
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to create contract');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToCreateContract.tr);
         return false;
       }
     } catch (e) {
@@ -372,14 +373,14 @@ class CorporateController extends GetxController {
             status: newStatus ? '1' : '0',
           );
           _companies.refresh();
-          CustomSnackbar.showSuccess(response.message ?? 'Status updated successfully');
+          CustomSnackbar.showSuccess(response.message ?? AppTextConstants.statusUpdatedSuccessfully.tr);
         }
       } else {
-        CustomSnackbar.showError(response.message ?? 'Failed to update status');
+        CustomSnackbar.showError(response.message ?? AppTextConstants.failedToUpdateStatus.tr);
       }
     } catch (e) {
       print('Error toggling status: $e');
-      CustomSnackbar.showError('Error updating status');
+      CustomSnackbar.showError(AppTextConstants.errorUpdatingStatus.tr);
     } finally {
       isLoading.value = false;
     }

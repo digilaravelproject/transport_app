@@ -8,6 +8,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_search_bar.dart';
 import '../../../core/widgets/app_text.dart';
 import '../controllers/corporate_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class AssignDriverToContractScreen extends StatefulWidget {
   const AssignDriverToContractScreen({Key? key}) : super(key: key);
@@ -43,9 +44,9 @@ class _AssignDriverToContractScreenState
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Assign Driver',
-        subtitle: 'Select drivers to assign',
+      appBar: AppHeader(
+        title: AppTextConstants.assignDriver.tr,
+        subtitle: AppTextConstants.selectDriversToAssign.tr,
       ),
 
       floatingActionButton: Obx(() {
@@ -60,7 +61,7 @@ class _AssignDriverToContractScreenState
           backgroundColor: AppColors.primaryColor,
           icon: const Icon(Iconsax.tick_circle, color: Colors.white),
           label: AppText(
-            'Assign ${selectedDrivers.length} Drivers',
+            '${AppTextConstants.assign.tr} ${selectedDrivers.length} ${AppTextConstants.drivers.tr}',
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
@@ -76,7 +77,7 @@ class _AssignDriverToContractScreenState
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: AppSearchBar(
-              hint: 'Search Driver...',
+              hint: AppTextConstants.searchDriverHint.tr,
               onChanged: (v) => controller.updateDriverSearch(vendorId, v),
             ),
           ),
@@ -90,8 +91,8 @@ class _AssignDriverToContractScreenState
               final list = controller.availableDrivers;
 
               if (list.isEmpty) {
-                return const Center(
-                  child: AppText('No drivers found'),
+                return Center(
+                  child: AppText(AppTextConstants.noStaffFound.tr),
                 );
               }
 
@@ -159,7 +160,7 @@ class _AssignDriverToContractScreenState
                           ),
 
                           title: AppText(
-                            driver['name'] ?? 'Unknown',
+                            driver['name'] ?? AppTextConstants.unknown.tr,
                             fontWeight: FontWeight.bold,
                             style: AppTextStyle.body,
                           ),
@@ -169,11 +170,11 @@ class _AssignDriverToContractScreenState
                             children: [
                               const SizedBox(height: 4),
                               AppText(
-                                "Phone: ${driver['phone'] ?? 'N/A'}",
+                                "${AppTextConstants.phone.tr}: ${driver['phone'] ?? 'N/A'}",
                                 style: AppTextStyle.caption,
                               ),
                               AppText(
-                                driver['address'] ?? 'No address',
+                                driver['address'] ?? AppTextConstants.notSpecified.tr,
                                 color: AppColors.textColorSecondary,
                                 style: AppTextStyle.caption,
                                 maxLines: 1,

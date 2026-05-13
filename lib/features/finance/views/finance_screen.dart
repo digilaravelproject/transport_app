@@ -6,6 +6,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../controllers/finance_controller.dart';
 
 class FinanceScreen extends GetView<FinanceController> {
@@ -89,10 +90,10 @@ class FinanceScreen extends GetView<FinanceController> {
                     children: [
                       const Icon(Iconsax.danger, size: 48, color: AppColors.slate400),
                       const SizedBox(height: 16),
-                      const AppText('Failed to load financial data'),
+                      AppText(AppTextConstants.failedLoadData.tr),
                       TextButton(
                         onPressed: () => controller.fetchFinanceDashboard(controller.selectedMonth.value),
-                        child: const Text('Retry'),
+                        child: Text(AppTextConstants.retry.tr),
                       ),
                     ],
                   ),
@@ -109,20 +110,20 @@ class FinanceScreen extends GetView<FinanceController> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Header Title
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               AppText(
-                                'Finance Dashboard',
+                                AppTextConstants.financeDashboard.tr,
                                 style: AppTextStyle.heading,
                                 fontSize: 28,
                                 color: AppColors.textColorPrimary,
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               AppText(
-                                'Track revenue, expenses & profitability',
+                                AppTextConstants.trackRevenueExpenses.tr,
                                 style: AppTextStyle.body,
                                 color: AppColors.textColorSecondary,
                               ),
@@ -138,7 +139,7 @@ class FinanceScreen extends GetView<FinanceController> {
                             children: [
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Revenue',
+                                  title: AppTextConstants.revenue.tr,
                                   value: '₹${_formatAmount(data.totalRevenue)}',
                                   color: const Color(0xFF10B981),
                                   icon: Iconsax.card,
@@ -147,7 +148,7 @@ class FinanceScreen extends GetView<FinanceController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Expenses',
+                                  title: AppTextConstants.expenses.tr,
                                   value: '₹${_formatAmount(data.totalExpenses)}',
                                   color: const Color(0xFFEF4444),
                                   icon: Iconsax.receipt_2_1,
@@ -156,7 +157,7 @@ class FinanceScreen extends GetView<FinanceController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Profit',
+                                  title: AppTextConstants.profit.tr,
                                   value: '₹${_formatAmount(data.totalProfit)}',
                                   color: AppColors.successColor,
                                   icon: Iconsax.trend_up,
@@ -207,8 +208,8 @@ class FinanceScreen extends GetView<FinanceController> {
                                       color: AppColors.textColorPrimary,
                                     ),
                                     const SizedBox(height: 2),
-                                    const AppText(
-                                      'Pending Payments',
+                                    AppText(
+                                      AppTextConstants.pendingPayments.tr,
                                       style: AppTextStyle.label,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -223,11 +224,11 @@ class FinanceScreen extends GetView<FinanceController> {
                                     color: const Color(0xFFF59E0B).withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const AppText(
-                                    'Collect',
+                                  child: AppText(
+                                    AppTextConstants.collect.tr,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFFF59E0B),
+                                    color: const Color(0xFFF59E0B),
                                   ),
                                 ),
                               ],
@@ -238,10 +239,10 @@ class FinanceScreen extends GetView<FinanceController> {
                         const SizedBox(height: 32),
 
                         // Financial Overview Chart
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: AppText(
-                            'Financial Overview',
+                            AppTextConstants.financialOverview.tr,
                             style: AppTextStyle.subheading,
                             fontSize: 16,
                             color: AppColors.textColorPrimary,
@@ -270,10 +271,10 @@ class FinanceScreen extends GetView<FinanceController> {
                                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                                             String category = '';
                                             switch (group.x.toInt()) {
-                                              case 0: category = 'Revenue'; break;
-                                              case 1: category = 'Expenses'; break;
-                                              case 2: category = 'Profit'; break;
-                                              case 3: category = 'Pending'; break;
+                                              case 0: category = AppTextConstants.revenue.tr; break;
+                                              case 1: category = AppTextConstants.expenses.tr; break;
+                                              case 2: category = AppTextConstants.profit.tr; break;
+                                              case 3: category = AppTextConstants.pending.tr; break;
                                             }
                                             return BarTooltipItem(
                                               '$category\n',
@@ -350,13 +351,13 @@ class FinanceScreen extends GetView<FinanceController> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    _buildLegendItem('Revenue', AppColors.primaryColor),
+                                    _buildLegendItem(AppTextConstants.revenue.tr, AppColors.primaryColor),
                                     const SizedBox(width: 12),
-                                    _buildLegendItem('Expense', AppColors.errorColor),
+                                    _buildLegendItem(AppTextConstants.expenses.tr, AppColors.errorColor),
                                     const SizedBox(width: 12),
-                                    _buildLegendItem('Profit', AppColors.successColor),
+                                    _buildLegendItem(AppTextConstants.profit.tr, AppColors.successColor),
                                     const SizedBox(width: 12),
-                                    _buildLegendItem('Pending Payment', AppColors.warningColor),
+                                    _buildLegendItem(AppTextConstants.pending.tr, AppColors.warningColor),
                                   ],
                                 ),
                               ],
@@ -451,7 +452,7 @@ class FinanceScreen extends GetView<FinanceController> {
   }
 
   String _formatSelectedMonth(String monthStr) {
-    if (monthStr.isEmpty) return 'Select Month';
+    if (monthStr.isEmpty) return AppTextConstants.selectMonth.tr;
     try {
       final date = DateFormat('yyyy-MM').parse(monthStr);
       return DateFormat('MMMM yyyy').format(date);
@@ -485,7 +486,7 @@ class FinanceScreen extends GetView<FinanceController> {
               ),
             ),
             const SizedBox(height: 20),
-            const AppText('Select Month', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+            AppText(AppTextConstants.selectMonth.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),

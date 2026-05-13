@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import '../theme/app_colors.dart';
 import 'app_text.dart';
@@ -71,7 +72,7 @@ class AppStatusChip extends StatelessWidget {
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 4),
           AppText(
-            status,
+            status.toLowerCase().tr,
             style: AppTextStyle.caption,
             color: color,
             fontWeight: FontWeight.w700,

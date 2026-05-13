@@ -9,6 +9,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/corporate_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class AssignVehicleToContractScreen extends StatefulWidget {
   const AssignVehicleToContractScreen({Key? key}) : super(key: key);
@@ -35,8 +36,8 @@ class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractS
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Available Vehicles',
-        subtitle: 'Select vehicles to assign',
+        title: AppTextConstants.availableVehicles.tr,
+        subtitle: AppTextConstants.selectVehiclesToAssign.tr,
       ),
       floatingActionButton: Obx(() => _selectedVehicleIds.isNotEmpty
           ? FloatingActionButton.extended(
@@ -57,7 +58,7 @@ class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractS
                     width: 20, 
                     child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                   )
-                : AppText('Assign ${_selectedVehicleIds.length} Vehicles', 
+                : AppText(AppTextConstants.assignVehiclesCount.trParams({'count': _selectedVehicleIds.length.toString()}), 
                     style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
               icon: controller.isLoading.value ? null : const Icon(Iconsax.tick_circle, color: Colors.white),
             )
@@ -68,7 +69,7 @@ class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractS
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: AppSearchBar(
-              hint: 'Search Vehicle No...',
+              hint: AppTextConstants.searchVehicleNo.tr,
               onChanged: (v) => controller.updateVehicleSearch(vendorId, v),
             ),
           ),
@@ -89,7 +90,7 @@ class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractS
                           children: [
                             Icon(Iconsax.bus, size: 64, color: AppColors.slate300),
                             const SizedBox(height: 16),
-                            AppText('No available vehicles found', 
+                            AppText(AppTextConstants.noAvailableVehiclesFound.tr, 
                               style: AppTextStyle.body, color: AppColors.textColorSecondary),
                           ],
                         ),
@@ -125,7 +126,7 @@ class _AssignVehicleToContractScreenState extends State<AssignVehicleToContractS
                             const SizedBox(height: 4),
                             AppText(vehicle['type'] ?? 'N/A', 
                               style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                            AppText('Capacity: ${vehicle['seating_capacity'] ?? 'N/A'}', 
+                            AppText('${AppTextConstants.capacity.tr}: ${vehicle['seating_capacity'] ?? 'N/A'}', 
                               style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontSize: 10),
                           ],
                         ),

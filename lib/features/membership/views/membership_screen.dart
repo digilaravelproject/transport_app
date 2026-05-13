@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'active_subscription_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -27,7 +28,7 @@ class MembershipScreen extends GetView<MembershipController> {
           useScaffold: true,
           safeArea: true,
           appBar: AppHeader(
-            title: 'Subscription Plan',
+            title: AppTextConstants.subscriptionPlan.tr,
             onBack: () => Get.back(),
           ),
           body: Container(
@@ -56,9 +57,9 @@ class MembershipScreen extends GetView<MembershipController> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          const AppText('Choose Your Plan', fontSize: 22, fontWeight: FontWeight.w800, align: TextAlign.center),
+                          AppText(AppTextConstants.chooseYourPlan.tr, fontSize: 22, fontWeight: FontWeight.w800, align: TextAlign.center),
                           const SizedBox(height: 8),
-                          const AppText('Experience the magic of immersive growth with AI-powered social tools.', 
+                          AppText(AppTextConstants.experienceGrowthAi.tr, 
                             fontSize: 14, color: AppColors.textColorSecondary, align: TextAlign.center),
                         ],
                       ),
@@ -95,7 +96,7 @@ class MembershipScreen extends GetView<MembershipController> {
                         if (controller.plans.isEmpty) return const SizedBox();
                         final planName = controller.plans[controller.selectedPlanIndex.value]['name'];
                         return AppButton(
-                          text: 'CONTINUE WITH ${planName.toUpperCase()}',
+                          text: '${AppTextConstants.continueWith.tr} ${planName.toUpperCase()}',
                           fontSize: 12,
                           onPressed: () => controller.continueWithPlan(),
                           borderRadius: 24,

@@ -12,6 +12,7 @@ import '../../../core/widgets/app_header.dart';
 import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_type_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 
 class VehicleTypeListScreen extends StatefulWidget {
@@ -47,9 +48,9 @@ class _VehicleTypeListScreenState extends State<VehicleTypeListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const AppHeader(
-        title: 'Vehicle Types',
-        subtitle: 'Manage and configure vehicle types',
+      appBar: AppHeader(
+        title: AppTextConstants.vehicleTypesDashboard.tr,
+        subtitle: AppTextConstants.manageConfigureVehicleTypes.tr,
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: null,
@@ -65,7 +66,7 @@ class _VehicleTypeListScreenState extends State<VehicleTypeListScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: AppSearchBar(
-              hint: 'Search vehicle types...',
+              hint: AppTextConstants.searchVehicleTypes.tr,
               onChanged: (val) => controller.updateSearch(val),
             ),
           ),
@@ -91,12 +92,12 @@ class _VehicleTypeListScreenState extends State<VehicleTypeListScreen> {
                     child: SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: AppEmptyState(
-                        title: controller.searchQuery.value.isNotEmpty ? 'No Results Found' : 'No Vehicle Types Found',
+                        title: controller.searchQuery.value.isNotEmpty ? AppTextConstants.noResultsFound.tr : AppTextConstants.noVehicleTypesFound.tr,
                         subtitle: controller.searchQuery.value.isNotEmpty 
-                            ? 'No vehicle types match your search "${controller.searchQuery.value}".'
-                            : 'Start by adding a new vehicle type to manage your fleet better.',
+                            ? '${AppTextConstants.noResultsFound.tr} "${controller.searchQuery.value}".'
+                            : AppTextConstants.startAddingVehicleType.tr,
                         icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.bus5,
-                        actionLabel: controller.searchQuery.value.isNotEmpty ? null : 'Add Vehicle Type',
+                        actionLabel: controller.searchQuery.value.isNotEmpty ? null : AppTextConstants.addVehicleType.tr,
                         onActionPressed: controller.searchQuery.value.isNotEmpty ? null : () => Get.toNamed(RouteHelper.getAddVehicleTypeRoute()),
                       ),
                     ),
@@ -182,15 +183,15 @@ class _VehicleTypeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              AppStatusChip(status: type.isActive ? 'Active' : 'Inactive', fontSize: 10),
+              AppStatusChip(status: type.isActive ? 'active' : 'inactive', fontSize: 10),
             ],
           ),
           const Divider(height: 24, thickness: 0.5),
           Row(
             children: [
-              _buildInfoItem('Capacity', '${type.capacity}', Iconsax.user, AppColors.infoColor),
-              _buildInfoItem('Price/KM', '₹${type.perKmPrice}', Iconsax.money_send, AppColors.successColor),
-              _buildInfoItem('AC Extra', '₹${type.acPricePerKm}', Iconsax.flash5, AppColors.warningColor),
+              _buildInfoItem(AppTextConstants.seatingCapacity.tr, '${type.capacity}', Iconsax.user, AppColors.infoColor),
+              _buildInfoItem(AppTextConstants.pricePerKm.tr, '₹${type.perKmPrice}', Iconsax.money_send, AppColors.successColor),
+              _buildInfoItem(AppTextConstants.acExtra.tr, '₹${type.acPricePerKm}', Iconsax.flash5, AppColors.warningColor),
             ],
           ),
           const SizedBox(height: 16),
@@ -198,7 +199,7 @@ class _VehicleTypeCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               AppButton(
-                text: 'Configure',
+                text: AppTextConstants.configure.tr,
                 width: 100,
                 height: 32,
                 fontSize: 12,

@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/company_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'dart:io';
 
 class CorporateInvoiceScreen extends GetView<CorporateController> {
@@ -20,11 +21,11 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
 
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Invoice Details',
+        title: AppTextConstants.invoiceDetails.tr,
         rightWidget: IconButton(
           icon: const Icon(Iconsax.document_download, color: AppColors.primaryColor),
           onPressed: () {
-             Get.snackbar('Download Started', 'Invoice is being downloaded...', snackPosition: SnackPosition.BOTTOM);
+             Get.snackbar(AppTextConstants.downloadStarted.tr, AppTextConstants.invoiceDownloading.tr, snackPosition: SnackPosition.BOTTOM);
           },
         ),
       ),
@@ -35,14 +36,14 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
             children: [
               Expanded(
                 child: AppButton.outline(
-                  text: 'Share',
+                  text: AppTextConstants.share.tr,
                   onPressed: () {},
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: AppButton(
-                  text: 'Mark as Paid',
+                  text: AppTextConstants.markAsPaid.tr,
                   onPressed: () => Get.back(),
                 ),
               ),
@@ -85,12 +86,12 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppText('INVOICE', style: AppTextStyle.heading, fontSize: 24, color: AppColors.primaryColor),
+                  AppText(AppTextConstants.invoiceUppercase.tr, style: AppTextStyle.heading, fontSize: 24, color: AppColors.primaryColor),
                   const SizedBox(height: 8),
                   AppText('INV-2024-001', style: AppTextStyle.body, fontWeight: FontWeight.bold),
                   const SizedBox(height: 4),
-                  AppText('Date: 01 May 2024', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
-                  AppText('Due: 15 May 2024', style: AppTextStyle.caption, color: AppColors.errorColor),
+                  AppText('${AppTextConstants.date.tr}: 01 May 2024', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  AppText('${AppTextConstants.due.tr}: 15 May 2024', style: AppTextStyle.caption, color: AppColors.errorColor),
                 ],
               ),
               Container(
@@ -104,10 +105,10 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
             ],
           ),
           const SizedBox(height: 32),
-          AppText('Billed To:', style: AppTextStyle.label, color: AppColors.textColorHint),
+          AppText('${AppTextConstants.billedTo.tr}:', style: AppTextStyle.label, color: AppColors.textColorHint),
           const SizedBox(height: 8),
           AppText(company.name, style: AppTextStyle.subheading),
-          AppText('Attn: ${company.contactPerson}', style: AppTextStyle.body),
+          AppText('${AppTextConstants.attn.tr}: ${company.contactPerson}', style: AppTextStyle.body),
           AppText(company.phone.toString(), style: AppTextStyle.body),
           AppText(company.email.toString(), style: AppTextStyle.body),
           const SizedBox(height: 32),
@@ -115,9 +116,9 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(flex: 3, child: AppText('Description', style: AppTextStyle.caption, color: AppColors.textColorHint)),
-              Expanded(child: AppText('Qty', style: AppTextStyle.caption, color: AppColors.textColorHint, textAlign: TextAlign.center)),
-              Expanded(child: AppText('Price', style: AppTextStyle.caption, color: AppColors.textColorHint, textAlign: TextAlign.right)),
+              Expanded(flex: 3, child: AppText(AppTextConstants.description.tr, style: AppTextStyle.caption, color: AppColors.textColorHint)),
+              Expanded(child: AppText(AppTextConstants.qty.tr, style: AppTextStyle.caption, color: AppColors.textColorHint, textAlign: TextAlign.center)),
+              Expanded(child: AppText(AppTextConstants.price.tr, style: AppTextStyle.caption, color: AppColors.textColorHint, textAlign: TextAlign.right)),
             ],
           ),
           const SizedBox(height: 16),
@@ -126,8 +127,8 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
           const SizedBox(height: 16),
           const Divider(thickness: 2),
           const SizedBox(height: 16),
-          _buildTotalRow('Subtotal', '1,65,000'),
-          _buildTotalRow('Tax (18% GST)', '29,700'),
+          _buildTotalRow(AppTextConstants.subtotal.tr, '1,65,000'),
+          _buildTotalRow(AppTextConstants.tax.tr, '29,700'),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -138,24 +139,24 @@ class CorporateInvoiceScreen extends GetView<CorporateController> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const AppText('Total Due', style: AppTextStyle.subheading, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                AppText(AppTextConstants.totalDue.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                 const AppText('₹ 1,94,700', style: AppTextStyle.heading, fontSize: 20, color: AppColors.primaryColor),
               ],
             ),
           ),
           const SizedBox(height: 32),
-          AppText('Payment Terms:', style: AppTextStyle.label, color: AppColors.textColorHint),
+          AppText('${AppTextConstants.paymentTerms.tr}:', style: AppTextStyle.label, color: AppColors.textColorHint),
           const SizedBox(height: 8),
-          const AppText('Please pay within 15 days of receiving this invoice. Bank details provided below.', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+          AppText(AppTextConstants.paymentTermsNote.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
           const SizedBox(height: 16),
-          const AppCard(
-            padding: EdgeInsets.all(12),
+          AppCard(
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppText('Bank: HDFC Bank', style: AppTextStyle.caption, fontWeight: FontWeight.bold),
-                AppText('A/C: 12345678901234', style: AppTextStyle.caption),
-                AppText('IFSC: HDFC0001234', style: AppTextStyle.caption),
+                AppText('${AppTextConstants.bank.tr}: HDFC Bank', style: AppTextStyle.caption, fontWeight: FontWeight.bold),
+                AppText('${AppTextConstants.accountNumber.tr}: 12345678901234', style: AppTextStyle.caption),
+                AppText('${AppTextConstants.ifscCode.tr}: HDFC0001234', style: AppTextStyle.caption),
               ],
             ),
           ),

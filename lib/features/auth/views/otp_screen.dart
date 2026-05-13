@@ -9,6 +9,7 @@ import 'package:credit_debit/core/widgets/app_button.dart';
 import 'package:credit_debit/core/widgets/app_text.dart';
 import 'package:credit_debit/core/widgets/clean_auth_background.dart';
 import '../controllers/auth_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({Key? key}) : super(key: key);
@@ -179,8 +180,8 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                         opacity: _titleFadeAnimation,
                         child: SlideTransition(
                           position: _titleSlideAnimation,
-                          child: const AppText(
-                            'OTP Verification',
+                          child: AppText(
+                            AppTextConstants.otpVerification.tr,
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
                             align: TextAlign.center,
@@ -195,7 +196,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: AppText(
-                              'A 6-digit verification code has been sent to your registered email address.',
+                              AppTextConstants.otpSentEmail.tr,
                               style: AppTextStyle.body,
                               color: AppColors.textColorSecondary.withValues(alpha: 0.8),
                               align: TextAlign.center,
@@ -252,7 +253,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                   ),
                                   const SizedBox(height: 40),
                                   Obx(() => AppButton(
-                                    text: 'Verify OTP',
+                                    text: AppTextConstants.verifyOtp.tr,
                                     fontWeight: FontWeight.bold,
                                     isLoading: authController.isLoading.value,
                                     onPressed: () {
@@ -263,7 +264,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                         // Show error if OTP is incomplete
                                         Get.snackbar(
                                           'Error',
-                                          'Please enter complete 6-digit OTP',
+                                          AppTextConstants.completeOtpError.tr,
                                           snackPosition: SnackPosition.BOTTOM,
                                           backgroundColor: Colors.red.withValues(alpha: 0.1),
                                           colorText: Colors.red,
@@ -283,7 +284,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                         : () => authController.resendOtp(),
                                     child: RichText(
                                       text: TextSpan(
-                                        text: "Didn't receive code? ",
+                                        text: "${AppTextConstants.didntReceiveCode.tr} ",
                                         style: const TextStyle(
                                           color: AppColors.textColorSecondary, 
                                           fontSize: 13,
@@ -292,8 +293,8 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                                         children: [
                                           TextSpan(
                                             text: authController.isLoading.value 
-                                                ? 'Sending...' 
-                                                : 'Resend OTP',
+                                                ? '${AppTextConstants.sending.tr}...' 
+                                                : AppTextConstants.resendOtp.tr,
                                             style: TextStyle(
                                               color: authController.isLoading.value 
                                                   ? AppColors.textColorHint 
@@ -340,9 +341,9 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                               children: [
                                 const Icon(Iconsax.info_circle, color: AppColors.primaryColor, size: 20),
                                 const SizedBox(width: 12),
-                                const Expanded(
+                                Expanded(
                                   child: AppText(
-                                    'Enter the 6-digit code sent to your email. Code expires in 10 minutes.',
+                                    AppTextConstants.otpExpiryNote.tr,
                                     fontSize: 13,
                                     color: AppColors.textColorPrimary,
                                     fontWeight: FontWeight.w500,

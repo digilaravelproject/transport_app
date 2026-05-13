@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:credit_debit/core/theme/app_colors.dart';
 import 'package:credit_debit/core/widgets/app_text.dart';
 import 'package:credit_debit/core/widgets/loading_indicator.dart';
+import 'package:credit_debit/core/constants/app_text_constants.dart';
 import '../controllers/splash_controller.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -94,8 +95,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                   ),
                   const SizedBox(height: 40),
-                  const AppText(
-                    'DigiEmperor',
+                  AppText(
+                    AppTextConstants.appName.tr,
                     style: AppTextStyle.heading,
                     fontSize: 32,
                     fontWeight: FontWeight.w900,
@@ -109,8 +110,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       color: AppColors.primaryColor.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const AppText(
-                      'SMART BUS MANAGEMENT',
+                    child: AppText(
+                      AppTextConstants.smartBusManagement.tr,
                       style: AppTextStyle.caption,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -135,7 +136,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                     ),
                     const SizedBox(height: 24),
                     AppText(
-                      'POWERED BY DIGIEMPEROR',
+                      AppTextConstants.poweredBy.tr,
                       style: AppTextStyle.caption,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,

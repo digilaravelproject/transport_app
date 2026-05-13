@@ -14,6 +14,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/vehicle_type_dropdown.dart';
 import '../controllers/corporate_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../domain/models/corporate_contract_request_model.dart';
 
 class CreateCorporateContractScreen extends StatefulWidget {
@@ -40,7 +41,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
   final selectedVehicleTypeId = Rxn<int>();
   final vehicleTypeError = Rxn<String>();
 
-  String _dutyType = 'Daily Commute';
+  String _dutyType = AppTextConstants.dailyCommute.tr;
 
   @override
   void dispose() {
@@ -90,7 +91,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
     if (_formKey.currentState!.validate()) {
       // Custom validation for vehicle type
       if (selectedVehicleTypeId.value == null) {
-        vehicleTypeError.value = 'Please select a vehicle type';
+        vehicleTypeError.value = AppTextConstants.pleaseSelectVehicleType.tr;
         return;
       }
 
@@ -98,7 +99,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
       final startDate = DateFormat('yyyy-MM-dd').parse(_startDateController.text);
       final endDate = DateFormat('yyyy-MM-dd').parse(_endDateController.text);
       if (endDate.isBefore(startDate)) {
-        CustomSnackbar.showError('End date cannot be before start date');
+        CustomSnackbar.showError(AppTextConstants.endDateBeforeStartDateError.tr);
         return;
       }
 
@@ -125,8 +126,8 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Create Contract',
+      appBar: AppHeader(
+        title: AppTextConstants.createContract.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -138,29 +139,29 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppText('Contract Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                    AppText(AppTextConstants.contractDetails.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
                     const SizedBox(height: 8),
                     AppInputField(
                       controller: _vendorNameController,
-                      label: 'Vendor Name',
-                      hint: 'Enter vendor name...',
+                      label: AppTextConstants.vendorName.tr,
+                      hint: AppTextConstants.enterVendorName.tr,
                       icon: Iconsax.building,
                       isRequired: true,
-                      validator: (value) => (value == null || value.isEmpty) ? 'Vendor name is required' : null,
+                      validator: (value) => (value == null || value.isEmpty) ? AppTextConstants.vendorNameRequired.tr : null,
                     ),
                     const SizedBox(height: 8),
                     AppInputField(
                       controller: _contractNameController,
-                      label: 'Contract Name',
+                      label: AppTextConstants.contractName.tr,
                       hint: 'e.g. Employee Transport 2024',
                       icon: Icons.assignment_rounded,
                       isRequired: true,
-                      validator: (value) => (value == null || value.isEmpty) ? 'Contract name is required' : null,
+                      validator: (value) => (value == null || value.isEmpty) ? AppTextConstants.contractNameRequired.tr : null,
                     ),
                     const SizedBox(height: 8),
                     Obx(() => AppInputField(
                       controller: _contractNumberController,
-                      label: 'Contract Number',
+                      label: AppTextConstants.contractNumber.tr,
                       hint: 'Enter 10 digit number',
                       icon: Iconsax.call,
                       isRequired: true,
@@ -179,32 +180,32 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         Expanded(
                           child: AppInputField(
                             controller: _startDateController,
-                            label: 'Start Date',
+                            label: AppTextConstants.startDate.tr,
                             hint: 'YYYY-MM-DD',
                             icon: Iconsax.calendar_1,
                             readOnly: true,
                             onTap: () => _selectDate(context, _startDateController),
                             isRequired: true,
-                            validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+                            validator: (value) => (value == null || value.isEmpty) ? AppTextConstants.required.tr : null,
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: AppInputField(
                             controller: _endDateController,
-                            label: 'End Date',
+                            label: AppTextConstants.endDate.tr,
                             hint: 'YYYY-MM-DD',
                             icon: Icons.event_rounded,
                             readOnly: true,
                             onTap: () => _selectDate(context, _endDateController),
                             isRequired: true,
-                            validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+                            validator: (value) => (value == null || value.isEmpty) ? AppTextConstants.required.tr : null,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    _buildDropdown('Duty Type', _dutyType, ['Daily Commute', 'Event Transfer', 'Custom Route', 'School Duty'], (val) => setState(() => _dutyType = val!)),
+                    _buildDropdown(AppTextConstants.dutyType.tr, _dutyType, [AppTextConstants.dailyCommute.tr, AppTextConstants.eventTransfer.tr, AppTextConstants.customRoute.tr, AppTextConstants.schoolDuty.tr], (val) => setState(() => _dutyType = val!)),
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,14 +226,14 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                         Expanded(
                           child: AppInputField(
                             controller: _quantityController,
-                            label: 'Quantity',
+                            label: AppTextConstants.quantity.tr,
                             hint: '0',
                             icon: Iconsax.truck_fast,
                             keyboardType: TextInputType.number,
                             isRequired: true,
                             validator: (value) {
-                              if (value == null || value.isEmpty) return 'Required';
-                              if (int.tryParse(value) == null) return 'Invalid';
+                              if (value == null || value.isEmpty) return AppTextConstants.required.tr;
+                              if (int.tryParse(value) == null) return AppTextConstants.invalid.tr;
                               return null;
                             },
                           ),
@@ -242,22 +243,22 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                     const SizedBox(height: 8),
                     AppInputField(
                       controller: _monthlyAmountController,
-                      label: 'Monthly Amount',
+                      label: AppTextConstants.monthlySalary.tr,
                       hint: '₹ 0.00',
                       icon: Iconsax.card,
                       keyboardType: TextInputType.number,
                       isRequired: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) return 'Required';
-                        if (double.tryParse(value) == null) return 'Invalid';
+                        if (value == null || value.isEmpty) return AppTextConstants.required.tr;
+                        if (double.tryParse(value) == null) return AppTextConstants.invalid.tr;
                         return null;
                       },
                     ),
                     const SizedBox(height: 12),
                     AppInputField(
                       controller: _notesController,
-                      label: 'Notes',
-                      hint: 'Additional terms or notes...',
+                      label: AppTextConstants.notes.tr,
+                      hint: AppTextConstants.additionalNotesHint.tr,
                       icon: Icons.notes_rounded,
                       maxLines: 3,
                     ),
@@ -266,7 +267,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
               ),
               const SizedBox(height: 32),
               Obx(() => AppButton(
-                text: 'Save Contract',
+                text: AppTextConstants.saveContract.tr,
                 isLoading: controller.isLoading.value,
                 onPressed: _saveContract,
               )),

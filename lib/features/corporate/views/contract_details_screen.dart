@@ -19,6 +19,7 @@ import '../../../core/widgets/app_input_field.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/company_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class ContractDetailsScreen extends StatefulWidget {
   const ContractDetailsScreen({Key? key}) : super(key: key);
@@ -45,7 +46,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Contract Details',
+        title: AppTextConstants.contractDetails.tr,
         subtitle: company.name,
       ),
       body: RefreshIndicator(
@@ -66,9 +67,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
               children: [
                 _buildContractInfo(vendor),
                 const SizedBox(height: 24),
-                _buildSectionHeader('Assigned Vehicles', () async {
+                _buildSectionHeader(AppTextConstants.assignedVehicles.tr, () async {
                   if (controller.assignedVehicles.length >= vendor.quantity) {
-                    CustomSnackbar.showInfo('Limit reached: You can only assign ${vendor.quantity} vehicles.');
+                    CustomSnackbar.showInfo('${AppTextConstants.limitReached.tr}: You can only assign ${vendor.quantity} vehicles.');
                     return;
                   }
                   final result = await Get.toNamed(RouteHelper.getAssignVehicleToContractRoute(), arguments: vendor.id);
@@ -78,9 +79,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                 }, isLimitReached: controller.assignedVehicles.length >= vendor.quantity),
                 _buildAssignedVehicles(),
                 const SizedBox(height: 24),
-                _buildSectionHeader('Assigned Driver', () async {
+                _buildSectionHeader(AppTextConstants.assignedDriver.tr, () async {
                   if (controller.assignedDrivers.length >= vendor.quantity) {
-                    CustomSnackbar.showInfo('Limit reached: You can only assign ${vendor.quantity} drivers.');
+                    CustomSnackbar.showInfo('${AppTextConstants.limitReached.tr}: You can only assign ${vendor.quantity} drivers.');
                     return;
                   }
                   final result = await Get.toNamed(RouteHelper.getAssignDriverToContractRoute(), arguments: vendor.id);
@@ -90,7 +91,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                 }, isLimitReached: controller.assignedDrivers.length >= vendor.quantity),
                 _buildAssignedDriver(),
                 const SizedBox(height: 24),
-                _buildSectionHeader('Billing History', () => _showAddBillModal(context)),
+                _buildSectionHeader(AppTextConstants.billingHistory.tr, () => _showAddBillModal(context)),
                 _buildBillingHistory(),
               ],
             ),
@@ -127,20 +128,20 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const AppText('Add New Bill', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+                      AppText(AppTextConstants.addNewBill.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
                       IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
                     ],
                   ),
                   const SizedBox(height: 20),
                   AppInputField(
-                    label: 'Invoice Number',
+                    label: AppTextConstants.invoiceNumber.tr,
                     hint: 'e.g. INV-2024-025',
                     icon: Iconsax.document_text,
                     controller: invoiceController,
                   ),
                   const SizedBox(height: 16),
                   AppInputField(
-                    label: 'Billing Amount',
+                    label: AppTextConstants.billingAmount.tr,
                     hint: '0.00',
                     icon: Iconsax.card,
                     keyboardType: TextInputType.number,
@@ -161,7 +162,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                     },
                     child: AbsorbPointer(
                       child: AppInputField(
-                        label: 'Billing Date',
+                        label: AppTextConstants.billingDate.tr,
                         hint: 'YYYY-MM-DD',
                         icon: Iconsax.calendar_1,
                         controller: dateController,
@@ -169,7 +170,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const AppText('Upload Bill Image', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                  AppText(AppTextConstants.uploadBillImage.tr, style: AppTextStyle.body, fontWeight: FontWeight.bold),
                   const SizedBox(height: 8),
                   GestureDetector(
                     onTap: () async {
@@ -201,18 +202,18 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                             children: [
                               Icon(Iconsax.image, color: AppColors.textColorSecondary),
                               const SizedBox(height: 4),
-                              AppText('JPG, PNG supported', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                              AppText(AppTextConstants.jpgPngSupported.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                             ],
                           ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Obx(() => AppButton(
-                    text: 'Create Invoice',
+                    text: AppTextConstants.createInvoice.tr,
                     isLoading: controller.isLoading.value,
                     onPressed: () async {
                       if (invoiceController.text.isEmpty || amountController.text.isEmpty || dateController.text.isEmpty) {
-                        CustomSnackbar.showError('Please fill all fields');
+                        CustomSnackbar.showError(AppTextConstants.pleaseFillAllFields.tr);
                         return;
                       }
 
@@ -251,30 +252,30 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              AppText(vendor.phone ?? 'No Contract No.', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+              AppText(vendor.phone ?? AppTextConstants.noContractNo.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: vendor.isActive ? AppColors.successColor.withOpacity(0.1) : AppColors.errorColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: AppText(vendor.isActive ? 'Active' : 'Inactive', style: AppTextStyle.caption, color: vendor.isActive ? AppColors.successColor : AppColors.errorColor, fontWeight: FontWeight.bold),
+                child: AppText(vendor.isActive ? AppTextConstants.active.tr : AppTextConstants.inactive.tr, style: AppTextStyle.caption, color: vendor.isActive ? AppColors.successColor : AppColors.errorColor, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 16),
           const Divider(height: 1),
           const SizedBox(height: 16),
-          _buildInfoRow('Vendor', vendor.name),
-          _buildInfoRow('Contract Person', vendor.contactPerson ?? 'N/A'),
+          _buildInfoRow(AppTextConstants.vendor.tr, vendor.name),
+          _buildInfoRow(AppTextConstants.contractPerson.tr, vendor.contactPerson ?? 'N/A'),
           _buildInfoRow(
-            'Period',
+            AppTextConstants.period.tr,
             '${formatDate(vendor.startDate)} to ${formatDate(vendor.endDate)}',
           ),
-          _buildInfoRow('Duty Type', vendor.dutyType ?? 'N/A'),
-          _buildInfoRow('Vehicle Type', vendor.vehicleTypeName ?? 'N/A'),
-          _buildInfoRow('Quantity', vendor.quantity.toString()),
-          _buildInfoRow('Monthly Amount', '₹ ${vendor.monthlyAmount.toStringAsFixed(2)}', isAmount: true),
+          _buildInfoRow(AppTextConstants.dutyType.tr, vendor.dutyType ?? 'N/A'),
+          _buildInfoRow(AppTextConstants.vehicleType.tr, vendor.vehicleTypeName ?? 'N/A'),
+          _buildInfoRow(AppTextConstants.quantity.tr, vendor.quantity.toString()),
+          _buildInfoRow(AppTextConstants.monthlySalary.tr, '₹ ${vendor.monthlyAmount.toStringAsFixed(2)}', isAmount: true),
         ],
       ),
     );
@@ -330,7 +331,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                   ),
                   const SizedBox(width: 4),
                   AppText(
-                    isLimitReached ? 'Limit Reached' : 'Add', 
+                    isLimitReached ? AppTextConstants.limitReached.tr : AppTextConstants.addVendor.tr, 
                     style: AppTextStyle.caption, 
                     color: isLimitReached ? AppColors.textColorSecondary : AppColors.primaryColor, 
                     fontWeight: FontWeight.bold
@@ -348,9 +349,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     return Obx(() {
       final vendor = controller.selectedVendor.value ?? company;
       if (controller.assignedVehicles.isEmpty) {
-        return const AppCard(
-          padding: EdgeInsets.all(20),
-          child: Center(child: AppText('No vehicles assigned', style: AppTextStyle.caption)),
+        return AppCard(
+          padding: const EdgeInsets.all(24),
+          child: Center(child: AppText(AppTextConstants.noVehiclesAssigned.tr, style: AppTextStyle.caption)),
         );
       }
       return AppCard(
@@ -381,11 +382,11 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     return Obx(() {
       final vendor = controller.selectedVendor.value ?? company;
       if (controller.assignedDrivers.isEmpty) {
-        return const AppCard(
-          padding: EdgeInsets.all(20),
+        return AppCard(
+          padding: const EdgeInsets.all(24),
           child: Center(
             child: AppText(
-              'No drivers assigned',
+              AppTextConstants.noDriversAssigned.tr,
               style: AppTextStyle.caption,
             ),
           ),
@@ -413,7 +414,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                     ),
                   ),
                   title: Text(
-                    driver['name'] ?? 'Unknown',
+                    driver['name'] ?? AppTextConstants.unknown.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -444,7 +445,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                       Icons.delete_outline,
                       color: Colors.red,
                     ),
-                    onPressed: () => _showRemoveDriverDialog(vendor.id, driver['id'].toString(), driver['name'] ?? 'Unknown'),
+                    onPressed: () => _showRemoveDriverDialog(vendor.id, driver['id'].toString(), driver['name'] ?? AppTextConstants.unknown.tr),
                   ),
                 ),
                 if (idx < controller.assignedDrivers.length - 1)
@@ -461,19 +462,19 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const AppText('Remove Driver', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
-        content: AppText('Are you sure you want to remove driver $driverName from this vendor?', style: AppTextStyle.body),
+        title: AppText(AppTextConstants.removeDriver.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+        content: AppText(AppTextConstants.removeDriverConfirm.tr, style: AppTextStyle.body),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+            child: AppText(AppTextConstants.cancel.tr, color: AppColors.textColorSecondary),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeDriver(vId, driverId);
             },
-            child: const AppText('Remove', color: AppColors.errorColor, fontWeight: FontWeight.bold),
+            child: AppText(AppTextConstants.remove.tr, color: AppColors.errorColor, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -525,19 +526,19 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const AppText('Remove Vehicle', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
-        content: AppText('Are you sure you want to remove vehicle $vehicleNo from this vendor?', style: AppTextStyle.body),
+        title: AppText(AppTextConstants.removeVehicle.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+        content: AppText(AppTextConstants.removeVehicleConfirm.tr, style: AppTextStyle.body),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+            child: AppText(AppTextConstants.cancel.tr, color: AppColors.textColorSecondary),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.removeVehicle(vId, vehicleId);
             },
-            child: const AppText('Remove', color: AppColors.errorColor, fontWeight: FontWeight.bold),
+            child: AppText(AppTextConstants.remove.tr, color: AppColors.errorColor, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -547,9 +548,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
   Widget _buildBillingHistory() {
     return Obx(() {
       if (controller.billingHistory.isEmpty) {
-        return const AppCard(
-          padding: EdgeInsets.all(16),
-          child: Center(child: AppText('No billing history', style: AppTextStyle.caption)),
+        return AppCard(
+          padding: const EdgeInsets.all(24),
+          child: Center(child: AppText(AppTextConstants.noBillingHistory.tr, style: AppTextStyle.caption)),
         );
       }
       return AppCard(
@@ -627,8 +628,9 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
               if (filePath != null && filePath.isNotEmpty) {
                 _showImageDialog(filePath);
               } else {
-                Get.snackbar('Download', 'No file available for this invoice',
-                  snackPosition: SnackPosition.BOTTOM);
+                Get.snackbar('Download', '',
+                  snackPosition: SnackPosition.BOTTOM,
+                  titleText: AppText(AppTextConstants.noFileAvailable.tr));
               }
             },
           ),
@@ -649,7 +651,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const AppText('Image Preview', color: Colors.white, fontSize: 16),
+        title: AppText(AppTextConstants.imagePreview.tr, color: Colors.white, fontSize: 16),
       ),
       body: Center(
         child: InteractiveViewer(
@@ -665,8 +667,8 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
                 child: CircularProgressIndicator(color: Colors.white),
               );
             },
-            errorBuilder: (context, error, stackTrace) => const Center(
-              child: AppText('Failed to load image', style: AppTextStyle.body, color: Colors.white),
+            errorBuilder: (context, error, stackTrace) => Center(
+              child: AppText(AppTextConstants.error.tr, style: AppTextStyle.body, color: Colors.white),
             ),
           ),
         ),

@@ -6,6 +6,7 @@ import 'package:credit_debit/core/widgets/app_header.dart';
 import 'package:credit_debit/core/widgets/app_card.dart';
 import 'package:credit_debit/core/widgets/app_text.dart';
 import 'package:iconsax/iconsax.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../settings/views/profile_screen.dart';
 import '../../membership/controllers/membership_controller.dart';
 import '../../membership/views/membership_screen.dart';
@@ -19,27 +20,27 @@ class MoreScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Standardized module list using AppColors and theme-aligned colors
     final modules = [
-      _ModuleItem('Leads', Iconsax.user_add, AppColors.successColor, route: RouteHelper.getLeadListRoute()),
-      _ModuleItem('Vehicle Types', Iconsax.bus, AppColors.primaryColor, route: RouteHelper.getVehicleTypeListRoute()),
-      _ModuleItem('Vehicles', Iconsax.bus5, AppColors.infoColor, route: RouteHelper.getVehicleListRoute()),
-      _ModuleItem('Role', Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
-      _ModuleItem('Shifts', Iconsax.clock5, AppColors.warningColor, route: RouteHelper.getShiftListRoute()),
-      _ModuleItem('Staff', Iconsax.people5, AppColors.successColor, route: RouteHelper.getStaffListRoute()),
-      _ModuleItem('Attendance', Iconsax.calendar_tick5, AppColors.indigo500, route: RouteHelper.getAttendanceRoute()),
-      _ModuleItem('Routes', Iconsax.map_15, AppColors.primaryColor, route: RouteHelper.getRouteListRoute()),
-      _ModuleItem('Corporate', Iconsax.building_35, AppColors.infoColor, route: RouteHelper.getCompanyListRoute()),
-      _ModuleItem('Cashbook', Iconsax.money, AppColors.successColor, route: RouteHelper.getCashbookDashboardRoute()),
-      _ModuleItem('Inventory', Iconsax.box5, AppColors.warningColor, route: RouteHelper.getInventoryListRoute()),
-      _ModuleItem('Templates', Iconsax.document_copy5, AppColors.primaryColor, route: RouteHelper.getTemplateListRoute()),
-      _ModuleItem('Reports', Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
-      _ModuleItem('Membership', Iconsax.medal_star5, AppColors.infoColor, route: RouteHelper.getMembershipRoute()),
-      _ModuleItem('Profile', Iconsax.profile_circle5, AppColors.successColor, route: RouteHelper.getProfileRoute()),
+      _ModuleItem(AppTextConstants.leads.tr, Iconsax.user_add, AppColors.successColor, route: RouteHelper.getLeadListRoute()),
+      _ModuleItem(AppTextConstants.vehicleTypes.tr, Iconsax.bus, AppColors.primaryColor, route: RouteHelper.getVehicleTypeListRoute()),
+      _ModuleItem(AppTextConstants.vehicles.tr, Iconsax.bus5, AppColors.infoColor, route: RouteHelper.getVehicleListRoute()),
+      _ModuleItem(AppTextConstants.role.tr, Iconsax.shield_tick5, AppColors.slate600, route: RouteHelper.getRoleListRoute()),
+      _ModuleItem(AppTextConstants.shifts.tr, Iconsax.clock5, AppColors.warningColor, route: RouteHelper.getShiftListRoute()),
+      _ModuleItem(AppTextConstants.staff.tr, Iconsax.people5, AppColors.successColor, route: RouteHelper.getStaffListRoute()),
+      _ModuleItem(AppTextConstants.attendance.tr, Iconsax.calendar_tick5, AppColors.indigo500, route: RouteHelper.getAttendanceRoute()),
+      _ModuleItem(AppTextConstants.routes.tr, Iconsax.map_15, AppColors.primaryColor, route: RouteHelper.getRouteListRoute()),
+      _ModuleItem(AppTextConstants.corporate.tr, Iconsax.building_35, AppColors.infoColor, route: RouteHelper.getCompanyListRoute()),
+      _ModuleItem(AppTextConstants.cashbook.tr, Iconsax.money, AppColors.successColor, route: RouteHelper.getCashbookDashboardRoute()),
+      _ModuleItem(AppTextConstants.inventory.tr, Iconsax.box5, AppColors.warningColor, route: RouteHelper.getInventoryListRoute()),
+      _ModuleItem(AppTextConstants.templates.tr, Iconsax.document_copy5, AppColors.primaryColor, route: RouteHelper.getTemplateListRoute()),
+      _ModuleItem(AppTextConstants.reports.tr, Iconsax.chart_215, AppColors.errorColor, route: RouteHelper.getReportsDashboardRoute()),
+      _ModuleItem(AppTextConstants.membership.tr, Iconsax.medal_star5, AppColors.infoColor, route: RouteHelper.getMembershipRoute()),
+      _ModuleItem(AppTextConstants.profile.tr, Iconsax.profile_circle5, AppColors.successColor, route: RouteHelper.getProfileRoute()),
     ];
 
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'More', 
-        subtitle: 'Explore all modules', 
+      appBar: AppHeader(
+        title: AppTextConstants.more.tr, 
+        subtitle: AppTextConstants.exploreAllModules.tr, 
         showBackButton: false,
       ),
       body: GridView.builder(
@@ -56,7 +57,7 @@ class MoreScreen extends StatelessWidget {
           return AppCard(
             padding: EdgeInsets.zero,
             onTap: () {
-              if (module.title == 'Membership') {
+              if (module.title == AppTextConstants.membership.tr) {
                 final membershipController = Get.put(MembershipController());
                 if (membershipController.activeSubscription.value != null || membershipController.subscriptionHistory.isNotEmpty) {
                   Get.to(() => const ActiveSubscriptionScreen());
@@ -71,7 +72,7 @@ class MoreScreen extends StatelessWidget {
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('${module.title} module is under development.'),
+                    content: Text('${module.title} ${AppTextConstants.moduleUnderDevelopment.tr}.'),
                     backgroundColor: AppColors.primaryColor,
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

@@ -14,6 +14,7 @@ import '../../features/splash/domain/repositories/splash_repository.dart';
 import '../../features/splash/domain/services/splash_service.dart';
 import '../../features/intro/controllers/intro_controller.dart';
 import '../theme/theme_controller.dart';
+import '../services/translations/localization_controller.dart';
 
 class InitialBindings extends Bindings {
   @override
@@ -23,6 +24,7 @@ class InitialBindings extends Bindings {
     Get.lazyPut(() => ApiClient(), fenix: true);
     Get.lazyPut(() => Connectivity(), fenix: true);
     Get.lazyPut(() => NetworkInfo(Get.find<Connectivity>()), fenix: true);
+    Get.lazyPut(() => LocalizationController(), fenix: true);
 
     // Splash
     Get.put(SplashRepository(Get.find<ApiClient>()));

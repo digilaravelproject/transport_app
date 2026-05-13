@@ -1,4 +1,6 @@
+import '../models/language_model.dart';
 import '../services/config/env_config.dart';
+import 'app_text_constants.dart';
 
 class AppConstants {
   static String appName = EnvConfig.appName;
@@ -13,6 +15,13 @@ class AppConstants {
   static const bool isHandleErrorScreen = false;
   static const bool handleError = true; // manages logic-level error flow.
   static const bool showToaster = false; // manages UI-level notifications.
+  
+  static List<Language> languages = [
+    Language(code: 'en_US', name: AppTextConstants.english, nativeName: 'English', symbol: 'en', flag: '🇺🇸'),
+    Language(code: 'hi_IN', name: AppTextConstants.hindi, nativeName: 'हिंदी', symbol: 'hi', flag: '🇮🇳'),
+    Language(code: 'mr_IN', name: AppTextConstants.marathi, nativeName: 'मराठी', symbol: 'mr', flag: '🇮🇳'),
+    Language(code: 'gu_IN', name: AppTextConstants.gujarati, nativeName: 'ગુજરાતી', symbol: 'gu', flag: '🇮🇳'),
+  ];
 
   // API base URLs
   static  String imageUrl = '$baseUrl';
@@ -57,6 +66,7 @@ class AppConstants {
   static String removeTripVehicles(dynamic id) => '/api/v1/trips/$id/remove-vehicles';
   static String removeTripDrivers(dynamic id) => '/api/v1/trips/$id/remove-drivers';
   static String updateTripStatusUrl(dynamic id) => '/api/v1/trips/$id/status';
+  static String tripPaymentUrl(dynamic id) => '/api/v1/trips/$id/payment';
 
 
   static const String createShift = '/api/v1/shifts';

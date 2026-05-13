@@ -9,6 +9,7 @@ import '../../../core/widgets/app_text.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/company_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class CorporateDutyTrackingScreen extends GetView<CorporateController> {
   const CorporateDutyTrackingScreen({Key? key}) : super(key: key);
@@ -16,8 +17,8 @@ class CorporateDutyTrackingScreen extends GetView<CorporateController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Duty Tracking',
+      appBar: AppHeader(
+        title: AppTextConstants.dutyTracking.tr,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
@@ -28,7 +29,7 @@ class CorporateDutyTrackingScreen extends GetView<CorporateController> {
             companyName: index % 2 == 0 ? 'TCS' : 'Infosys',
             vehicleNo: 'MH 14 AB ${1000 + index}',
             date: DateTime.now().subtract(Duration(days: index)),
-            status: isCompleted ? 'Completed' : 'Ongoing',
+            status: isCompleted ? AppTextConstants.completed.tr : AppTextConstants.ongoing.tr,
           );
         },
       ),
@@ -51,8 +52,8 @@ class _DutyTrackingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isOngoing = status == 'Ongoing';
-    bool isCompleted = status == 'Completed';
+    bool isOngoing = status == AppTextConstants.ongoing.tr;
+    bool isCompleted = status == AppTextConstants.completed.tr;
 
     Color statusColor = AppColors.textColorSecondary;
     if (isOngoing) statusColor = Colors.orange;
@@ -84,7 +85,7 @@ class _DutyTrackingCard extends StatelessWidget {
             children: [
               const Icon(Iconsax.bus, size: 16, color: AppColors.textColorSecondary),
               const SizedBox(width: 8),
-              AppText('Vehicle: $vehicleNo', style: AppTextStyle.body),
+              AppText('${AppTextConstants.vehicles.tr}: $vehicleNo', style: AppTextStyle.body),
             ],
           ),
           const SizedBox(height: 8),
@@ -92,7 +93,7 @@ class _DutyTrackingCard extends StatelessWidget {
             children: [
               const Icon(Iconsax.calendar_1, size: 16, color: AppColors.textColorSecondary),
               const SizedBox(width: 8),
-              AppText('Date: ${date.day}/${date.month}/${date.year}', style: AppTextStyle.body),
+              AppText('${AppTextConstants.date.tr}: ${date.day}/${date.month}/${date.year}', style: AppTextStyle.body),
             ],
           ),
           if (isOngoing) ...[
@@ -101,14 +102,14 @@ class _DutyTrackingCard extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Get.snackbar('Duty Marked Completed', 'Duty for $companyName marked as completed.', snackPosition: SnackPosition.BOTTOM);
+                  Get.snackbar(AppTextConstants.dutyMarkedCompleted.tr, '${AppTextConstants.duty.tr} ${AppTextConstants.forText.tr} $companyName ${AppTextConstants.marked.tr} ${AppTextConstants.as.tr} ${AppTextConstants.completed.tr}.', snackPosition: SnackPosition.BOTTOM);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.successColor,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-                child: const AppText('Mark as Completed', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+                child: AppText(AppTextConstants.markAsCompleted.tr, style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ]

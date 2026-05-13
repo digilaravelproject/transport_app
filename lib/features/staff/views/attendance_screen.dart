@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -18,7 +19,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Attendance Management',
+        title: AppTextConstants.attendanceManagement.tr,
         trailing: Obx(() => controller.isToday() 
           ? IconButton(
               icon: const Icon(Iconsax.clock),
@@ -26,7 +27,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
             )
           : TextButton(
               onPressed: () => controller.changeDate(DateTime.now()),
-              child: const AppText('Today', color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+              child: AppText(AppTextConstants.today.tr, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
             )),
       ),
       body: Column(
@@ -53,8 +54,8 @@ class AttendanceScreen extends GetView<AttendanceController> {
                         color: AppColors.textColorSecondary,
                       ),
                       const SizedBox(height: 16),
-                      const AppText(
-                        'No staff found for this date',
+                      AppText(
+                        AppTextConstants.noStaffFoundDate.tr,
                         style: AppTextStyle.body,
                         color: AppColors.textColorSecondary,
                       ),
@@ -87,7 +88,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
             return Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: AppButton(
-                text: 'Save Attendance',
+                text: AppTextConstants.saveAttendance.tr,
                 isLoading: controller.isLoading.value,
                 onPressed: () => controller.saveAttendance(),
               ),
@@ -114,7 +115,7 @@ class AttendanceScreen extends GetView<AttendanceController> {
               const Icon(Iconsax.calendar_1, size: 20, color: AppColors.primaryColor),
               const SizedBox(width: 12),
               AppText(
-                controller.isToday() ? 'Today, ${_getFormattedDate(controller.selectedDate.value)}' : _getFormattedDate(controller.selectedDate.value),
+                controller.isToday() ? '${AppTextConstants.today.tr}, ${_getFormattedDate(controller.selectedDate.value)}' : _getFormattedDate(controller.selectedDate.value),
                 style: AppTextStyle.subheading,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -131,7 +132,12 @@ class AttendanceScreen extends GetView<AttendanceController> {
   }
 
   String _getFormattedDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      AppTextConstants.jan.tr, AppTextConstants.feb.tr, AppTextConstants.mar.tr, 
+      AppTextConstants.apr.tr, AppTextConstants.may.tr, AppTextConstants.jun.tr, 
+      AppTextConstants.jul.tr, AppTextConstants.aug.tr, AppTextConstants.sep.tr, 
+      AppTextConstants.oct.tr, AppTextConstants.nov.tr, AppTextConstants.dec.tr
+    ];
     return '${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}';
   }
 }
@@ -202,11 +208,11 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
             const SizedBox(height: 16),
             Row(
               children: [
-                _buildToggleOption(context, 'Present', Colors.green, currentStatus),
+                _buildToggleOption(context, AppTextConstants.present.tr, Colors.green, currentStatus, 'Present'),
                 const SizedBox(width: 8),
-                _buildToggleOption(context, 'Absent', Colors.red, currentStatus),
+                _buildToggleOption(context, AppTextConstants.absent.tr, Colors.red, currentStatus, 'Absent'),
                 const SizedBox(width: 8),
-                _buildToggleOption(context, 'Half Day', Colors.orange, currentStatus),
+                _buildToggleOption(context, AppTextConstants.halfDay.tr, Colors.orange, currentStatus, 'Half Day'),
               ],
             ),
           ],
@@ -215,8 +221,8 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
     });
   }
 
-  Widget _buildToggleOption(BuildContext context, String label, Color color, String currentStatus) {
-    bool isSelected = currentStatus == label;
+  Widget _buildToggleOption(BuildContext context, String label, Color color, String currentStatus, String value) {
+    bool isSelected = currentStatus == value;
     return Expanded(
       child: GestureDetector(
         onTap: () async {
@@ -228,7 +234,7 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
           }
           
           if (shouldUpdate) {
-            controller.updateAttendance(staff.id, label);
+            controller.updateAttendance(staff.id, value);
           }
         },
         child: Container(
@@ -262,17 +268,17 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
           children: [
             const Icon(Iconsax.warning_2, color: Colors.orange),
             const SizedBox(width: 12),
-            const AppText('Edit Past Record', style: AppTextStyle.heading, fontSize: 18),
+            AppText(AppTextConstants.editPastRecord.tr, style: AppTextStyle.heading, fontSize: 18),
           ],
         ),
         content: AppText(
-          'You are changing attendance for a past date. Are you sure you want to update ${staff.name}\'s record to "$newStatus"?',
+          AppTextConstants.editPastRecordConfirmation.tr,
           style: AppTextStyle.body,
         ),
         actions: [
           TextButton(
             onPressed: () => Get.back(result: false),
-            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+            child: AppText(AppTextConstants.cancel.tr, color: AppColors.textColorSecondary),
           ),
           ElevatedButton(
             onPressed: () => Get.back(result: true),
@@ -280,7 +286,7 @@ class _StaffAttendanceRow extends GetView<AttendanceController> {
               backgroundColor: AppColors.primaryColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const AppText('Update', color: Colors.white, fontWeight: FontWeight.bold),
+            child: AppText(AppTextConstants.update.tr, color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -302,15 +308,25 @@ class _StatusIndicator extends StatelessWidget {
           color: AppColors.slate100,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: const AppText('Not Marked', style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontWeight: FontWeight.bold),
+        child: AppText(AppTextConstants.notMarked.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary, fontWeight: FontWeight.bold),
       );
     }
 
     Color color;
+    String label = status;
     switch (status) {
-      case 'Present': color = Colors.green; break;
-      case 'Absent': color = Colors.red; break;
-      case 'Half Day': color = Colors.orange; break;
+      case 'Present': 
+        color = Colors.green; 
+        label = AppTextConstants.present.tr;
+        break;
+      case 'Absent': 
+        color = Colors.red; 
+        label = AppTextConstants.absent.tr;
+        break;
+      case 'Half Day': 
+        color = Colors.orange; 
+        label = AppTextConstants.halfDay.tr;
+        break;
       default: color = Colors.grey;
     }
     
@@ -321,7 +337,7 @@ class _StatusIndicator extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: AppText(status, style: AppTextStyle.caption, color: color, fontWeight: FontWeight.bold),
+      child: AppText(label, style: AppTextStyle.caption, color: color, fontWeight: FontWeight.bold),
     );
   }
 }

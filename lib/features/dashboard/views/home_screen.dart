@@ -11,6 +11,7 @@ import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/app_list_tile.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../controllers/home_controller.dart';
 import '../domain/models/home_stats_model.dart';
 import 'package:intl/intl.dart';
@@ -22,9 +23,9 @@ class HomeScreen extends StatelessWidget {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return AppTextConstants.goodMorning.tr;
+    if (hour < 17) return AppTextConstants.goodAfternoon.tr;
+    return AppTextConstants.goodEvening.tr;
   }
 
   String _formatTime(String createdAt) {
@@ -34,9 +35,9 @@ class HomeScreen extends StatelessWidget {
       final Duration difference = now.difference(dateTime);
 
       if (difference.inMinutes < 60) {
-        return '${difference.inMinutes}m ago';
+        return '${difference.inMinutes}${AppTextConstants.minuteAgo.tr}';
       } else if (difference.inHours < 24) {
-        return '${difference.inHours}h ago';
+        return '${difference.inHours}${AppTextConstants.hourAgo.tr}';
       } else {
         return DateFormat('dd MMM, hh:mm a').format(dateTime);
       }
@@ -91,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     AppText(
-                                      'Hello',
+                                      AppTextConstants.hello.tr,
                                       style: AppTextStyle.heading,
                                       fontSize: 24,
                                       fontWeight: FontWeight.w500,
@@ -132,7 +133,7 @@ class HomeScreen extends StatelessWidget {
                                     const Icon(Iconsax.crown, color: AppColors.primaryColor, size: 14),
                                     const SizedBox(width: 4),
                                     AppText(
-                                      'PRO',
+                                      AppTextConstants.pro.tr,
                                       style: AppTextStyle.caption,
                                       color: AppColors.primaryColor,
                                       fontWeight: FontWeight.w800,
@@ -167,7 +168,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         AppText(
-                          'Keep manage your sales with care.',
+                          AppTextConstants.manageSalesSubtitle.tr,
                           style: AppTextStyle.caption,
                           color: AppColors.textColorSecondary,
                           fontSize: 14,
@@ -190,7 +191,7 @@ class HomeScreen extends StatelessWidget {
                                 const Icon(Iconsax.search_normal, color: AppColors.textColorPrimary, size: 20),
                                 const SizedBox(width: 12),
                                 AppText(
-                                  'Search Update',
+                                  AppTextConstants.searchUpdate.tr,
                                   style: AppTextStyle.caption,
                                   color: AppColors.textColorSecondary,
                                   fontSize: 16,
@@ -224,19 +225,19 @@ class HomeScreen extends StatelessWidget {
                           crossAxisSpacing: 12,
                           childAspectRatio: 0.95,
                           children: [
-                             _StatCard(
-                              label: 'Today\'s Trips',
+                            _StatCard(
+                              label: AppTextConstants.todayTrips.tr,
                               value: s != null ? s.todayTrips.toString().padLeft(2, '0') : '--',
-                              trend: s != null ? '+12% from Yesterday' : '',
+                              trend: s != null ? '+12% ${AppTextConstants.fromYesterday.tr}' : '',
                               isPositive: true,
                               icon: Iconsax.bus,
                               color: AppColors.primaryColor,
                               onTap: () => Get.toNamed('/trip-list'),
                             ),
                             _StatCard(
-                              label: 'Daily Revenue',
+                              label: AppTextConstants.dailyRevenue.tr,
                               value: s != null ? NumberFormat('#,###').format(s.dailyRevenue) : '--',
-                              trend: s != null ? '+24% from Last Week' : '',
+                              trend: s != null ? '+24% ${AppTextConstants.fromLastWeek.tr}' : '',
                               isPositive: true,
                               icon: Iconsax.wallet_3,
                               color: AppColors.primaryColor,
@@ -244,18 +245,18 @@ class HomeScreen extends StatelessWidget {
                               onTap: () => Get.toNamed('/reports-dashboard'),
                             ),
                             _StatCard(
-                              label: 'Pending Leads',
+                              label: AppTextConstants.pendingLeads.tr,
                               value: s != null ? s.pendingLeads.toString() : '--',
-                              trend: s != null ? '+5% this Month' : '',
+                              trend: s != null ? '+5% ${AppTextConstants.thisMonthTrend.tr}' : '',
                               isPositive: true,
                               icon: Iconsax.user_add,
                               color: AppColors.primaryColor,
                               onTap: () => Get.toNamed('/leadList'),
                             ),
                             _StatCard(
-                              label: 'Active Vehicles',
+                              label: AppTextConstants.activeVehicles.tr,
                               value: s != null ? s.activeVehicles.toString() : '--',
-                              trend: 'All systems normal',
+                              trend: AppTextConstants.allSystemsNormal.tr,
                               isPositive: true,
                               icon: Iconsax.truck_fast,
                               color: AppColors.primaryColor,
@@ -268,9 +269,9 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       // ── Quick Actions ────────────────────────────────────────
-                      const SectionHeader(
-                        title: 'Quick Actions',
-                        padding: EdgeInsets.only(top: 12, bottom: 12),
+                      SectionHeader(
+                        title: AppTextConstants.quickActions.tr,
+                        padding: const EdgeInsets.only(top: 12, bottom: 12),
                       ),
                       const SizedBox(height: 8),
                       SingleChildScrollView(
@@ -280,22 +281,22 @@ class HomeScreen extends StatelessWidget {
                         child: Row(
                           children: [
                             _QuickAction(
-                              label: 'Create Lead',
+                              label: AppTextConstants.createLead.tr,
                               icon: Iconsax.user_add,
                               onTap: () => Get.toNamed(RouteHelper.getCreateLeadRoute()),
                             ),
                             _QuickAction(
-                              label: 'Create Trip',
+                              label: AppTextConstants.createTrip.tr,
                               icon: Iconsax.routing_2,
                               onTap: () => Get.toNamed(RouteHelper.getCreateTripRoute()),
                             ),
                             _QuickAction(
-                              label: 'Add Vehicle',
+                              label: AppTextConstants.addVehicle.tr,
                               icon: Iconsax.bus,
                               onTap: () => Get.toNamed(RouteHelper.getAddVehicleRoute()),
                             ),
                             _QuickAction(
-                              label: 'Add Driver',
+                              label: AppTextConstants.addDriver.tr,
                               icon: Iconsax.profile_add,
                               onTap: () => Get.toNamed(RouteHelper.getAddStaffRoute()),
                             ),
@@ -307,18 +308,18 @@ class HomeScreen extends StatelessWidget {
 
                       // ── Recent Activity ──────────────────────────────────
                       SectionHeader(
-                        title: 'Recent Activity',
-                        actionLabel: 'See all',
+                        title: AppTextConstants.recentActivity.tr,
+                        actionLabel: AppTextConstants.seeAll.tr,
                         onActionPressed:() => Get.toNamed(RouteHelper.getNotificationsRoute()),
-                        padding: EdgeInsets.only(top: 12, bottom: 12),
+                        padding: const EdgeInsets.only(top: 12, bottom: 12),
                       ),
                       const SizedBox(height: 8),
                       Obx(() {
                         final s = controller.stats.value;
                         if (s == null || s.recentActivity.isEmpty) {
-                          return const Center(child: Padding(
-                            padding: EdgeInsets.only(top: 12,bottom: 12),
-                            child: AppText('No recent activity', style: AppTextStyle.caption),
+                          return Center(child: Padding(
+                            padding: const EdgeInsets.only(top: 12,bottom: 12),
+                            child: AppText(AppTextConstants.noRecentActivity.tr, style: AppTextStyle.caption),
                           ));
                         }
                         
@@ -330,7 +331,7 @@ class HomeScreen extends StatelessWidget {
                               icon: _getActivityIcon(activity.type),
                               status: activity.type.toUpperCase(),
                               statusColor: activity.type == 'finance' ? Colors.green : AppColors.primaryColor,
-                              transactionId: 'ID: ${activity.id}',
+                              transactionId: '${AppTextConstants.idLabel.tr}: ${activity.id}',
                               onTap: () {
                                 Get.toNamed(
                                   RouteHelper.getNotificationDetailsRoute(),
@@ -364,18 +365,18 @@ class _HeroCard extends StatefulWidget {
 }
 
 class _HeroCardState extends State<_HeroCard> {
-  String _selectedFilter = 'This Week';
+  String _selectedFilter = AppTextConstants.thisWeek.tr;
 
-  void _setFilter(String filter) {
+  void _setFilter(String filterKey, String filterLabel) {
     Navigator.of(context).pop(); // Close bottom sheet safely
     setState(() {
-      _selectedFilter = filter;
+      _selectedFilter = filterLabel;
     });
     
     // Optional snackbar
     Get.snackbar(
-      'Filter Applied',
-      'Showing statistics for $filter',
+      AppTextConstants.filterApplied.tr,
+      '${AppTextConstants.showingStatisticsFor.tr} $filterLabel',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: Colors.black87,
       colorText: Colors.white,
@@ -409,7 +410,7 @@ class _HeroCardState extends State<_HeroCard> {
                 ),
                 const SizedBox(width: 8),
                 AppText(
-                  'Update',
+                  AppTextConstants.updateLabel.tr,
                   color: Colors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -432,15 +433,15 @@ class _HeroCardState extends State<_HeroCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AppText(
-                              'Filter Statistics',
+                              AppTextConstants.filterStatistics.tr,
                               style: AppTextStyle.heading,
                               fontSize: 20,
                             ),
                             const SizedBox(height: 24),
-                            _buildFilterOption('Today', Iconsax.calendar_1, _selectedFilter == 'Today', () => _setFilter('Today')),
-                            _buildFilterOption('This Week', Iconsax.calendar_2, _selectedFilter == 'This Week', () => _setFilter('This Week')),
-                            _buildFilterOption('This Month', Iconsax.calendar, _selectedFilter == 'This Month', () => _setFilter('This Month')),
-                            _buildFilterOption('This Year', Iconsax.calendar_tick, _selectedFilter == 'This Year', () => _setFilter('This Year')),
+                            _buildFilterOption(AppTextConstants.today.tr, Iconsax.calendar_1, _selectedFilter == AppTextConstants.today.tr, () => _setFilter('today', AppTextConstants.today.tr)),
+                            _buildFilterOption(AppTextConstants.thisWeek.tr, Iconsax.calendar_2, _selectedFilter == AppTextConstants.thisWeek.tr, () => _setFilter('this_week', AppTextConstants.thisWeek.tr)),
+                            _buildFilterOption(AppTextConstants.thisMonth.tr, Iconsax.calendar, _selectedFilter == AppTextConstants.thisMonth.tr, () => _setFilter('this_month', AppTextConstants.thisMonth.tr)),
+                            _buildFilterOption(AppTextConstants.thisYear.tr, Iconsax.calendar_tick, _selectedFilter == AppTextConstants.thisYear.tr, () => _setFilter('this_year', AppTextConstants.thisYear.tr)),
                             const SizedBox(height: 16),
                           ],
                         ),
@@ -479,12 +480,12 @@ class _HeroCardState extends State<_HeroCard> {
                 letterSpacing: -0.3,
               ),
               children: [
-                const TextSpan(text: 'Fleet utilization increased '),
+                TextSpan(text: '${AppTextConstants.fleetUtilizationMessage.tr} '),
                 const TextSpan(
                   text: '15%',
                   style: TextStyle(color: Color(0xFF10B981)), // Vibrant neon green
                 ),
-                TextSpan(text: '\n${_selectedFilter.toLowerCase()}'), // Explicit line break and dynamic text
+                TextSpan(text: '\n${_selectedFilter.toLowerCase()}'),
               ],
             ),
           ),
@@ -498,7 +499,7 @@ class _HeroCardState extends State<_HeroCard> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AppText(
-                  'See Statistics',
+                  AppTextConstants.seeStatistics.tr,
                   color: const Color(0xFFD1D5DB), // Light grey text
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

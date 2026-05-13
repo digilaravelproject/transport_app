@@ -12,6 +12,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/staff_controller.dart';
 import '../domain/models/staff_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 import '../../roles/controllers/role_controller.dart';
 
@@ -24,8 +25,8 @@ class StaffListScreen extends GetView<StaffController> {
 
     return AppScaffold(
       useScaffold: false,
-      appBar: const AppHeader(
-        title: 'Staff',
+      appBar: AppHeader(
+        title: AppTextConstants.staff.tr,
       ),
       floatingActionButton: FloatingActionButton(heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getAddStaffRoute()),
@@ -38,7 +39,7 @@ class StaffListScreen extends GetView<StaffController> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: AppSearchBar(
-              hint: 'Search name or role...',
+              hint: AppTextConstants.searchStaffHint.tr,
               onChanged: controller.updateSearch,
             ),
           ),
@@ -53,7 +54,7 @@ class StaffListScreen extends GetView<StaffController> {
               child: Row(
                 children: [
                   AppFilterChip(
-                    label: 'All', 
+                    label: AppTextConstants.all.tr, 
                     isSelected: controller.selectedFilter.value == 'All', 
                     onTap: () => controller.setFilter('All')
                   ),
@@ -82,10 +83,10 @@ class StaffListScreen extends GetView<StaffController> {
                     child: SizedBox(
                       height: MediaQuery.of(context).size.height * 0.6,
                       child: AppEmptyState(
-                        title: 'No Staff Found',
+                        title: AppTextConstants.noStaffFound.tr,
                         subtitle: controller.searchQuery.value.isNotEmpty 
-                            ? 'No staff members match your search "${controller.searchQuery.value}".'
-                            : 'Start by adding your first staff member to manage your team.',
+                            ? AppTextConstants.noResultsFound.tr
+                            : AppTextConstants.startAddingStaff.tr,
                         icon: Iconsax.user_tag,
                         actionLabel: null,
                         onActionPressed: null,
@@ -142,7 +143,7 @@ class _StaffCard extends StatelessWidget {
                       child: AppText(staff.name, style: AppTextStyle.subheading, fontSize: 16, overflow: TextOverflow.ellipsis),
                     ),
                     const SizedBox(width: 8),
-                    AppStatusChip(status: staff.status.name.capitalizeFirst!),
+                    AppStatusChip(status: staff.status.name),
                   ],
                 ),
                 const SizedBox(height: 4),

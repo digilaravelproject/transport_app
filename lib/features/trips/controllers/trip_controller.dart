@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/services/network/api_client.dart';
@@ -318,7 +319,7 @@ class TripController extends GetxController {
 
       if (response.isSuccess) {
         Get.snackbar(
-          'Success',
+          AppTextConstants.success.tr,
           response.message,
           backgroundColor: Colors.green,
           colorText: Colors.white,
@@ -328,7 +329,7 @@ class TripController extends GetxController {
         return true;
       } else {
         Get.snackbar(
-          'Error',
+          AppTextConstants.error.tr,
           response.message,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -378,7 +379,7 @@ class TripController extends GetxController {
       );
 
       if (response.isSuccess) {
-        Get.snackbar('Success', 'Trip updated successfully');
+        Get.snackbar(AppTextConstants.success.tr, AppTextConstants.updatedSuccessfully.tr);
         fetchTripDetails(tripId);
         return true;
       }
@@ -460,6 +461,41 @@ class TripController extends GetxController {
     }
   }
 
+  Future<bool> addTripPayment({
+    required String tripId,
+    required double amount,
+    required String type,
+    required String mode,
+    required String paidOn,
+    String reference = '',
+    String notes = '',
+  }) async {
+    try {
+      isLoading.value = true;
+      final ResponseModel response = await _apiClient.post(
+        AppConstants.tripPaymentUrl(tripId),
+        data: {
+          'amount': amount,
+          'type': type,
+          'mode': mode,
+          'paid_on': paidOn,
+          'reference': reference,
+          'notes': notes,
+        },
+      );
+      if (response.isSuccess) {
+        await fetchTripDetails(tripId);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error adding trip payment: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> uploadDutySheet(String tripId, XFile file, String notes) async {
     try {
       isLoading.value = true;
@@ -510,7 +546,7 @@ class TripController extends GetxController {
       );
 
       if (response.isSuccess) {
-        Get.snackbar('Success', 'Trip deleted successfully');
+        Get.snackbar(AppTextConstants.success.tr, AppTextConstants.removedSuccessfully.tr);
         fetchTrips(); // Refresh the list
         return true;
       }

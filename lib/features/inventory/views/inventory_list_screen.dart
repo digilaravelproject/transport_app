@@ -11,6 +11,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../controllers/inventory_controller.dart';
 import '../domain/models/inventory_model.dart';
 import '../../../routes/route_helper.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 
 class InventoryListScreen extends GetView<InventoryController> {
@@ -19,14 +20,14 @@ class InventoryListScreen extends GetView<InventoryController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Inventory',
+      appBar: AppHeader(
+        title: AppTextConstants.inventory.tr,
       ),
       floatingActionButton: FloatingActionButton.extended(heroTag: null,
         onPressed: () => Get.toNamed(RouteHelper.getAddInventoryItemRoute()),
         backgroundColor: AppColors.primaryColor,
         icon: const Icon(Iconsax.add, color: Colors.white),
-        label: const AppText('Add Item', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+        label: AppText(AppTextConstants.addItem.tr, style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +35,7 @@ class InventoryListScreen extends GetView<InventoryController> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: AppSearchBar(
-              hint: 'Search item name or SKU...',
+              hint: AppTextConstants.searchInventoryHint.tr,
               onChanged: (v) => controller.updateSearch(v),
             ),
           ),
@@ -43,32 +44,32 @@ class InventoryListScreen extends GetView<InventoryController> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Obx(() => Row(
               children: [
-                AppFilterChip(
-                  label: 'All',
+                 AppFilterChip(
+                  label: AppTextConstants.all.tr,
                   isSelected: controller.selectedFilter.value == 'All',
                   onTap: () => controller.setFilter('All'),
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
-                  label: 'Spare Parts',
+                  label: AppTextConstants.spareParts.tr,
                   isSelected: controller.selectedFilter.value == 'Spare Parts',
                   onTap: () => controller.setFilter('Spare Parts'),
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
-                  label: 'Tools',
+                  label: AppTextConstants.tools.tr,
                   isSelected: controller.selectedFilter.value == 'Tools',
                   onTap: () => controller.setFilter('Tools'),
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
-                  label: 'Office Supplies',
+                  label: AppTextConstants.officeSupplies.tr,
                   isSelected: controller.selectedFilter.value == 'Office Supplies',
                   onTap: () => controller.setFilter('Office Supplies'),
                 ),
                 const SizedBox(width: 8),
                 AppFilterChip(
-                  label: 'Oils & Fluids',
+                  label: AppTextConstants.oilsFluids.tr,
                   isSelected: controller.selectedFilter.value == 'Oils & Fluids',
                   onTap: () => controller.setFilter('Oils & Fluids'),
                 ),
@@ -92,7 +93,7 @@ class InventoryListScreen extends GetView<InventoryController> {
                   children: [
                     const Icon(Iconsax.warning_2, color: AppColors.errorColor, size: 20),
                     const SizedBox(width: 8),
-                    AppText('$lowStockCount items are low on stock!', style: AppTextStyle.caption, color: AppColors.errorColor, fontWeight: FontWeight.bold),
+                    AppText('${lowStockCount} ${AppTextConstants.lowStockWarning.tr}', style: AppTextStyle.caption, color: AppColors.errorColor, fontWeight: FontWeight.bold),
                   ],
                 ),
               ),
@@ -112,10 +113,10 @@ class InventoryListScreen extends GetView<InventoryController> {
                      child: SizedBox(
                        height: MediaQuery.of(context).size.height * 0.5,
                        child: AppEmptyState(
-                         title: controller.searchQuery.value.isNotEmpty ? 'No Matching Items' : 'No Inventory Items',
+                         title: controller.searchQuery.value.isNotEmpty ? AppTextConstants.noMatchingItems.tr : AppTextConstants.noInventoryItems.tr,
                          subtitle: controller.searchQuery.value.isNotEmpty 
-                             ? 'No items match your search "${controller.searchQuery.value}".'
-                             : 'Start by adding items to your inventory to track stock.',
+                             ? AppTextConstants.noResultsFound.tr
+                             : AppTextConstants.startAddingInventory.tr,
                          icon: Iconsax.box,
                        ),
                      ),
@@ -180,7 +181,7 @@ class InventoryListScreen extends GetView<InventoryController> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppText('Current Stock', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  AppText(AppTextConstants.currentStock.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -193,7 +194,7 @@ class InventoryListScreen extends GetView<InventoryController> {
                             color: AppColors.errorColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const AppText('Low', style: AppTextStyle.caption, color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          child: AppText(AppTextConstants.low.tr, style: AppTextStyle.caption, color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ]
                     ],
@@ -203,7 +204,7 @@ class InventoryListScreen extends GetView<InventoryController> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const AppText('Unit Price', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  AppText(AppTextConstants.unitPrice.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                   const SizedBox(height: 4),
                   AppText('\u20B9 ${item.unitPrice.toStringAsFixed(0)}', style: AppTextStyle.body, fontWeight: FontWeight.bold),
                 ],

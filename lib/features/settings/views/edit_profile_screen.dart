@@ -11,6 +11,7 @@ import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_input_field.dart';
 import '../../profile/controllers/profile_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class EditProfileScreen extends StatelessWidget {
   EditProfileScreen({Key? key}) : super(key: key);
@@ -21,8 +22,8 @@ class EditProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Edit Profile',
+      appBar: AppHeader(
+        title: AppTextConstants.editProfile.tr,
       ),
       body: Obx(() {
         final isLoading = controller.isLoading.value;
@@ -122,7 +123,7 @@ class EditProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText('Personal Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                      AppText(AppTextConstants.personalDetails.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
                       const SizedBox(height: 16),
                       // AppInputField(
                       //   label: 'Full Name',
@@ -132,8 +133,8 @@ class EditProfileScreen extends StatelessWidget {
                       //   validator: controller.validateName,
                       // ),
                       AppInputField(
-                        label: 'Owner Name',
-                        hint: 'Enter owner name',
+                        label: AppTextConstants.ownerName.tr,
+                        hint: AppTextConstants.enterOwnerName.tr,
                         controller: controller.ownerNameController,
                         icon: Iconsax.user_octagon,
                         validator: controller.validateName,
@@ -153,8 +154,8 @@ class EditProfileScreen extends StatelessWidget {
                         child: IgnorePointer(
                           ignoring: true, // 👈 click disable
                           child: AppInputField(
-                            label: 'Email Address',
-                            hint: 'Enter email address',
+                            label: AppTextConstants.emailAddress.tr,
+                            hint: AppTextConstants.enterYourEmail.tr,
                             controller: controller.emailController,
                             icon: Iconsax.sms,
                             keyboardType: TextInputType.emailAddress,
@@ -179,9 +180,9 @@ class EditProfileScreen extends StatelessWidget {
                       // ),
 
                       Obx(() => AppInputField(
-                        label: 'Phone Number',
+                        label: AppTextConstants.mobileNumber.tr,
                         controller: controller.phoneController,
-                        hint: 'Enter mobile number',
+                        hint: AppTextConstants.enterMobileNumber.tr,
                         icon: Iconsax.call,
                         keyboardType: TextInputType.phone,
                         phoneCode: controller.selectedCountryCode.value,
@@ -198,11 +199,11 @@ class EditProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      AppText('Business Details', style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                      AppText(AppTextConstants.businessDetails.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
                       const SizedBox(height: 16),
                       AppInputField(
-                        label: 'Company Name',
-                        hint: 'Enter company name',
+                        label: AppTextConstants.companyName.tr,
+                        hint: AppTextConstants.enterCompanyName.tr,
                         controller: controller.companyNameController,
                         icon: Iconsax.building,
                       ),
@@ -222,8 +223,8 @@ class EditProfileScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       AppInputField(
-                        label: 'Complete Address',
-                        hint: 'Enter complete address',
+                        label: AppTextConstants.completeAddress.tr,
+                        hint: AppTextConstants.enterCompleteAddress.tr,
                         controller: controller.addressController,
                         icon: Iconsax.location,
                         maxLines: 3,
@@ -233,7 +234,7 @@ class EditProfileScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 32),
                 AppButton(
-                  text: isLoading ? 'Saving...' : 'Save Changes',
+                  text: isLoading ? '${AppTextConstants.sending.tr}...' : AppTextConstants.saveChanges.tr,
                   onPressed: isLoading
                       ? null
                       : () {

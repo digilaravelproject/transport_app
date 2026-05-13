@@ -12,6 +12,7 @@ import '../../../routes/route_helper.dart';
 import '../controllers/corporate_controller.dart';
 import '../domain/models/company_model.dart';
 import '../../../core/widgets/app_empty_state.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class CompanyListScreen extends GetView<CorporateController> {
   const CompanyListScreen({Key? key}) : super(key: key);
@@ -19,9 +20,9 @@ class CompanyListScreen extends GetView<CorporateController> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Vendors',
-        subtitle: 'Manage corporate partners',
+      appBar: AppHeader(
+        title: AppTextConstants.vendors.tr,
+        subtitle: AppTextConstants.manageCorporatePartners.tr,
       ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
@@ -31,7 +32,7 @@ class CompanyListScreen extends GetView<CorporateController> {
         backgroundColor: AppColors.primaryColor,
         elevation: 4,
         icon: const Icon(Iconsax.add, color: Colors.white),
-        label: const AppText('Add Vendor', style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
+        label: AppText(AppTextConstants.addVendor.tr, style: AppTextStyle.body, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: Column(
         children: [
@@ -41,17 +42,17 @@ class CompanyListScreen extends GetView<CorporateController> {
             child: Column(
               children: [
                 AppSearchBar(
-                  hint: 'Search by name or contact...',
+                  hint: AppTextConstants.searchVendorHint.tr,
                   onChanged: (v) => controller.updateSearch(v),
                 ),
                 const SizedBox(height: 12),
                 Obx(() => Row(
                   children: [
-                    _buildFilterChip('All', controller.selectedFilter.value == 'All'),
+                    _buildFilterChip(AppTextConstants.all.tr, controller.selectedFilter.value == 'All'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('Active', controller.selectedFilter.value == 'Active'),
+                    _buildFilterChip(AppTextConstants.active.tr, controller.selectedFilter.value == 'Active'),
                     const SizedBox(width: 8),
-                    _buildFilterChip('Inactive', controller.selectedFilter.value == 'Inactive'),
+                    _buildFilterChip(AppTextConstants.inactive.tr, controller.selectedFilter.value == 'Inactive'),
                   ],
                 )
                 ),
@@ -68,15 +69,17 @@ class CompanyListScreen extends GetView<CorporateController> {
                 final bool isSearching = controller.searchQuery.value.isNotEmpty;
                 final bool isFiltered = controller.selectedFilter.value != 'All';
                 
-                String emptyTitle = 'No Vendors Found';
-                String emptySubtitle = 'Start by adding your first vendor to manage corporate partners.';
+                String emptyTitle = AppTextConstants.noVendorsFound.tr;
+                String emptySubtitle = AppTextConstants.noVendorsFound.tr;
                 
                 if (isSearching) {
-                  emptyTitle = 'No Matching Vendors';
-                  emptySubtitle = 'No vendors match your search "${controller.searchQuery.value}".';
+                  emptyTitle = AppTextConstants.noMatchingVendors.tr;
+                  emptySubtitle = AppTextConstants.noMatchingVendors.tr;
                 } else if (isFiltered) {
-                  emptyTitle = 'No ${controller.selectedFilter.value} Vendors';
-                  emptySubtitle = 'There are no vendors currently marked as ${controller.selectedFilter.value.toLowerCase()}.';
+                  emptyTitle = controller.selectedFilter.value == 'Active' 
+                      ? AppTextConstants.noActiveVendors.tr 
+                      : AppTextConstants.noInactiveVendors.tr;
+                  emptySubtitle = emptyTitle;
                 }
 
                 return RefreshIndicator(
@@ -202,7 +205,7 @@ class _CompanyCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               AppText(company.name, style: AppTextStyle.subheading, fontSize: 17, fontWeight: FontWeight.bold),
-                              AppText(company.dutyType ?? 'Corporate Partner', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                              AppText(company.dutyType ?? AppTextConstants.corporatePartner.tr, style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                             ],
                           ),
                         ),
@@ -210,19 +213,21 @@ class _CompanyCard extends StatelessWidget {
                           onTap: () {
                             Get.dialog(
                               AlertDialog(
-                                title: const AppText('Change Status', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
-                                content: AppText('Are you sure you want to ${isActive ? 'deactivate' : 'activate'} this vendor?'),
+                                title: AppText(AppTextConstants.changeStatus.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+                                content: AppText(isActive 
+                                    ? AppTextConstants.deactivateVendorConfirm.tr 
+                                    : AppTextConstants.activateVendorConfirm.tr),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Get.back(),
-                                    child: const AppText('Cancel', color: AppColors.textColorSecondary),
+                                    child: AppText(AppTextConstants.cancel.tr, color: AppColors.textColorSecondary),
                                   ),
                                   TextButton(
                                     onPressed: () {
                                       Get.back();
                                       Get.find<CorporateController>().toggleVendorStatus(company.id);
                                     },
-                                    child: AppText(isActive ? 'Deactivate' : 'Activate', 
+                                    child: AppText(isActive ? AppTextConstants.deactivate.tr : AppTextConstants.activate.tr, 
                                       color: isActive ? AppColors.errorColor : AppColors.successColor,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -238,9 +243,9 @@ class _CompanyCard extends StatelessWidget {
                     const Divider(height: 32),
                     Row(
                       children: [
-                        _buildInfoItem(Iconsax.user, 'Contact', company.contactPerson ?? 'N/A'),
+                        _buildInfoItem(Iconsax.user, AppTextConstants.contact.tr, company.contactPerson ?? 'N/A'),
                         const Spacer(),
-                        _buildInfoItem(Iconsax.call, 'Phone', company.phone.toString()),
+                        _buildInfoItem(Iconsax.call, AppTextConstants.phone.tr, company.phone.toString()),
                         const Spacer(),
                        // _buildInfoItem(Iconsax.money, 'Amount', '₹${company.monthlyAmount ?? '0'}'),
                       ],
@@ -287,7 +292,7 @@ class _CompanyCard extends StatelessWidget {
           Icon(isActive ? Iconsax.tick_circle : Iconsax.close_circle, size: 10, color: color),
           const SizedBox(width: 4),
           AppText(
-            isActive ? 'Active' : 'Inactive',
+            isActive ? AppTextConstants.active.tr : AppTextConstants.inactive.tr,
             style: AppTextStyle.caption,
             fontSize: 9,
             color: color,

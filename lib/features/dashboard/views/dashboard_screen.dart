@@ -9,6 +9,7 @@ import '../../finance/views/finance_screen.dart';
 import 'more_screen.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../core/widgets/premium_bottom_nav.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -41,31 +42,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bottomNavigationBar: Obx(() => PremiumBottomNav(
         currentIndex: _currentIndex.value,
         onTap: (index) => _currentIndex.value = index,
-        items: const [
+        items: [
           PremiumBottomNavItem(
             icon: Iconsax.home,
             activeIcon: Iconsax.home5,
-            label: 'Home',
+            label: AppTextConstants.home.tr,
           ),
           PremiumBottomNavItem(
             icon: Iconsax.routing,
             activeIcon: Iconsax.routing,
-            label: 'Trips',
+            label: AppTextConstants.trips.tr,
           ),
           PremiumBottomNavItem(
             icon: Iconsax.bus,
             activeIcon: Iconsax.bus5,
-            label: 'Vehicles',
+            label: AppTextConstants.vehicles.tr,
           ),
           PremiumBottomNavItem(
             icon: Iconsax.wallet,
             activeIcon: Iconsax.wallet,
-            label: 'Finance',
+            label: AppTextConstants.finance.tr,
           ),
           PremiumBottomNavItem(
             icon: Iconsax.category,
             activeIcon: Iconsax.category5,
-            label: 'More',
+            label: AppTextConstants.more.tr,
           ),
         ],
       )),

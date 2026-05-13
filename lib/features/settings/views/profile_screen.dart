@@ -13,6 +13,10 @@ import '../../../routes/route_helper.dart';
 import '../../membership/views/active_subscription_screen.dart';
 import '../../profile/controllers/profile_controller.dart';
 import '../controllers/settings_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/services/translations/localization_controller.dart';
+import '../../../core/widgets/app_bottom_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
   ProfileScreen({Key? key}) : super(key: key);
@@ -23,9 +27,9 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: const AppHeader(
-        title: 'Vendor Profile',
-        subtitle: 'Manage your business details',
+      appBar: AppHeader(
+        title: AppTextConstants.profile.tr,
+        subtitle: AppTextConstants.manageBusinessDetails.tr,
       ),
       body: Obx(() {
         final profile = profileController.profile.value;
@@ -140,9 +144,9 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // ── Agency Information ──────────────────────────────────────
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: AppText('Agency Information', style: AppTextStyle.subheading),
+                child: AppText(AppTextConstants.agencyInformation.tr, style: AppTextStyle.subheading),
               ),
               const SizedBox(height: 12),
               AppCard(
@@ -150,7 +154,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     InfoTile(
-                      label: 'Owner Name',
+                      label: AppTextConstants.ownerNameLabel.tr,
                       value: profile?.ownerName ?? '-',
                       icon: Iconsax.user,
                     ),
@@ -159,7 +163,7 @@ class ProfileScreen extends StatelessWidget {
                       child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
                     ),
                     InfoTile(
-                      label: 'Email Address',
+                      label: AppTextConstants.emailAddress.tr,
                       value: profile?.email ?? '-',
                       icon: Iconsax.sms,
                     ),
@@ -168,7 +172,7 @@ class ProfileScreen extends StatelessWidget {
                       child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
                     ),
                     InfoTile(
-                      label: 'Phone Number',
+                      label: AppTextConstants.phone.tr,
                       value: profile?.phone ?? 'N/A',
                       icon: Iconsax.call,
                     ),
@@ -177,7 +181,7 @@ class ProfileScreen extends StatelessWidget {
                       child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
                     ),
                     InfoTile(
-                      label: 'GST Number',
+                      label: AppTextConstants.gstNumber.tr,
                       value: profile?.gstin ?? 'N/A',
                       icon: Icons.assignment_outlined,
                     ),
@@ -186,7 +190,7 @@ class ProfileScreen extends StatelessWidget {
                       child: const Divider(height: 1, indent: 36, color: AppColors.dividerColor),
                     ),
                     InfoTile(
-                      label: 'Address',
+                      label: AppTextConstants.address.tr,
                       value: profile?.address ?? 'N/A',
                       icon: Iconsax.location,
                     ),
@@ -197,9 +201,9 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               // ── Account Actions ─────────────────────────────────────────
-              const Align(
+              Align(
                 alignment: Alignment.centerLeft,
-                child: AppText('Account Settings', style: AppTextStyle.subheading),
+                child: AppText(AppTextConstants.settingsOptions.tr, style: AppTextStyle.subheading),
               ),
               const SizedBox(height: 12),
               AppCard(
@@ -207,22 +211,29 @@ class ProfileScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     ActionTile(
-                      title: 'Subscription Plan',
-                      subtitle: 'Manage your current plan',
+                      title: AppTextConstants.subscriptionPlan.tr,
+                      subtitle: AppTextConstants.manageCurrentPlan.tr,
                       icon: const Icon(Icons.star_outline_rounded),
                       onTap: () => Get.to(() => const ActiveSubscriptionScreen()),
                     ),
                     const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
                     ActionTile(
-                      title: 'Help & Support',
-                      subtitle: 'FAQs and support contacts',
+                      title: AppTextConstants.helpSupport.tr,
+                      subtitle: AppTextConstants.faqsSupportContacts.tr,
                       icon: const Icon(Icons.help_outline_rounded),
                       onTap: () => Get.toNamed(RouteHelper.getHelpRoute()),
                     ),
                     const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
                     ActionTile(
-                      title: 'Sign Out',
-                      subtitle: 'Logout from this session',
+                      title: AppTextConstants.changeLanguage.tr,
+                      subtitle: AppTextConstants.changeAppLanguage.tr,
+                      icon: const Icon(Icons.language_rounded),
+                      onTap: () => _showLanguageDialog(context),
+                    ),
+                    const Divider(height: 1, indent: 56, color: AppColors.dividerColor),
+                    ActionTile(
+                      title: AppTextConstants.logout.tr,
+                      subtitle: AppTextConstants.logoutSession.tr,
                       icon: const Icon(Iconsax.logout),
                       iconColor: AppColors.errorColor,
                       onTap: () => settingsController.showLogoutDialog(),
@@ -235,6 +246,46 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    Get.bottomSheet(
+      AppBottomSheet(
+        title: AppTextConstants.selectLanguage.tr,
+        children: AppConstants.languages.map((language) {
+          final isSelected = Get.find<LocalizationController>().currentLanguageCode == language.code;
+          return ListTile(
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primaryColor.withOpacity(0.1) : AppColors.slate100,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                language.flag,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ),
+            title: AppText(
+              language.nativeName,
+              style: AppTextStyle.body,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            subtitle: AppText(
+              language.name.tr,
+              style: AppTextStyle.caption,
+            ),
+            trailing: isSelected
+                ? const Icon(Icons.check_circle_rounded, color: AppColors.primaryColor)
+                : null,
+            onTap: () {
+              Get.find<LocalizationController>().setLanguage(language.code);
+              Get.back();
+            },
+          );
+        }).toList(),
+      ),
     );
   }
 }

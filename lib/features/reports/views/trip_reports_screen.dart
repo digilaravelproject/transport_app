@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
@@ -24,7 +25,7 @@ class TripReportsScreen extends GetView<ReportsController> {
 
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Monthly Reports',
+        title: AppTextConstants.monthlyReports.tr,
         rightWidget: IconButton(
           icon: const Icon(Iconsax.calendar_1, color: AppColors.primaryColor),
           onPressed: () => _showMonthPicker(context),
@@ -43,7 +44,7 @@ class TripReportsScreen extends GetView<ReportsController> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Obx(() => AppText(
-                        '${controller.selectedReportType.value.capitalizeFirst} Report - ${_formatSelectedMonth(controller.selectedMonth.value)}',
+                        '${controller.selectedReportType.value.capitalizeFirst} ${AppTextConstants.reportLabel.tr} - ${_formatSelectedMonth(controller.selectedMonth.value)}',
                         style: AppTextStyle.subheading,
                       )),
                     ],
@@ -69,7 +70,7 @@ class TripReportsScreen extends GetView<ReportsController> {
                               Icon(Iconsax.document_filter, size: 64, color: AppColors.slate300),
                               const SizedBox(height: 16),
                               AppText(
-                                'No report found for this criteria',
+                                AppTextConstants.noReportFoundCriteria.tr,
                                 textAlign: TextAlign.center,
                                 color: AppColors.textColorSecondary,
                               ),
@@ -161,7 +162,7 @@ class TripReportsScreen extends GetView<ReportsController> {
                 AppText(report.reportName, style: AppTextStyle.body, fontWeight: FontWeight.bold),
                 const SizedBox(height: 4),
                 AppText(
-                  'Generated: ${DateFormat('dd/MM/yyyy').format(report.generatedDate)}',
+                  '${AppTextConstants.generated.tr}: ${DateFormat('dd/MM/yyyy').format(report.generatedDate)}',
                   style: AppTextStyle.caption,
                   color: AppColors.textColorSecondary,
                 ),
@@ -192,12 +193,12 @@ class TripReportsScreen extends GetView<ReportsController> {
     final url = Uri.parse(urlString);
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
-      Get.snackbar('Downloading', 'Download started...', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(AppTextConstants.downloading.tr, AppTextConstants.downloadStarted.tr, snackPosition: SnackPosition.BOTTOM);
     }
   }
 
   String _formatSelectedMonth(String monthStr) {
-    if (monthStr.isEmpty) return 'Current Month';
+    if (monthStr.isEmpty) return AppTextConstants.currentMonth.tr;
     try {
       final date = DateFormat('yyyy-MM').parse(monthStr);
       return DateFormat('MMMM yyyy').format(date);
@@ -224,7 +225,7 @@ class TripReportsScreen extends GetView<ReportsController> {
             const SizedBox(height: 12),
             Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.slate200, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 20),
-            const AppText('Select Month', style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
+            AppText(AppTextConstants.selectMonth.tr, style: AppTextStyle.subheading, fontWeight: FontWeight.bold),
             const SizedBox(height: 12),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.5),

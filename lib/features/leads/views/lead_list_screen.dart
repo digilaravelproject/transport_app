@@ -13,6 +13,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/lead_controller.dart';
 import '../domain/models/lead_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 
 class LeadListScreen extends GetView<LeadController> {
@@ -83,7 +84,7 @@ class LeadListScreen extends GetView<LeadController> {
                             const Icon(Iconsax.filter, color: AppColors.textColorPrimary, size: 14),
                             const SizedBox(width: 4),
                             Obx(() => AppText(
-                              controller.selectedDateFilter.value == 'All' ? 'Filter' : controller.selectedDateFilter.value,
+                              controller.selectedDateFilter.value == 'All' ? AppTextConstants.filter.tr : controller.selectedDateFilter.value,
                               color: AppColors.textColorPrimary, 
                               fontSize: 12, 
                               fontWeight: FontWeight.w600
@@ -119,20 +120,20 @@ class LeadListScreen extends GetView<LeadController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Title
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             AppText(
-                              'Leads Dashboard',
+                              AppTextConstants.leadsDashboard.tr,
                               style: AppTextStyle.heading,
                               fontSize: 28,
                               color: AppColors.textColorPrimary,
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             AppText(
-                              'Manage all your inquiries & prospects',
+                              AppTextConstants.manageInquiriesProspects.tr,
                               style: AppTextStyle.body,
                               color: AppColors.textColorSecondary,
                             ),
@@ -146,11 +147,11 @@ class LeadListScreen extends GetView<LeadController> {
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Row(
                           children: [
-                            Expanded(child: _DashboardStatCard(title: 'Total', value: controller.totalLeads.toString(), color: const Color(0xFF3B82F6), icon: Iconsax.chart_215)),
+                            Expanded(child: _DashboardStatCard(title: AppTextConstants.total.tr, value: controller.totalLeads.toString(), color: const Color(0xFF3B82F6), icon: Iconsax.chart_215)),
                             const SizedBox(width: 12),
-                            Expanded(child: _DashboardStatCard(title: 'Pending', value: controller.pendingLeads.toString(), color: const Color(0xFFF59E0B), icon: Iconsax.timer_15)),
+                            Expanded(child: _DashboardStatCard(title: AppTextConstants.pending.tr, value: controller.pendingLeads.toString(), color: const Color(0xFFF59E0B), icon: Iconsax.timer_15)),
                             const SizedBox(width: 12),
-                            Expanded(child: _DashboardStatCard(title: 'Confirmed', value: controller.confirmedLeads.toString(), color: const Color(0xFF10B981), icon: Iconsax.tick_circle5)),
+                            Expanded(child: _DashboardStatCard(title: AppTextConstants.confirmed.tr, value: controller.confirmedLeads.toString(), color: const Color(0xFF10B981), icon: Iconsax.tick_circle5)),
                           ],
                         ),
                       )),
@@ -159,7 +160,7 @@ class LeadListScreen extends GetView<LeadController> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: AppSearchBar(
-                          hint: 'Search leads...',
+                          hint: AppTextConstants.searchLeadsHint.tr,
                           onChanged: (value) => controller.searchQuery.value = value,
                         ),
                       ),
@@ -171,10 +172,10 @@ class LeadListScreen extends GetView<LeadController> {
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Row(
                           children: [
-                            AppFilterChip(label: 'All', isSelected: controller.selectedFilter.value == 'All', onTap: () => controller.setFilter('All')),
-                            AppFilterChip(label: 'Pending', isSelected: controller.selectedFilter.value == 'Pending', onTap: () => controller.setFilter('Pending')),
-                            AppFilterChip(label: 'Confirmed', isSelected: controller.selectedFilter.value == 'Confirmed', onTap: () => controller.setFilter('Confirmed')),
-                            AppFilterChip(label: 'Cancelled', isSelected: controller.selectedFilter.value == 'Cancelled', onTap: () => controller.setFilter('Cancelled')),
+                            AppFilterChip(label: AppTextConstants.all.tr, isSelected: controller.selectedFilter.value == 'All', onTap: () => controller.setFilter('All')),
+                            AppFilterChip(label: AppTextConstants.pending.tr, isSelected: controller.selectedFilter.value == 'Pending', onTap: () => controller.setFilter('Pending')),
+                            AppFilterChip(label: AppTextConstants.confirmed.tr, isSelected: controller.selectedFilter.value == 'Confirmed', onTap: () => controller.setFilter('Confirmed')),
+                            AppFilterChip(label: AppTextConstants.cancelled.tr, isSelected: controller.selectedFilter.value == 'Cancelled', onTap: () => controller.setFilter('Cancelled')),
                           ],
                         ),
                       )),
@@ -193,10 +194,10 @@ class LeadListScreen extends GetView<LeadController> {
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 40),
                             child: AppEmptyState(
-                              title: controller.searchQuery.isNotEmpty ? 'No Results Found' : 'No Leads Found',
+                              title: controller.searchQuery.isNotEmpty ? AppTextConstants.noResultsFound.tr : AppTextConstants.noLeadsFound.tr,
                               subtitle: controller.searchQuery.isNotEmpty 
-                                  ? 'No leads match your search "${controller.searchQuery.value}".'
-                                  : 'Start by creating your first lead to track inquiries.',
+                                  ? AppTextConstants.noResultsFound.tr
+                                  : AppTextConstants.startCreatingLead.tr,
                               icon: controller.searchQuery.isNotEmpty ? Iconsax.search_status : Iconsax.chart_215,
                               actionLabel: null,
                               onActionPressed: null,
@@ -251,7 +252,7 @@ class LeadListScreen extends GetView<LeadController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const AppText('Filter by Date', style: AppTextStyle.heading, fontSize: 20),
+                AppText(AppTextConstants.filterByDate.tr, style: AppTextStyle.heading, fontSize: 20),
                 GestureDetector(
                   onTap: () => Get.back(),
                   child: Container(
@@ -271,14 +272,14 @@ class LeadListScreen extends GetView<LeadController> {
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    _dateFilterItem('All', Iconsax.calendar),
-                    _dateFilterItem('Today', Iconsax.timer),
-                    _dateFilterItem('3 Days', Iconsax.judge),
-                    _dateFilterItem('Week', Iconsax.calendar_1),
-                    _dateFilterItem('Month', Iconsax.calendar_edit),
-                    _dateFilterItem('3 Months', Iconsax.chart_1),
-                    _dateFilterItem('6 Months', Iconsax.chart_21),
-                    _dateFilterItem('Year', Iconsax.archive_1),
+                    _dateFilterItem(AppTextConstants.all.tr, Iconsax.calendar),
+                    _dateFilterItem(AppTextConstants.today.tr, Iconsax.timer),
+                    _dateFilterItem(AppTextConstants.threeDays.tr, Iconsax.judge),
+                    _dateFilterItem(AppTextConstants.week.tr, Iconsax.calendar_1),
+                    _dateFilterItem(AppTextConstants.month.tr, Iconsax.calendar_edit),
+                    _dateFilterItem(AppTextConstants.threeMonths.tr, Iconsax.chart_1),
+                    _dateFilterItem(AppTextConstants.sixMonths.tr, Iconsax.chart_21),
+                    _dateFilterItem(AppTextConstants.year.tr, Iconsax.archive_1),
                     _customDateRangeItem(context),
                   ],
                 ),
@@ -395,7 +396,7 @@ class LeadListScreen extends GetView<LeadController> {
               ),
               const SizedBox(width: 12),
               AppText(
-                'Custom Range',
+                AppTextConstants.customRange.tr,
                 fontSize: 14,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: isSelected ? AppColors.primaryColor : AppColors.textColorPrimary,
@@ -530,33 +531,33 @@ class _LeadCard extends StatelessWidget {
                   }
                 },
                 itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'Pending',
                     child: Row(
                       children: [
-                        Icon(Iconsax.timer, size: 16, color: AppColors.primaryColor),
-                        SizedBox(width: 12),
-                        AppText('Mark Pending', fontSize: 13),
+                        const Icon(Iconsax.timer, size: 16, color: AppColors.primaryColor),
+                        const SizedBox(width: 12),
+                        AppText(AppTextConstants.markPending.tr, fontSize: 13),
                       ],
                     ),
                   ),
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'Confirmed',
                     child: Row(
                       children: [
-                        Icon(Iconsax.tick_circle, size: 16, color: Colors.green),
-                        SizedBox(width: 12),
-                        AppText('Mark Confirmed', fontSize: 13),
+                        const Icon(Iconsax.tick_circle, size: 16, color: Colors.green),
+                        const SizedBox(width: 12),
+                        AppText(AppTextConstants.markConfirmed.tr, fontSize: 13),
                       ],
                     ),
                   ),
-                  const PopupMenuItem<String>(
+                  PopupMenuItem<String>(
                     value: 'Cancelled',
                     child: Row(
                       children: [
-                        Icon(Iconsax.close_circle, size: 16, color: Colors.red),
-                        SizedBox(width: 12),
-                        AppText('Mark Cancelled', fontSize: 13, color: Colors.red),
+                        const Icon(Iconsax.close_circle, size: 16, color: Colors.red),
+                        const SizedBox(width: 12),
+                        AppText(AppTextConstants.markCancelled.tr, fontSize: 13, color: Colors.red),
                       ],
                     ),
                   ),
@@ -570,7 +571,7 @@ class _LeadCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               AppButton(
-                text: 'View',
+                text: AppTextConstants.view.tr,
                 width: 80,
                 height: 32,
                 fontSize: 12,

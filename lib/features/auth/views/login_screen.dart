@@ -10,6 +10,7 @@ import 'package:credit_debit/core/widgets/app_input_field.dart';
 import 'package:credit_debit/core/widgets/app_button.dart';
 import 'package:credit_debit/core/widgets/clean_auth_background.dart';
 import 'package:credit_debit/core/utils/app_validators.dart';
+import 'package:credit_debit/core/constants/app_text_constants.dart';
 import '../controllers/auth_controller.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -262,8 +263,8 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                 opacity: _titleFadeAnimation,
                                 child: SlideTransition(
                                   position: _titleSlideAnimation,
-                                  child: const AppText(
-                                    'Welcome Back!',
+                                  child: AppText(
+                                    AppTextConstants.welcomeBack.tr,
                                     style: AppTextStyle.heading,
                                     align: TextAlign.center,
                                     fontSize: 38,
@@ -280,7 +281,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                 child: SlideTransition(
                                   position: _subtitleSlideAnimation,
                                   child: AppText(
-                                    'Sign in to continue your journey',
+                                    AppTextConstants.signInToContinue.tr,
                                     style: AppTextStyle.body,
                                     align: TextAlign.center,
                                     color: AppColors.textColorSecondary.withValues(alpha: 0.7),
@@ -341,9 +342,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
                                 // Email field
                                 AppInputField(
-                                  label: 'Email Address',
+                                  label: AppTextConstants.emailAddress.tr,
                                   controller: _authController.emailController,
-                                  hint: 'Enter your Email',
+                                  hint: AppTextConstants.enterYourEmail.tr,
                                   icon: Iconsax.sms,
                                   isRequired: true,
                                   keyboardType: TextInputType.emailAddress,
@@ -354,7 +355,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
 
                                 // Sign in button
                                 Obx(() => AppButton(
-                                  text: 'Sign In',
+                                  text: AppTextConstants.signIn.tr,
                                   isLoading: _authController.isLoading.value,
                                   fontWeight: FontWeight.bold,
                                   onPressed: () {
@@ -380,7 +381,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                     Padding(
                                       padding: const EdgeInsets.symmetric(horizontal: 16),
                                       child: AppText(
-                                        'OR',
+                                        AppTextConstants.or.tr,
                                         style: AppTextStyle.body,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
@@ -410,17 +411,17 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                                         child: Center(
                                           child: RichText(
                                             text: TextSpan(
-                                              text: "Don't have an account?  ",
+                                              text: "${AppTextConstants.dontHaveAccount.tr}  ",
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w500,
                                                 color: AppColors.textColorSecondary.withValues(alpha: 0.8),
                                                 fontFamily: 'Poppins',
                                               ),
-                                              children: const [
+                                              children: [
                                                 TextSpan(
-                                                  text: 'Sign Up',
-                                                  style: TextStyle(
+                                                  text: AppTextConstants.signup.tr,
+                                                  style: const TextStyle(
                                                     fontWeight: FontWeight.w800,
                                                     color: AppColors.primaryColor,
                                                   ),

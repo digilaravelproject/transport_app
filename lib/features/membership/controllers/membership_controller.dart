@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
 import '../../../core/services/network/api_client.dart';
@@ -44,7 +46,7 @@ class MembershipController extends GetxController {
       final subResponse = CurrentSubscriptionResponseModel.fromJson(response.json!);
       activeSubscription.value = subResponse.data;
       if (subResponse.data != null) {
-        currentPlan.value = subResponse.data!.plan['name'] ?? 'Free';
+        currentPlan.value = subResponse.data!.plan['name'] ?? AppTextConstants.free.tr;
       }
     }
   }
@@ -71,16 +73,16 @@ class MembershipController extends GetxController {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const AppText('Billing History', fontSize: 20, fontWeight: FontWeight.w800),
+                AppText(AppTextConstants.billingHistory.tr, fontSize: 20, fontWeight: FontWeight.w800),
                 IconButton(onPressed: () => Get.back(), icon: const Icon(Icons.close)),
               ],
             ),
             const Divider(),
             const SizedBox(height: 16),
             if (subscriptionHistory.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: AppText('No history found', color: AppColors.textColorSecondary),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: AppText(AppTextConstants.noHistoryFound.tr, color: AppColors.textColorSecondary),
               )
             else
               Flexible(
@@ -91,7 +93,7 @@ class MembershipController extends GetxController {
                     final item = subscriptionHistory[index];
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: AppText(item.plan['name'] ?? 'Subscription', fontWeight: FontWeight.w700),
+                      title: AppText(item.plan['name'] ?? AppTextConstants.subscription.tr, fontWeight: FontWeight.w700),
                       subtitle: AppText('${item.startDate?.split('T')[0] ?? ''} - ₹${item.totalAmount}', fontSize: 12),
                       trailing: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -144,14 +146,14 @@ class MembershipController extends GetxController {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: AppText('Upgrade Your Plan', fontSize: 22, fontWeight: FontWeight.w800),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: AppText(AppTextConstants.upgradePlan.tr, fontSize: 22, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: AppText('Select a plan that fits your business needs.', color: AppColors.textColorSecondary, fontSize: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: AppText(AppTextConstants.upgradePlanSubtitle.tr, color: AppColors.textColorSecondary, fontSize: 14),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -224,7 +226,7 @@ class MembershipController extends GetxController {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: AppButton(
-                text: 'CONTINUE WITH UPGRADE',
+                text: AppTextConstants.continueUpgrade.tr,
                 onPressed: () {
                   Get.back();
                   continueWithPlan();
@@ -246,8 +248,8 @@ class MembershipController extends GetxController {
     };
     _razorpayService.onFailure = (response) {
       Get.snackbar(
-        'Payment Failed',
-        'Error: ${response.message}',
+        AppTextConstants.paymentFailed.tr,
+        '${AppTextConstants.error.tr}: ${response.message}',
         backgroundColor: AppColors.errorColor,
         colorText: Colors.white,
       );
@@ -289,9 +291,9 @@ class MembershipController extends GetxController {
           'original': p,
           'id': p.id,
           'name': p.name,
-          'badge': p.sortOrder == 1 ? 'BASIC' : (p.sortOrder == 2 ? 'MOST POPULAR' : 'PREMIUM'),
-          'price': p.price == 0 ? 'Free' : '₹${p.price}',
-          'priceSub': p.price == 0 ? 'Always Free' : '/${p.duration}',
+          'badge': p.sortOrder == 1 ? AppTextConstants.basic.tr : (p.sortOrder == 2 ? AppTextConstants.mostPopular.tr : AppTextConstants.premium.tr),
+          'price': p.price == 0 ? AppTextConstants.free.tr : '₹${p.price}',
+          'priceSub': p.price == 0 ? AppTextConstants.alwaysFree.tr : '/${p.duration}',
           'features': p.features,
           'color': const Color(0xFFF97316),
         }).toList());
@@ -330,7 +332,7 @@ class MembershipController extends GetxController {
               children: [
                 Expanded(
                   child: AppText(
-                    '${p.name} Details',
+                    '${p.name} ${AppTextConstants.details.tr}',
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
@@ -343,16 +345,16 @@ class MembershipController extends GetxController {
             ),
             const Divider(),
             const SizedBox(height: 16),
-            _detailRow('Description', p.description),
-            _detailRow('Duration', p.duration),
-            _detailRow('Billing Cycle', '${p.billingCycleDays} Days'),
-            _detailRow('Max Vehicles', p.hasUnlimitedVehicles ? 'Unlimited' : '${p.maxVehicles}'),
-            _detailRow('Max Trips/Month', p.hasUnlimitedTrips ? 'Unlimited' : '${p.maxTripsPerMonth}'),
-            _detailRow('Max Staff', p.hasUnlimitedStaff ? 'Unlimited' : '${p.maxStaff}'),
-            _detailRow('Module Access', p.moduleAccess),
+            _detailRow(AppTextConstants.description.tr, p.description),
+            _detailRow(AppTextConstants.billingCycle.tr, p.duration),
+            _detailRow(AppTextConstants.billingCycle.tr, '${p.billingCycleDays} ${AppTextConstants.day.tr}'),
+            _detailRow(AppTextConstants.maxVehicles.tr, p.hasUnlimitedVehicles ? AppTextConstants.unlimited.tr : '${p.maxVehicles}'),
+            _detailRow(AppTextConstants.maxTripsMonth.tr, p.hasUnlimitedTrips ? AppTextConstants.unlimited.tr : '${p.maxTripsPerMonth}'),
+            _detailRow(AppTextConstants.maxStaff.tr, p.hasUnlimitedStaff ? AppTextConstants.unlimited.tr : '${p.maxStaff}'),
+            _detailRow(AppTextConstants.moduleAccess.tr, p.moduleAccess),
             const SizedBox(height: 24),
             AppButton(
-              text: 'GOT IT',
+              text: AppTextConstants.gotIt.tr,
               onPressed: () => Get.back(),
               height: 48,
               borderRadius: 24,
@@ -422,7 +424,7 @@ class MembershipController extends GetxController {
         amount: subResponse.data.razorpayOrder.amount,
         orderId: subResponse.data.razorpayOrder.id,
         name: AppConstants.appName,
-        description: 'Payment for ${plan.name}',
+        description: '${AppTextConstants.paymentFor.tr} ${plan.name}',
         email: email, 
         contact: contact,
         color: _colorToHex(AppColors.primaryColor),
@@ -440,14 +442,14 @@ class MembershipController extends GetxController {
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Get.back(), child: AppText(AppTextConstants.cancel.tr)),
           TextButton(
             onPressed: () {
               Get.back();
-              Get.snackbar('Upgrade Success', 'Welcome to Enterprise!', snackPosition: SnackPosition.BOTTOM, backgroundColor: AppColors.successColor, colorText: Colors.white);
+              Get.snackbar(AppTextConstants.upgradeSuccess.tr, AppTextConstants.welcomeToEnterprise.tr, snackPosition: SnackPosition.BOTTOM, backgroundColor: AppColors.successColor, colorText: Colors.white);
               currentPlan.value = 'Enterprise';
             },
-            child: const Text('Pay Now'),
+            child: AppText(AppTextConstants.payNow.tr),
           ),
         ],
       ),
@@ -458,16 +460,16 @@ class MembershipController extends GetxController {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Cancel Subscription'),
-        content: const Text('Are you sure you want to cancel? You will lose Pro features at the end of your billing cycle.'),
+        title: AppText(AppTextConstants.cancelSubscription.tr),
+        content: AppText(AppTextConstants.cancelSubscriptionNote.tr),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Keep My Plan')),
+          TextButton(onPressed: () => Get.back(), child: AppText(AppTextConstants.keepMyPlan.tr)),
           TextButton(
             onPressed: () {
               Get.back();
-              Get.snackbar('Subscription Cancelled', 'Your plan successfully cancelled', snackPosition: SnackPosition.BOTTOM, backgroundColor: AppColors.errorColor, colorText: Colors.white);
+              Get.snackbar(AppTextConstants.subscriptionCancelled.tr, AppTextConstants.planCancelledSuccessfully.tr, snackPosition: SnackPosition.BOTTOM, backgroundColor: AppColors.errorColor, colorText: Colors.white);
             },
-            child: const Text('Cancel Plan', style: TextStyle(color: Colors.red)),
+            child: AppText(AppTextConstants.cancelPlan.tr, color: Colors.red),
           ),
         ],
       ),
@@ -476,6 +478,6 @@ class MembershipController extends GetxController {
 
   void toggleAutoRenew() {
     isAutoRenew.value = !isAutoRenew.value;
-    Get.snackbar('Settings Updated', 'Auto-renew is now ${isAutoRenew.value ? 'enabled' : 'disabled'}', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar(AppTextConstants.settingsUpdated.tr, '${AppTextConstants.autoRenew.tr} ${AppTextConstants.isNow.tr} ${isAutoRenew.value ? AppTextConstants.enabled.tr : AppTextConstants.disabled.tr}', snackPosition: SnackPosition.BOTTOM);
   }
 }

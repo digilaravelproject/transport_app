@@ -11,6 +11,7 @@ import '../../../core/widgets/app_card.dart';
 import '../controllers/vehicle_type_controller.dart';
 import '../domain/models/vehicle_type_model.dart';
 import 'package:flutter/cupertino.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class AddEditVehicleTypeScreen extends StatefulWidget {
   const AddEditVehicleTypeScreen({Key? key}) : super(key: key);
@@ -103,8 +104,8 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
         Scaffold(
           backgroundColor: Colors.white,
           appBar: AppHeader(
-            title: 'Vehicle Type',
-            subtitle: _editingType == null ? 'Add New Type' : 'Edit Type Details',
+            title: AppTextConstants.vehicleType.tr,
+            subtitle: _editingType == null ? AppTextConstants.addNewType.tr : AppTextConstants.editTypeDetails.tr,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -119,9 +120,9 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         AppInputField(
-                          label: 'Type Name *',
+                          label: AppTextConstants.typeName.tr,
                           controller: _nameController,
-                          hint: 'e.g. Luxury Bus, Mini Truck',
+                          hint: AppTextConstants.typeNameHint.tr,
                           icon: Iconsax.bus,
                           validator: (val) => val == null || val.isEmpty ? 'Name is required' : null,
                         ),
@@ -130,7 +131,7 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                           children: [
                             Expanded(
                               child: AppInputField(
-                                label: 'Capacity *',
+                                label: AppTextConstants.capacityRequired.tr,
                                 controller: _capacityController,
                                 hint: '0',
                                 icon: Iconsax.user,
@@ -141,7 +142,7 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: AppInputField(
-                                label: 'Price/KM *',
+                                label: '${AppTextConstants.pricePerKm.tr} *',
                                 controller: _perKmPriceController,
                                 hint: '0.0',
                                 icon: Iconsax.money_send,
@@ -153,11 +154,11 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                         ),
                         const SizedBox(height: 16),
                         AppInputField(
-                          label: 'AC Extra Price/KM * ',
+                          label: AppTextConstants.acExtraPricePerKm.tr,
                           controller: _acPricePerKmController,
                           hint: '0.0',
                           icon: Iconsax.flash,
-                          validator: (val) => val == null || val.isEmpty ? 'Price is required' : null,
+                          validator: (val) => val == null || val.isEmpty ? AppTextConstants.priceIsRequired.tr : null,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         ),
                       ],
@@ -171,20 +172,20 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         AppInputField(
-                          label: 'Description',
+                          label: AppTextConstants.description.tr,
                           controller: _descriptionController,
-                          hint: 'Additional details about this type...',
+                          hint: AppTextConstants.descriptionHint.tr,
                           maxLines: 3,
                         ),
                         const SizedBox(height: 20),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Column(
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                AppText('Active Status', style: AppTextStyle.body, fontWeight: FontWeight.bold),
-                                AppText('Enable this type for use', style: AppTextStyle.caption),
+                                AppText(AppTextConstants.activeStatus.tr, style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                                AppText(AppTextConstants.enableTypeForUse.tr, style: AppTextStyle.caption),
                               ],
                             ),
                             CupertinoSwitch(
@@ -200,7 +201,7 @@ class _AddEditVehicleTypeScreenState extends State<AddEditVehicleTypeScreen> {
                   
                   const SizedBox(height: 32),
                   AppButton(
-                    text: _editingType == null ? 'Create Type' : 'Save Changes',
+                    text: _editingType == null ? AppTextConstants.createType.tr : AppTextConstants.saveChanges.tr,
                     onPressed: _save,
                   ),
                   

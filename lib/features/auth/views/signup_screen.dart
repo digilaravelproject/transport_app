@@ -13,6 +13,7 @@ import 'package:credit_debit/core/widgets/app_logo.dart';
 import '../../../core/utils/app_validators.dart';
 import '../../../core/utils/phone_helper.dart';
 import '../controllers/auth_controller.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -158,8 +159,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                               opacity: _titleFadeAnimation,
                               child: SlideTransition(
                                 position: _titleSlideAnimation,
-                                child: const AppText(
-                                  'Vendor Registration',
+                                child: AppText(
+                                  AppTextConstants.vendorRegistration.tr,
                                   style: AppTextStyle.heading,
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
@@ -172,7 +173,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                               child: SlideTransition(
                                 position: _subtitleSlideAnimation,
                                 child: AppText(
-                                  'Create your bus vendor account',
+                                  AppTextConstants.createVendorAccount.tr,
                                   style: AppTextStyle.body,
                                   color: AppColors.textColorSecondary.withValues(alpha: 0.8),
                                   fontSize: 15,
@@ -219,12 +220,12 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                   children: [
                                     // Agency Name
                                     AppInputField(
-                                      label: 'Company Name',
-                                      hint: 'Enter your  Company name',
+                                      label: AppTextConstants.companyName.tr,
+                                      hint: AppTextConstants.enterCompanyName.tr,
                                       icon: Iconsax.building,
                                       validator: (value) => AppValidators.validateEmpty(
                                         value,
-                                        fieldName: "Company Name",
+                                        fieldName: AppTextConstants.companyName.tr,
                                       ),
                                       controller: authController.companyNameController,
                                     ),
@@ -233,13 +234,13 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
         
                                     // Owner Name
                                     AppInputField(
-                                      label: 'Owner Name',
-                                      hint: 'Enter owner full name',
+                                      label: AppTextConstants.ownerName.tr,
+                                      hint: AppTextConstants.enterOwnerName.tr,
                                       icon: Iconsax.user,
                                       isRequired: true,
                                       validator: (value) => AppValidators.validateEmpty(
                                         value,
-                                        fieldName: "Owner Name",
+                                        fieldName: AppTextConstants.ownerName.tr,
                                       ),
                                       controller: authController.nameController,
                                     ),
@@ -248,8 +249,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
         
                                     // Mobile Number
                                     AppInputField(
-                                      label: 'Mobile Number',
-                                      hint: 'Enter 10 digit number',
+                                      label: AppTextConstants.mobileNumber.tr,
+                                      hint: AppTextConstants.enterMobileNumber.tr,
                                       icon: Iconsax.call,
                                       isRequired: true,
                                       validator: AppValidators.validateMobile,
@@ -266,8 +267,8 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
         
                                     // Email
                                     AppInputField(
-                                      label: 'Email Address',
-                                      hint: 'Enter your email',
+                                      label: AppTextConstants.emailAddress.tr,
+                                      hint: AppTextConstants.enterYourEmail.tr,
                                       icon: Iconsax.sms,
                                       isRequired: true,
                                       validator: AppValidators.validateEmail,
@@ -317,7 +318,7 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
         
                                     // Register Button
                                     Obx(() => AppButton(
-                                      text: 'Register',
+                                      text: AppTextConstants.signup.tr,
                                       isLoading: authController.isLoading.value,
                                       fontWeight: FontWeight.bold,
                                       onPressed: () {
@@ -348,16 +349,16 @@ class _SignupScreenState extends State<SignupScreen> with TickerProviderStateMix
                                 //Get.toNamed(RouteHelper.getLoginRoute()),
                             child: RichText(
                               text: TextSpan(
-                                text: 'Already have an account? ',
+                                text: '${AppTextConstants.alreadyHaveAccount.tr} ',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.textColorSecondary.withValues(alpha: 0.7),
                                   fontWeight: FontWeight.w400,
                                 ),
-                                children: const [
+                                children: [
                                   TextSpan(
-                                    text: 'Sign In',
-                                    style: TextStyle(
+                                    text: AppTextConstants.signIn.tr,
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.primaryColor,

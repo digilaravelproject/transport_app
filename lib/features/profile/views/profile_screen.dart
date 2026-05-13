@@ -5,6 +5,10 @@ import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/constants/app_text_constants.dart';
+import '../../../core/constants/app_constants.dart';
+import '../../../core/services/translations/localization_controller.dart';
+import 'package:get/get.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -13,8 +17,8 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScaffold(
       useScaffold: false,
-      appBar: const AppHeader(
-        title: 'Profile',
+      appBar: AppHeader(
+        title: AppTextConstants.profile.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -29,21 +33,21 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // ── Agency Info Card ────────────────────────────────────────
-            _buildSectionTitle('Agency Information'),
+            _buildSectionTitle(AppTextConstants.agencyInformation.tr),
             const SizedBox(height: 12),
             AppCard(
               padding: const EdgeInsets.all(16),
               child: Column(
-                children: const [
-                  _InfoRow(label: 'Agency Name', value: 'DigiEmperor Transports', icon: Iconsax.building),
-                  Divider(height: 24),
-                  _InfoRow(label: 'Owner Name', value: 'Firoz Mohammad', icon: Iconsax.user),
-                  Divider(height: 24),
-                  _InfoRow(label: 'Phone', value: '+91 9876543210', icon: Iconsax.call),
-                  Divider(height: 24),
-                  _InfoRow(label: 'Email', value: 'firoz@digiemperor.com', icon: Iconsax.sms),
-                  Divider(height: 24),
-                  _InfoRow(label: 'City', value: 'Gurgaon, Haryana', icon: Iconsax.location),
+                children: [
+                  _InfoRow(label: AppTextConstants.agencyNameLabel.tr, value: 'DigiEmperor Transports', icon: Iconsax.building),
+                  const Divider(height: 24),
+                  _InfoRow(label: AppTextConstants.ownerNameLabel.tr, value: 'Firoz Mohammad', icon: Iconsax.user),
+                  const Divider(height: 24),
+                  _InfoRow(label: AppTextConstants.phone.tr, value: '+91 9876543210', icon: Iconsax.call),
+                  const Divider(height: 24),
+                  _InfoRow(label: AppTextConstants.email.tr, value: 'firoz@digiemperor.com', icon: Iconsax.sms),
+                  const Divider(height: 24),
+                  _InfoRow(label: AppTextConstants.city.tr, value: 'Gurgaon, Haryana', icon: Iconsax.location),
                 ],
               ),
             ),
@@ -51,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // ── Subscription Card ───────────────────────────────────────
-            _buildSectionTitle('Subscription Plan'),
+            _buildSectionTitle(AppTextConstants.subscriptionPlan.tr),
             const SizedBox(height: 12),
             AppCard(
               padding: const EdgeInsets.all(16),
@@ -72,15 +76,15 @@ class ProfileScreen extends StatelessWidget {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            AppText('Premium Plan', style: AppTextStyle.subheading, fontSize: 16),
-                            AppText('Renews on 12 Oct, 2024', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                          children: [
+                            AppText(AppTextConstants.premiumPlan.tr, style: AppTextStyle.subheading, fontSize: 16),
+                            AppText('${AppTextConstants.renewsOn.tr} 12 Oct, 2024', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
                           ],
                         ),
                       ),
                       TextButton(
                         onPressed: () {},
-                        child: const AppText('Upgrade', style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
+                        child: AppText(AppTextConstants.upgrade.tr, style: AppTextStyle.body, color: AppColors.primaryColor, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -91,38 +95,38 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // ── Options List ───────────────────────────────────────────
-            _buildSectionTitle('Settings & Options'),
+            _buildSectionTitle(AppTextConstants.settingsOptions.tr),
             const SizedBox(height: 12),
             AppCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   _SettingsTile(
-                    label: 'Edit Profile',
+                    label: AppTextConstants.editProfile.tr,
                     icon: Iconsax.edit,
                     onTap: () {},
                   ),
                   const Divider(height: 1, indent: 50),
                   _SettingsTile(
-                    label: 'Change Password',
+                    label: AppTextConstants.changePassword.tr,
                     icon: Iconsax.lock,
                     onTap: () {},
                   ),
                   const Divider(height: 1, indent: 50),
                   _SettingsTile(
-                    label: 'Language',
+                    label: AppTextConstants.changeLanguage.tr,
                     icon: Icons.language_rounded,
-                    onTap: () {},
+                    onTap: () => _showLanguageDialog(context),
                   ),
                   const Divider(height: 1, indent: 50),
                   _SettingsTile(
-                    label: 'Help & Support',
+                    label: AppTextConstants.helpSupport.tr,
                     icon: Icons.help_outline_rounded,
                     onTap: () {},
                   ),
                   const Divider(height: 1, indent: 50),
                   _SettingsTile(
-                    label: 'Logout',
+                    label: AppTextConstants.logout.tr,
                     icon: Iconsax.logout,
                     iconColor: Colors.red,
                     textColor: Colors.red,
@@ -133,6 +137,42 @@ class ProfileScreen extends StatelessWidget {
             ),
             
             const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppText(AppTextConstants.selectLanguage.tr, style: AppTextStyle.heading, fontSize: 18),
+            const SizedBox(height: 20),
+            ...AppConstants.languages.map((language) {
+              return ListTile(
+                title: AppText(language.nativeName, style: AppTextStyle.body),
+                subtitle: AppText(language.name.tr, style: AppTextStyle.caption),
+                onTap: () {
+                  Get.find<LocalizationController>().setLanguage(language.code);
+                  Get.back();
+                },
+                trailing: Get.find<LocalizationController>().currentLanguageCode == language.code
+                    ? const Icon(Icons.check_circle_rounded, color: AppColors.primaryColor)
+                    : null,
+              );
+            }).toList(),
+            const SizedBox(height: 20),
           ],
         ),
       ),

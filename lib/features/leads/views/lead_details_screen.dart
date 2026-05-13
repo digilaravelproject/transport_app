@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
@@ -67,7 +68,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppText('Update Status', style: AppTextStyle.heading, fontSize: 20),
+            AppText(AppTextConstants.updateStatus.tr, style: AppTextStyle.heading, fontSize: 20),
             const SizedBox(height: 20),
             _statusOption(leadId, 'Pending', Iconsax.timer, const Color(0xFFF59E0B)),
             _statusOption(leadId, 'Confirmed', Iconsax.tick_circle, const Color(0xFF10B981)),
@@ -128,10 +129,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                 child: const Icon(Iconsax.trash, color: Colors.red, size: 32),
               ),
               const SizedBox(height: 24),
-              const AppText('Delete Lead', style: AppTextStyle.subheading, fontSize: 20),
+              AppText(AppTextConstants.deleteLead.tr, style: AppTextStyle.subheading, fontSize: 20),
               const SizedBox(height: 12),
               AppText(
-                'Are you sure you want to delete this lead? This action cannot be undone.',
+                AppTextConstants.deleteLeadConfirmation.tr,
                 style: AppTextStyle.body,
                 color: AppColors.textColorSecondary,
                 textAlign: TextAlign.center,
@@ -141,14 +142,14 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                 children: [
                   Expanded(
                     child: AppButton.outline(
-                      text: 'Cancel',
+                      text: AppTextConstants.cancel.tr,
                       onPressed: () => Get.back(),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: AppButton(
-                      text: 'Delete',
+                      text: AppTextConstants.delete.tr,
                       color: Colors.red,
                       onPressed: () async {
                         Get.back();
@@ -186,10 +187,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                 child: const Icon(Iconsax.routing, color: AppColors.primaryColor, size: 32),
               ),
               const SizedBox(height: 24),
-              const AppText('Convert to Trip', style: AppTextStyle.subheading, fontSize: 20),
+              AppText(AppTextConstants.convertToTrip.tr, style: AppTextStyle.subheading, fontSize: 20),
               const SizedBox(height: 12),
               AppText(
-                'Do you want to convert this lead into a trip? This will create a new trip record.',
+                AppTextConstants.convertToTripConfirmation.tr,
                 style: AppTextStyle.body,
                 color: AppColors.textColorSecondary,
                 textAlign: TextAlign.center,
@@ -199,14 +200,14 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                 children: [
                   Expanded(
                     child: AppButton.outline(
-                      text: 'No',
+                      text: AppTextConstants.no.tr,
                       onPressed: () => Get.back(),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Obx(() => AppButton(
-                      text: 'Yes',
+                      text: AppTextConstants.yes.tr,
                       isLoading: controller.isLoading.value,
                       onPressed: () async {
                         final success = await controller.convertToTrip(leadId);
@@ -229,7 +230,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: 'Lead Details',
+        title: AppTextConstants.leadDetails.tr,
         onBack: () => Get.back(),
         trailing: Obx(() {
           final details = controller.selectedLeadDetails.value;
@@ -333,7 +334,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                           Expanded(
                             child: _ActionIconButton(
                               icon: Iconsax.call,
-                              label: 'Call',
+                              label: AppTextConstants.call.tr,
                               color: Colors.green,
                               onTap: () => _makeCall(displayLead.phone),
                             ),
@@ -342,7 +343,7 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                           Expanded(
                             child: _ActionIconButton(
                               icon: Icons.message_rounded,
-                              label: 'WhatsApp',
+                              label: AppTextConstants.whatsapp.tr,
                               color: const Color(0xFF25D366),
                               onTap: () => _openWhatsApp(displayLead.phone),
                             ),
@@ -357,18 +358,18 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
 
                 // ── Trip Details Card ───────────────────────────────────
                 _DetailsCard(
-                  title: 'Trip Details',
+                  title: AppTextConstants.tripDetails.tr,
                   icon: Iconsax.bus,
                   children: [
-                    _InfoRow(label: 'Lead ID', value: displayLead.leadNo),
-                    _InfoRow(label: 'Date', value: '${displayLead.date.day}/${displayLead.date.month}/${displayLead.date.year}'),
+                    _InfoRow(label: AppTextConstants.leadId.tr, value: displayLead.leadNo),
+                    _InfoRow(label: AppTextConstants.date.tr, value: '${displayLead.date.day}/${displayLead.date.month}/${displayLead.date.year}'),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          AppText('Route', style: AppTextStyle.body, color: AppColors.textColorSecondary),
+                          AppText(AppTextConstants.route.tr, style: AppTextStyle.body, color: AppColors.textColorSecondary),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
@@ -409,10 +410,10 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                         ],
                       ),
                     ),
-                    _InfoRow(label: 'Duration', value: displayLead.duration.contains('Day') ? displayLead.duration : '${displayLead.duration} Days'),
-                    _InfoRow(label: 'Vehicle', value: '${displayLead.vehicleCount} x ${displayLead.vehicleTypeName ?? displayLead.vehicleType}'),
+                    _InfoRow(label: AppTextConstants.duration.tr, value: displayLead.duration.contains('Day') ? displayLead.duration : '${displayLead.duration} Days'),
+                    _InfoRow(label: AppTextConstants.vehicle.tr, value: '${displayLead.vehicleCount} x ${displayLead.vehicleTypeName ?? displayLead.vehicleType}'),
                     if (displayLead.pickupAddress != null)
-                      _InfoRow(label: 'Pickup', value: displayLead.pickupAddress!),
+                      _InfoRow(label: AppTextConstants.pickup.tr, value: displayLead.pickupAddress!),
                   ],
                 ),
 
@@ -420,13 +421,13 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
 
                 // ── Payment Details Card ────────────────────────────────
                 _DetailsCard(
-                  title: 'Payment Details',
+                  title: AppTextConstants.paymentDetails.tr,
                   icon: Iconsax.empty_wallet,
                   children: [
-                    _InfoRow(label: 'Total Amount', value: '₹ ${displayLead.totalAmount}'),
-                    _InfoRow(label: 'Advance Paid', value: '₹ ${displayLead.advancePayment}', valueColor: Colors.green),
+                    _InfoRow(label: AppTextConstants.totalAmount.tr, value: '₹ ${displayLead.totalAmount}'),
+                    _InfoRow(label: AppTextConstants.advancePaid.tr, value: '₹ ${displayLead.advancePayment}', valueColor: Colors.green),
                     _InfoRow(
-                      label: 'Pending Amount', 
+                      label: AppTextConstants.pendingAmount.tr, 
                       value: '₹ ${displayLead.pendingAmount}', 
                       valueColor: displayLead.pendingAmount > 0 ? Colors.red : Colors.green,
                       isBold: true,
@@ -512,22 +513,22 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
                   children: [
                     _GridActionButton(
                       icon: Icons.note_add_rounded,
-                      label: 'Add Notes',
+                      label: AppTextConstants.addNotes.tr,
                       onTap: () => Get.toNamed(RouteHelper.getLeadNotesRoute(), arguments: displayLead),
                     ),
                     _GridActionButton(
                       icon: Icons.notification_add_rounded,
-                      label: 'Follow Up',
+                      label: AppTextConstants.followUp.tr,
                       onTap: () => Get.toNamed(RouteHelper.getFollowUpListRoute(), arguments: displayLead),
                     ),
                     _GridActionButton(
                       icon: Iconsax.add,
-                      label: 'Create Trip',
+                      label: AppTextConstants.createTrip.tr,
                       onTap: () => _showConvertToTripDialog(displayLead.id!),
                     ),
                     _GridActionButton(
                       icon: Icons.description_rounded,
-                      label: 'Quotation',
+                      label: AppTextConstants.quotation.tr,
                       onTap: () async {
                         final String? url = await controller.getLeadQuotationUrl(displayLead.id!);
                         if (url != null) {

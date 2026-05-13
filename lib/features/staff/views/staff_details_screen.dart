@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
@@ -38,15 +39,15 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
       final StaffModel? staff = controller.staffList.firstWhereOrNull((s) => s.id == staffId);
 
       if (staff == null) {
-        return const AppScaffold(
-          appBar: AppHeader(title: 'Staff Details'),
-          body: Center(child: CircularProgressIndicator()),
+        return AppScaffold(
+          appBar: AppHeader(title: AppTextConstants.staffDetails.tr),
+          body: const Center(child: CircularProgressIndicator()),
         );
       }
 
       return AppScaffold(
         appBar: AppHeader(
-          title: 'Staff Details',
+          title: AppTextConstants.staffDetails.tr,
           subtitle: staff.name,
           trailing: Row(
             children: [
@@ -72,20 +73,20 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
               children: [
                 _buildProfileHeader(staff),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Personal Information'),
+                _buildSectionTitle(AppTextConstants.personalInformation.tr),
                 _buildPersonalInfo(staff),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Work Information'),
+                _buildSectionTitle(AppTextConstants.workInformation.tr),
                 _buildWorkInfo(staff),
                 const SizedBox(height: 24),
-                _buildSectionTitle('Identification Documents'),
+                _buildSectionTitle(AppTextConstants.identificationDocuments.tr),
                 _buildDocumentsInfo(staff),
                 const SizedBox(height: 12),
-                _buildSectionTitle('Actions'),
+                _buildSectionTitle(AppTextConstants.actions.tr),
                 _buildActionsGrid(staff),
                 const SizedBox(height: 32),
                 AppButton.outline(
-                  text: 'Edit Staff',
+                  text: AppTextConstants.editStaff.tr,
                   onPressed: () => Get.toNamed(RouteHelper.getEditStaffRoute(), arguments: staff),
                 ),
                 const SizedBox(height: 32),
@@ -129,11 +130,11 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
             ],
           ),
           const Divider(height: 32),
-          _buildInfoRow(Iconsax.call, 'Phone', staff.phone),
+          _buildInfoRow(Iconsax.call, AppTextConstants.phone.tr, staff.phone),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.sms, 'Email', staff.email),
+          _buildInfoRow(Iconsax.sms, AppTextConstants.email.tr, staff.email),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.location, 'Address', staff.address),
+          _buildInfoRow(Iconsax.location, AppTextConstants.address.tr, staff.address),
         ],
       ),
     );
@@ -143,13 +144,13 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
     return AppCard(
       child: Column(
         children: [
-          _buildInfoRow(Iconsax.calendar_1, 'Date of Birth', staff.dob != null ? '${staff.dob!.day}/${staff.dob!.month}/${staff.dob!.year}' : 'N/A'),
+          _buildInfoRow(Iconsax.calendar_1, AppTextConstants.dateOfBirth.tr, staff.dob != null ? '${staff.dob!.day}/${staff.dob!.month}/${staff.dob!.year}' : 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.calendar_1, 'Joining Date', staff.joiningDate != null ? '${staff.joiningDate!.day}/${staff.joiningDate!.month}/${staff.joiningDate!.year}' : 'N/A'),
+          _buildInfoRow(Iconsax.calendar_1, AppTextConstants.joiningDate.tr, staff.joiningDate != null ? '${staff.joiningDate!.day}/${staff.joiningDate!.month}/${staff.joiningDate!.year}' : 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.user, 'Emergency Name', staff.emergencyContactName ?? 'N/A'),
+          _buildInfoRow(Iconsax.user, AppTextConstants.emergencyName.tr, staff.emergencyContactName ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.call, 'Emergency Phone', staff.emergencyContact ?? 'N/A'),
+          _buildInfoRow(Iconsax.call, AppTextConstants.emergencyPhone.tr, staff.emergencyContact ?? 'N/A'),
         ],
       ),
     );
@@ -159,16 +160,16 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
     return AppCard(
       child: Column(
         children: [
-          _buildInfoRow(Iconsax.card, 'Monthly Salary', '₹ ${staff.salary}'),
+          _buildInfoRow(Iconsax.card, AppTextConstants.monthlySalary.tr, '₹ ${staff.salary}'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.money_send, 'DA per Day', '₹ ${staff.daPerDay ?? 0}'),
+          _buildInfoRow(Iconsax.money_send, AppTextConstants.daPerDay.tr, '₹ ${staff.daPerDay ?? 0}'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.house, 'HRA', '₹ ${staff.hra ?? 0}'),
+          _buildInfoRow(Iconsax.house, AppTextConstants.hra.tr, '₹ ${staff.hra ?? 0}'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.clock, 'Working Shift', staff.shiftName ?? 'N/A'),
+          _buildInfoRow(Iconsax.clock, AppTextConstants.workingShift.tr, staff.shiftName ?? 'N/A'),
           if (staff.assignedVehicleNumber != null) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Iconsax.bus, 'Assigned Vehicle', staff.assignedVehicleNumber!),
+            _buildInfoRow(Iconsax.bus, AppTextConstants.assignedVehicle.tr, staff.assignedVehicleNumber!),
           ],
         ],
       ),
@@ -179,28 +180,28 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
     return AppCard(
       child: Column(
         children: [
-          _buildInfoRow(Icons.badge_outlined, 'Aadhar Number', staff.aadharNumber ?? 'N/A'),
+          _buildInfoRow(Icons.badge_outlined, AppTextConstants.aadharNumber.tr, staff.aadharNumber ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.card_pos, 'PAN Number', staff.panNumber ?? 'N/A'),
+          _buildInfoRow(Iconsax.card_pos, AppTextConstants.panNumber.tr, staff.panNumber ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.drive_eta, 'License Number', staff.licenseNumber ?? 'N/A'),
+          _buildInfoRow(Icons.drive_eta, AppTextConstants.licenseNumber.tr, staff.licenseNumber ?? 'N/A'),
           if (staff.licenseExpiry != null) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Iconsax.calendar_tick, 'License Expiry', '${staff.licenseExpiry!.day}/${staff.licenseExpiry!.month}/${staff.licenseExpiry!.year}'),
+            _buildInfoRow(Iconsax.calendar_tick, AppTextConstants.licenseExpiry.tr, '${staff.licenseExpiry!.day}/${staff.licenseExpiry!.month}/${staff.licenseExpiry!.year}'),
           ],
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.verify, 'Badge Number', staff.badgeNumber ?? 'N/A'),
+          _buildInfoRow(Iconsax.verify, AppTextConstants.badgeNumber.tr, staff.badgeNumber ?? 'N/A'),
           if (staff.badgeExpiry != null) ...[
             const SizedBox(height: 12),
-            _buildInfoRow(Iconsax.calendar_tick, 'Badge Expiry', '${staff.badgeExpiry!.day}/${staff.badgeExpiry!.month}/${staff.badgeExpiry!.year}'),
+            _buildInfoRow(Iconsax.calendar_tick, AppTextConstants.badgeExpiry.tr, '${staff.badgeExpiry!.day}/${staff.badgeExpiry!.month}/${staff.badgeExpiry!.year}'),
           ],
           const Divider(height: 32),
-          _buildSectionTitle('Bank Details'),
-          _buildInfoRow(Iconsax.bank, 'Bank Name', staff.bankName ?? 'N/A'),
+          _buildSectionTitle(AppTextConstants.bankDetails.tr),
+          _buildInfoRow(Iconsax.bank, AppTextConstants.bankName.tr, staff.bankName ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.card, 'Account No', staff.bankAccount ?? 'N/A'),
+          _buildInfoRow(Iconsax.card, AppTextConstants.accountNo.tr, staff.bankAccount ?? 'N/A'),
           const SizedBox(height: 12),
-          _buildInfoRow(Iconsax.code, 'IFSC Code', staff.bankIfsc ?? 'N/A'),
+          _buildInfoRow(Iconsax.code, AppTextConstants.ifscCode.tr, staff.bankIfsc ?? 'N/A'),
         ],
       ),
     );
@@ -208,11 +209,11 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
 
   Widget _buildActionsGrid(StaffModel staff) {
     final List<Map<String, dynamic>> actions = [
-      {'label': 'Duty Hours', 'icon': Icons.more_time_rounded, 'route': RouteHelper.getDutyHoursRoute()},
-      {'label': 'Salary', 'icon': Icons.wallet_rounded, 'route': RouteHelper.getSalaryManagementRoute()},
-      {'label': 'Advance', 'icon': Icons.request_quote_rounded, 'route': RouteHelper.getAdvanceHistoryRoute()},
-      {'label': 'Documents', 'icon': Icons.folder_shared_rounded, 'route': RouteHelper.getStaffDocumentsRoute()},
-      {'label': 'Performance', 'icon': Icons.speed_rounded, 'route': RouteHelper.getStaffPerformanceRoute()},
+      {'label': AppTextConstants.dutyHours.tr, 'icon': Icons.more_time_rounded, 'route': RouteHelper.getDutyHoursRoute()},
+      {'label': AppTextConstants.salary.tr, 'icon': Icons.wallet_rounded, 'route': RouteHelper.getSalaryManagementRoute()},
+      {'label': AppTextConstants.advance.tr, 'icon': Icons.request_quote_rounded, 'route': RouteHelper.getAdvanceHistoryRoute()},
+      {'label': AppTextConstants.documents.tr, 'icon': Icons.folder_shared_rounded, 'route': RouteHelper.getStaffDocumentsRoute()},
+      {'label': AppTextConstants.performance.tr, 'icon': Icons.speed_rounded, 'route': RouteHelper.getStaffPerformanceRoute()},
     ];
 
     return GridView.builder(
@@ -278,19 +279,19 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
   void _showDeleteConfirmation(BuildContext context, StaffModel staff) {
     Get.dialog(
       AlertDialog(
-        title: const AppText('Delete Staff', style: AppTextStyle.subheading, fontSize: 18),
-        content: AppText('Are you sure you want to delete ${staff.name}?', style: AppTextStyle.body),
+        title: AppText(AppTextConstants.deleteStaff.tr, style: AppTextStyle.subheading, fontSize: 18),
+        content: AppText(AppTextConstants.deleteConfirmation.tr, style: AppTextStyle.body),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: const AppText('Cancel', color: AppColors.textColorSecondary),
+            child: AppText(AppTextConstants.cancel.tr, color: AppColors.textColorSecondary),
           ),
           TextButton(
             onPressed: () {
               Get.back();
               controller.deleteStaff(staff.id);
             },
-            child: const AppText('Delete', color: AppColors.errorColor, fontWeight: FontWeight.bold),
+            child: AppText(AppTextConstants.delete.tr, color: AppColors.errorColor, fontWeight: FontWeight.bold),
           ),
         ],
       ),

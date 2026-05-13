@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 import '../theme/app_colors.dart';
+import '../constants/app_text_constants.dart';
 
 class ErrorScreen extends StatelessWidget {
   final String? title;
@@ -27,7 +28,7 @@ class ErrorScreen extends StatelessWidget {
       backgroundColor: AppColors.white,
       appBar: showBackButton
           ? AppBar(
-        title: const Text("Error"),
+        title: Text(AppTextConstants.error.tr),
         centerTitle: true,
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -58,7 +59,7 @@ class ErrorScreen extends StatelessWidget {
 
               // 📝 Title
               Text(
-                title ?? "Something went wrong!",
+                title ?? AppTextConstants.somethingWentWrong.tr,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -71,8 +72,7 @@ class ErrorScreen extends StatelessWidget {
 
               // 💬 Message
               Text(
-                message ??
-                    "We couldn’t load the data right now. Please try again later.",
+                    AppTextConstants.failedToLoadDataMessage.tr,
                 style: TextStyle(
                   fontSize: 15,
                   color: Colors.grey[600],
@@ -96,8 +96,8 @@ class ErrorScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Retry',
+                    child: Text(
+                      AppTextConstants.retry.tr,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -123,7 +123,7 @@ class ErrorScreen extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Go Back',
+                      AppTextConstants.goBack.tr,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,

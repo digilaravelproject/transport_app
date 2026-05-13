@@ -33,16 +33,13 @@ class ThemeController extends GetxController with WidgetsBindingObserver {
   }
 
   void _setThemeBasedOnSystem() {
-    final Brightness systemBrightness =
-        SchedulerBinding.instance.platformDispatcher.platformBrightness;
-
-    print("System brightness: $systemBrightness");
-
-    _isDarkMode.value = systemBrightness == Brightness.dark;
+    // Force light theme
+    _isDarkMode.value = false;
   }
 
   void _applyTheme() {
-    Get.changeTheme(_isDarkMode.value ? darkTheme : lightTheme);
+    // Always apply light theme
+    Get.changeTheme(lightTheme);
     update(); // notify builder
   }
 

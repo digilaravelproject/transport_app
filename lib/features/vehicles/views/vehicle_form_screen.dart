@@ -17,6 +17,7 @@ import '../controllers/vehicle_controller.dart';
 import '../controllers/vehicle_type_controller.dart';
 import '../../../core/services/network/multipart.dart';
 import '../../../core/utils/app_validators.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class VehicleFormScreen extends StatefulWidget {
   const VehicleFormScreen({Key? key}) : super(key: key);
@@ -276,7 +277,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      appBar: AppHeader(title: isEdit ? 'Update Vehicle' : 'Add New Vehicle'),
+      appBar: AppHeader(title: isEdit ? AppTextConstants.updateVehicle.tr : AppTextConstants.addNewVehicle.tr),
       body: Obx(() => Stack(
         children: [
           SingleChildScrollView(
@@ -291,18 +292,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const AppText('Vehicle Information', style: AppTextStyle.subheading, fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                        AppText(AppTextConstants.vehicleInformation.tr, style: AppTextStyle.subheading, fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
                         const SizedBox(height: 12),
                         AppInputField(
-                          label: 'Vehicle Number',
-                          hint: 'e.g. DL 01 AB 1234',
+                          label: AppTextConstants.vehicleNumber.tr,
+                          hint: AppTextConstants.vehicleNumberHint.tr,
                           controller: _regNoController,
                           validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Vehicle Number'),
                         ),
                         const SizedBox(height: 8),
                         AppInputField(
-                          label: 'Model Year',
-                          hint: 'e.g. 2022',
+                          label: AppTextConstants.modelYear.tr,
+                          hint: '2022',
                           controller: _yearController,
                           keyboardType: TextInputType.number,
                           validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Model Year'),
@@ -324,11 +325,11 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _buildInfoItem('Seats', _capacityController.text),
+                              _buildInfoItem(AppTextConstants.seats.tr, _capacityController.text),
                               _buildVerticalDivider(),
-                              _buildInfoItem('Price/KM', '₹${_perKmPriceController.text}'),
+                              _buildInfoItem(AppTextConstants.pricePerKm.tr, '₹${_perKmPriceController.text}'),
                               _buildVerticalDivider(),
-                              _buildInfoItem('AC Extra', '₹${_acPriceController.text}'),
+                              _buildInfoItem(AppTextConstants.acExtra.tr, '₹${_acPriceController.text}'),
                             ],
                           ),
                         ),
@@ -338,41 +339,41 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                   const SizedBox(height: 12),
 
                   _buildDocumentSection(
-                    'Registration Certificate (RC)',
+                    AppTextConstants.registrationCertificate.tr,
                     rcFile,
                     _rcNoController,
                     _rcExpiryController,
                     () => _pickDocument('RC'),
-                    'RC Number',
+                    AppTextConstants.rcNumber.tr,
                     'RC',
                     remoteUrl: vehicle?.rcFileUrl,
                     fileError: rcFileError,
                   ),
                   _buildDocumentSection(
-                    'Insurance Policy',
+                    AppTextConstants.insurancePolicy.tr,
                     insuranceFile,
                     _insNoController,
                     _insExpiryController,
                     () => _pickDocument('Insurance'),
-                    'Policy Number',
+                    AppTextConstants.policyNumber.tr,
                     'Insurance',
                     remoteUrl: vehicle?.insuranceFileUrl,
                     fileError: insuranceFileError,
                   ),
                   _buildDocumentSection(
-                    'Permit Details',
+                    AppTextConstants.permitDetails.tr,
                     permitFile,
                     _permitNoController,
                     _permitExpiryController,
                     () => _pickDocument('Permit'),
-                    'Permit Number',
+                    AppTextConstants.permitNumber.tr,
                     'Permit',
                     remoteUrl: vehicle?.permitFileUrl,
                     fileError: permitFileError,
                   ),
                   const SizedBox(height: 16),
                   AppButton(
-                    text: isEdit ? 'Update Vehicle' : 'Save Vehicle',
+                    text: isEdit ? AppTextConstants.updateVehicle.tr : AppTextConstants.saveVehicle.tr,
                     onPressed: _handleSave,
                   ),
                   const SizedBox(height: 32),
@@ -422,7 +423,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           ),
           const SizedBox(height: 12),
           UploadBox(
-            label: 'Photo Copy',
+            label: AppTextConstants.photoCopy.tr,
             isUploaded: file != null || remoteUrl != null,
             localPath: file?.path,
             remoteUrl: file == null ? remoteUrl : null,
@@ -437,15 +438,15 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           const SizedBox(height: 8),
           AppInputField(
             label: noLabel,
-            hint: 'Enter Number',
+            hint: AppTextConstants.enterNumber.tr,
             controller: noController,
             icon: Iconsax.hashtag,
             validator: (v) => AppValidators.validateEmpty(v, fieldName: noLabel),
           ),
           const SizedBox(height: 8),
           AppInputField(
-            label: 'Expiry Date',
-            hint: 'DD-MM-YYYY',
+            label: AppTextConstants.expiryDate.tr,
+            hint: AppTextConstants.dateFormatHint.tr,
             controller: expiryController,
             readOnly: true,
             icon: Iconsax.calendar_1,

@@ -12,6 +12,7 @@ import '../../../core/widgets/app_filter_chip.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/trip_controller.dart';
 import '../domain/models/trip_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 import '../../../core/widgets/app_empty_state.dart';
 
 class TripListScreen extends GetView<TripController> {
@@ -87,7 +88,7 @@ class TripListScreen extends GetView<TripController> {
                         AppText(
                           (controller.fromDate.value != null) 
                             ? '${DateFormat('dd MMM').format(controller.fromDate.value!)} - ${DateFormat('dd MMM').format(controller.toDate.value!)}'
-                            : 'Filter',
+                            : AppTextConstants.filter.tr,
                           color: (controller.fromDate.value != null) ? AppColors.primaryColor : AppColors.textColorPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w600),
@@ -109,20 +110,20 @@ class TripListScreen extends GetView<TripController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header Title
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           AppText(
-                            'Trips Dashboard',
+                            AppTextConstants.tripsDashboard.tr,
                             style: AppTextStyle.heading,
                             fontSize: 28,
                             color: AppColors.textColorPrimary,
                           ),
                           SizedBox(height: 4),
                           AppText(
-                            'Track and manage all your fleet trips',
+                            AppTextConstants.trackManageFleet.tr,
                             style: AppTextStyle.body,
                             color: AppColors.textColorSecondary,
                           ),
@@ -138,7 +139,7 @@ class TripListScreen extends GetView<TripController> {
                             children: [
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Total',
+                                  title: AppTextConstants.total.tr,
                                   value: controller.totalTrips.value.toString(),
                                   color: const Color(0xFF3B82F6),
                                   icon: Iconsax.routing_2,
@@ -147,7 +148,7 @@ class TripListScreen extends GetView<TripController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Ongoing',
+                                  title: AppTextConstants.ongoing.tr,
                                   value: controller.ongoingTrips.value.toString(),
                                   color: const Color(0xFF10B981),
                                   icon: Iconsax.bus,
@@ -156,7 +157,7 @@ class TripListScreen extends GetView<TripController> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _StatCard(
-                                  title: 'Pending',
+                                  title: AppTextConstants.pending.tr,
                                   value: controller.pendingTrips.value.toString(),
                                   color: const Color(0xFFF59E0B),
                                   icon: Iconsax.timer_1,
@@ -174,7 +175,7 @@ class TripListScreen extends GetView<TripController> {
                         children: [
                           Expanded(
                             child: AppSearchBar(
-                              hint: 'Search trips...',
+                              hint: AppTextConstants.searchTrips.tr,
                               onChanged: (value) =>
                                   controller.searchQuery.value = value,
                             ),
@@ -183,7 +184,7 @@ class TripListScreen extends GetView<TripController> {
                             IconButton(
                               onPressed: () => controller.clearFilters(),
                               icon: const Icon(Iconsax.refresh, color: Colors.red),
-                              tooltip: 'Clear Filters',
+                              tooltip: AppTextConstants.clearFilters.tr,
                             ),
                         ],
                       ),
@@ -196,27 +197,27 @@ class TripListScreen extends GetView<TripController> {
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
                             children: [
-                              AppFilterChip(
-                                  label: 'All',
-                                  isSelected:
-                                      controller.selectedFilter.value == 'All',
-                                  onTap: () => controller.setFilter('All')),
-                              AppFilterChip(
-                                  label: 'Pending',
-                                  isSelected: controller.selectedFilter.value ==
-                                      'Pending',
-                                  onTap: () => controller.setFilter('Pending')),
-                              AppFilterChip(
-                                  label: 'Ongoing',
-                                  isSelected: controller.selectedFilter.value ==
-                                      'Ongoing',
-                                  onTap: () => controller.setFilter('Ongoing')),
-                              AppFilterChip(
-                                  label: 'Completed',
-                                  isSelected: controller.selectedFilter.value ==
-                                      'Completed',
-                                  onTap: () =>
-                                      controller.setFilter('Completed')),
+                               AppFilterChip(
+                                   label: AppTextConstants.all.tr,
+                                   isSelected:
+                                       controller.selectedFilter.value == 'All',
+                                   onTap: () => controller.setFilter('All')),
+                               AppFilterChip(
+                                   label: AppTextConstants.pending.tr,
+                                   isSelected: controller.selectedFilter.value ==
+                                       'Pending',
+                                   onTap: () => controller.setFilter('Pending')),
+                               AppFilterChip(
+                                   label: AppTextConstants.ongoing.tr,
+                                   isSelected: controller.selectedFilter.value ==
+                                       'Ongoing',
+                                   onTap: () => controller.setFilter('Ongoing')),
+                               AppFilterChip(
+                                   label: AppTextConstants.completed.tr,
+                                   isSelected: controller.selectedFilter.value ==
+                                       'Completed',
+                                   onTap: () =>
+                                       controller.setFilter('Completed')),
                             ],
                           ),
                         )),
@@ -236,13 +237,13 @@ class TripListScreen extends GetView<TripController> {
                       if (controller.filteredTrips.isEmpty) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 40),
-                          child: AppEmptyState(
-                            title: controller.searchQuery.value.isNotEmpty ? 'No Matching Trips' : 'No Trips Found',
-                            subtitle: controller.searchQuery.value.isNotEmpty 
-                                ? 'No trips match your search "${controller.searchQuery.value}".'
-                                : 'Track and manage all your fleet trips here.',
-                            icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.routing,
-                          ),
+                           child: AppEmptyState(
+                             title: controller.searchQuery.value.isNotEmpty ? AppTextConstants.noMatchingTrips.tr : AppTextConstants.noTripsFound.tr,
+                             subtitle: controller.searchQuery.value.isNotEmpty 
+                                 ? '${AppTextConstants.noMatchingTrips.tr} "${controller.searchQuery.value}".'
+                                 : AppTextConstants.trackManageFleet.tr,
+                             icon: controller.searchQuery.value.isNotEmpty ? Iconsax.search_status : Iconsax.routing,
+                           ),
                         );
                       }
                       return ListView.builder(
@@ -313,7 +314,7 @@ class _TripCard extends StatelessWidget {
               InkWell(
                 onTap: () => _showStatusBottomSheet(context),
                 borderRadius: BorderRadius.circular(8),
-                child: AppStatusChip(status: trip.status.name.capitalizeFirst!),
+                child: AppStatusChip(status: trip.status.name),
               ),
             ],
           ),
@@ -376,23 +377,23 @@ class _TripCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              AppButton(
-                text: 'Track',
-                width: 80,
-                height: 32,
-                fontSize: 12,
-                onPressed: () =>
-                    Get.toNamed(RouteHelper.getTripTrackingRoute(), arguments: trip),
-              ),
-              const SizedBox(width: 8),
-              AppButton.outline(
-                text: 'View',
-                width: 70,
-                height: 32,
-                fontSize: 12,
-                onPressed: () =>
-                    Get.toNamed(RouteHelper.getTripDetailsRoute(), arguments: trip),
-              ),
+               AppButton(
+                 text: AppTextConstants.track.tr,
+                 width: 80,
+                 height: 32,
+                 fontSize: 12,
+                 onPressed: () =>
+                     Get.toNamed(RouteHelper.getTripTrackingRoute(), arguments: trip),
+               ),
+               const SizedBox(width: 8),
+               AppButton.outline(
+                 text: AppTextConstants.view.tr,
+                 width: 70,
+                 height: 32,
+                 fontSize: 12,
+                 onPressed: () =>
+                     Get.toNamed(RouteHelper.getTripDetailsRoute(), arguments: trip),
+               ),
             ],
           ),
         ],
@@ -412,12 +413,12 @@ class _TripCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const AppText('Update Trip Status', style: AppTextStyle.heading, fontSize: 18),
+             AppText(AppTextConstants.updateTripStatus.tr, style: AppTextStyle.heading, fontSize: 18),
             const SizedBox(height: 24),
-            _buildStatusOption('Pending', 'pending', trip.status.name == 'pending'),
-            _buildStatusOption('Ongoing', 'ongoing', trip.status.name == 'ongoing'),
-            _buildStatusOption('Completed', 'completed', trip.status.name == 'completed'),
-            _buildStatusOption('Cancelled', 'cancelled', trip.status.name == 'cancelled'),
+             _buildStatusOption(AppTextConstants.pending.tr, 'pending', trip.status.name == 'pending'),
+             _buildStatusOption(AppTextConstants.ongoing.tr, 'ongoing', trip.status.name == 'ongoing'),
+             _buildStatusOption(AppTextConstants.completed.tr, 'completed', trip.status.name == 'completed'),
+             _buildStatusOption(AppTextConstants.cancelled.tr, 'cancelled', trip.status.name == 'cancelled'),
             const SizedBox(height: 16),
           ],
         ),
@@ -432,16 +433,17 @@ class _TripCard extends StatelessWidget {
       trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primaryColor) : null,
       onTap: () async {
         Get.back();
+        if (isSelected) return;
         final success = await controller.updateTripStatus(trip.id!, value);
-        if (success) {
-          Get.snackbar(
-            'Success', 
-            'Status updated to $label',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: Colors.green.withOpacity(0.1),
-            colorText: Colors.green,
-          );
-        }
+         if (success) {
+           Get.snackbar(
+             AppTextConstants.success.tr, 
+             '${AppTextConstants.statusUpdatedTo.tr} $label',
+             snackPosition: SnackPosition.BOTTOM,
+             backgroundColor: Colors.green.withOpacity(0.1),
+             colorText: Colors.green,
+           );
+         }
       },
     );
   }

@@ -12,6 +12,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../routes/route_helper.dart';
 import '../controllers/trip_controller.dart';
 import '../domain/models/trip_model.dart';
+import '../../../core/constants/app_text_constants.dart';
 
 class TripDetailsScreen extends StatefulWidget {
   const TripDetailsScreen({Key? key}) : super(key: key);
@@ -39,6 +40,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
       if (tripId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           controller.fetchTripDetails(tripId!);
+          controller.fetchTripExpenses(tripId!);
         });
       }
     }
@@ -51,23 +53,23 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
       final isLoading = controller.isLoading.value;
 
       if (isLoading && trip == null) {
-        return const AppScaffold(
-          appBar: AppHeader(title: 'Trip Details'),
-          body: Center(child: CircularProgressIndicator()),
+        return AppScaffold(
+          appBar: AppHeader(title: AppTextConstants.tripDetails.tr),
+          body: const Center(child: CircularProgressIndicator()),
         );
       }
 
       if (trip == null) {
-        return const AppScaffold(
-          appBar: AppHeader(title: 'Trip Details'),
-          body: Center(child: AppText('Trip not found')),
+        return AppScaffold(
+          appBar: AppHeader(title: AppTextConstants.tripDetails.tr),
+          body: Center(child: AppText(AppTextConstants.tripNotFound.tr)),
         );
       }
 
       return AppScaffold(
         appBar: AppHeader(
-          title: 'Trip Details',
-          subtitle: trip.tripNumber ?? (trip.id != null ? 'ID: #TRP${trip.id}' : null),
+          title: AppTextConstants.tripDetails.tr,
+          subtitle: trip.tripNumber ?? (trip.id != null ? '${AppTextConstants.idLabel.tr}: #TRP${trip.id}' : null),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -94,10 +96,10 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               child: const Icon(Iconsax.trash, color: Colors.red, size: 32),
                             ),
                             const SizedBox(height: 24),
-                            const AppText('Delete Trip', style: AppTextStyle.subheading, fontSize: 20),
+                            AppText(AppTextConstants.deleteTrip.tr, style: AppTextStyle.subheading, fontSize: 20),
                             const SizedBox(height: 12),
                             AppText(
-                              'Are you sure you want to delete this trip? This action cannot be undone.',
+                              AppTextConstants.deleteTripConfirm.tr,
                               style: AppTextStyle.body,
                               color: AppColors.textColorSecondary,
                               textAlign: TextAlign.center,
@@ -107,14 +109,14 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               children: [
                                 Expanded(
                                   child: AppButton.outline(
-                                    text: 'Cancel',
+                                    text: AppTextConstants.cancel.tr,
                                     onPressed: () => Get.back(),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Obx(() => AppButton(
-                                    text: 'Delete',
+                                    text: AppTextConstants.delete.tr,
                                     color: Colors.red,
                                     isLoading: controller.isLoading.value,
                                     onPressed: () async {
@@ -152,7 +154,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 
                 // Resource Section
                 _buildSectionHeader(
-                  'Vehicles & Drivers (${trip.vehicleCount} Required)',
+                  '${AppTextConstants.assignedVehicles.tr} (${trip.vehicleCount} ${AppTextConstants.all.tr})',
                 ),
                 AppCard(
                   child: Column(
@@ -161,10 +163,10 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const AppText('Assigned Vehicles', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                          AppText(AppTextConstants.assignedVehicles.tr, style: AppTextStyle.body, fontWeight: FontWeight.bold),
                           if (trip.assignedVehicles.length < trip.vehicleCount)
                             AppButton(
-                              text: 'Add',
+                              text: AppTextConstants.add.tr,
                               onPressed: () => Get.toNamed(RouteHelper.getAssignVehicleRoute(), arguments: trip.id),
                               isFullWidth: false,
                               height: 32,
@@ -176,9 +178,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       if (trip.assignedVehicles.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: AppText('No vehicles assigned yet', style: AppTextStyle.caption),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: AppText(AppTextConstants.noVehiclesAssigned.tr, style: AppTextStyle.caption),
                         )
                       else
                         ...trip.assignedVehicles.asMap().entries.map((entry) {
@@ -190,12 +192,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               if (index > 0) const Divider(height: 24),
                               _buildInfoRow(
                                 Iconsax.bus, 
-                                'Vehicle ${index + 1}', 
+                                '${AppTextConstants.vehicleLabel.tr} ${index + 1}', 
                                 vehicle['registration_number'] ?? 'N/A',
                                 trailing: IconButton(
                                   onPressed: () => _showRemoveConfirmation(
-                                    title: 'Remove Vehicle',
-                                    message: 'Are you sure you want to remove this vehicle from the trip?',
+                                    title: AppTextConstants.removeVehicle.tr,
+                                    message: AppTextConstants.removeVehicleConfirm.tr,
                                     onConfirm: () => controller.removeVehicle(trip.id!, vehicleId),
                                   ),
                                   icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
@@ -214,10 +216,10 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const AppText('Assigned Drivers', style: AppTextStyle.body, fontWeight: FontWeight.bold),
+                          AppText(AppTextConstants.assignedDrivers.tr, style: AppTextStyle.body, fontWeight: FontWeight.bold),
                           if (trip.assignedDrivers.length < trip.vehicleCount)
                             AppButton(
-                              text: 'Add',
+                              text: AppTextConstants.add.tr,
                               onPressed: () => Get.toNamed(RouteHelper.getAssignDriverRoute(), arguments: trip.id),
                               isFullWidth: false,
                               height: 32,
@@ -229,9 +231,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                       ),
                       const SizedBox(height: 8),
                       if (trip.assignedDrivers.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: AppText('No drivers assigned yet', style: AppTextStyle.caption),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: AppText(AppTextConstants.noDriversAssigned.tr, style: AppTextStyle.caption),
                         )
                       else
                         ...trip.assignedDrivers.asMap().entries.map((entry) {
@@ -243,12 +245,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                               if (index > 0) const Divider(height: 24),
                               _buildInfoRow(
                                 Iconsax.user, 
-                                'Driver ${index + 1}', 
+                                '${AppTextConstants.driverLabel.tr} ${index + 1}', 
                                 driver['name'] ?? 'N/A',
                                 trailing: IconButton(
                                   onPressed: () => _showRemoveConfirmation(
-                                    title: 'Remove Driver',
-                                    message: 'Are you sure you want to remove this driver from the trip?',
+                                    title: AppTextConstants.removeDriver.tr,
+                                    message: AppTextConstants.removeDriverConfirm.tr,
                                     onConfirm: () => controller.removeDriver(trip.id!, driverId),
                                   ),
                                   icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
@@ -263,15 +265,15 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 const SizedBox(height: 16),
 
                 // Route Section
-                _buildSectionHeader('Route Details'),
+                _buildSectionHeader(AppTextConstants.routeDetails.tr),
                 AppCard(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: Column(
                     children: [
                       _buildRouteItem(
                         icon: Iconsax.location,
-                        title: 'Pickup',
-                        address: trip.pickupAddress ?? 'Not Specified',
+                        title: AppTextConstants.pickup.tr,
+                        address: trip.pickupAddress ?? AppTextConstants.notSpecified.tr,
                         isFirst: true,
                       ),
                       if (trip.destinationPoints != null)
@@ -279,8 +281,8 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                           final isLast = trip.destinationPoints!.last == point;
                           return _buildRouteItem(
                             icon: point['type'] == 'end' ? Iconsax.flag : Iconsax.stop,
-                            title: point['type']?.toString().capitalizeFirst ?? 'Stop',
-                            address: point['name'] ?? 'Unknown',
+                            title: point['type']?.toString().capitalizeFirst ?? AppTextConstants.stop.tr,
+                            address: point['name'] ?? AppTextConstants.unknown.tr,
                             isLast: isLast,
                           );
                         }),
@@ -290,41 +292,58 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 const SizedBox(height: 16),
 
                 // Customer Section
-                _buildSectionHeader('Customer Details'),
+                _buildSectionHeader(AppTextConstants.customerDetails.tr),
                 AppCard(
                   child: Column(
                     children: [
-                      _buildInfoRow(Iconsax.user_tag, 'Name', trip.customerName ?? 'N/A'),
+                      _buildInfoRow(Iconsax.user_tag, AppTextConstants.fullName.tr, trip.customerName ?? 'N/A'),
                       const Divider(height: 24),
-                      _buildInfoRow(Iconsax.call, 'Phone', trip.customerPhone ?? 'N/A'),
+                      _buildInfoRow(Iconsax.call, AppTextConstants.phone.tr, trip.customerPhone ?? 'N/A'),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 
                 // Payment Section
-                _buildSectionHeader('Payment Summary'),
+                _buildSectionHeader(AppTextConstants.paymentSummary.tr),
                 AppCard(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                       _buildSummaryRow('Total Amount', '₹ ${trip.totalAmount}'),
+                       _buildSummaryRow(AppTextConstants.total.tr, '₹ ${trip.totalAmount}'),
                        const SizedBox(height: 8),
-                       _buildSummaryRow('Advance Paid', '₹ ${trip.advanceAmount}', color: Colors.green),
+                       _buildSummaryRow(AppTextConstants.advancePaid.tr, '₹ ${trip.advanceAmount}', color: Colors.green),
                        const SizedBox(height: 8),
-                       _buildSummaryRow('Pending Balance', '₹ ${trip.pendingAmount}', color: Colors.red, isBold: true),
+                       _buildSummaryRow(AppTextConstants.pendingBalance.tr, '₹ ${trip.pendingAmount}', color: Colors.red, isBold: true),
+                       const SizedBox(height: 12),
+                       const Divider(height: 1),
+                       const SizedBox(height: 12),
+                       if ((trip.pendingAmount ?? 0) > 0)
+                         SizedBox(
+                           width: double.infinity,
+                           child: OutlinedButton.icon(
+                             icon: const Icon(Icons.add, color: AppColors.primaryColor),
+                             label: AppText('Add Payment', style: AppTextStyle.body, color: AppColors.primaryColor),
+                             style: OutlinedButton.styleFrom(
+                               side: const BorderSide(color: AppColors.primaryColor),
+                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                               padding: const EdgeInsets.symmetric(vertical: 10),
+                             ),
+                             onPressed: () => _showAddPaymentSheet(trip.id!, trip.pendingAmount ?? 0),
+                           ),
+                         ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
                 
                 // Actions Grid
-                _buildSectionHeader('Quick Actions'),
+                _buildSectionHeader(AppTextConstants.quickActions.tr),
                 _buildActionGrid(),
                 const SizedBox(height: 16),
                 
                 // Expense Summary
-                _buildSectionHeader('Expense Summary'),
+                _buildSectionHeader(AppTextConstants.expenseSummary.tr),
                 _buildExpenseSummary(trip),
                 const SizedBox(height: 32),
               ],
@@ -369,7 +388,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               InkWell(
                 onTap: () => _showStatusBottomSheet(trip),
                 borderRadius: BorderRadius.circular(8),
-                child: AppStatusChip(status: trip.status.name.capitalizeFirst!),
+                child: AppStatusChip(status: trip.status.name),
               ),
             ],
           ),
@@ -444,12 +463,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
 
   Widget _buildActionGrid() {
     final actions = [
-      {'icon': Iconsax.bus, 'label': 'Vehicle', 'route': RouteHelper.getAssignVehicleRoute()},
-      {'icon': Iconsax.user, 'label': 'Driver', 'route': RouteHelper.getAssignDriverRoute()},
-      {'icon': Iconsax.add, 'label': 'Expense', 'route': RouteHelper.getTripExpenseEntryRoute()},
-      {'icon': Iconsax.location, 'label': 'Track', 'route': RouteHelper.getTripTrackingRoute()},
-      {'icon': Iconsax.document_upload, 'label': 'Duty Sheet', 'route': RouteHelper.getDutySheetListRoute()},
-      {'icon': Icons.description_rounded, 'label': 'Invoice', 'route': RouteHelper.getTripInvoiceRoute()},
+      {'icon': Iconsax.bus, 'label': AppTextConstants.vehicles.tr, 'route': RouteHelper.getAssignVehicleRoute()},
+      {'icon': Iconsax.user, 'label': AppTextConstants.staff.tr, 'route': RouteHelper.getAssignDriverRoute()},
+      {'icon': Iconsax.add, 'label': AppTextConstants.expenses.tr, 'route': RouteHelper.getTripExpenseEntryRoute()},
+      {'icon': Iconsax.location, 'label': AppTextConstants.track.tr, 'route': RouteHelper.getTripTrackingRoute()},
+      {'icon': Iconsax.document_upload, 'label': AppTextConstants.dutySheet.tr, 'route': RouteHelper.getDutySheetListRoute()},
+      {'icon': Icons.description_rounded, 'label': AppTextConstants.invoice.tr, 'route': RouteHelper.getTripInvoiceRoute()},
     ];
 
     return GridView.builder(
@@ -470,15 +489,15 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         return AppCard(
           padding: EdgeInsets.zero,
           onTap: () {
-            if (label == 'Invoice' && tripId != null) {
+            if (label == AppTextConstants.invoice.tr && tripId != null) {
               final invoiceUrl = "${AppConstants.baseUrl}${AppConstants.getTripInvoiceUrl(tripId)}";
               Get.toNamed(RouteHelper.getPdfViewerRoute(), arguments: {
                 'url': invoiceUrl,
-                'title': 'Invoice Viewer',
+                'title': AppTextConstants.invoice.tr,
               });
-            } else if (label == 'Vehicle') {
+            } else if (label == AppTextConstants.vehicles.tr) {
               _showAssignedVehiclesBottomSheet();
-            } else if (label == 'Driver') {
+            } else if (label == AppTextConstants.staff.tr) {
               _showAssignedDriversBottomSheet();
             } else {
               Get.toNamed(action['route'] as String, arguments: tripId);
@@ -532,11 +551,11 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
     return AppCard(
       child: Column(
         children: [
-          _buildTimelineItem('Trip Scheduled', 'Booking confirmed', true),
-          _buildTimelineItem('Vehicle Assigned', 'DL 01 AB 1234', true),
-          _buildTimelineItem('Driver Assigned', 'Rajesh Kumar', true),
-          _buildTimelineItem('Trip Start', 'Scheduled at 08:00 AM', false),
-          _buildTimelineItem('Destination reached', 'Expected by 06:00 PM', false, isLast: true),
+          _buildTimelineItem(AppTextConstants.tripScheduled.tr, AppTextConstants.bookingConfirmed.tr, true),
+          _buildTimelineItem(AppTextConstants.vehicleAssigned.tr, 'DL 01 AB 1234', true),
+          _buildTimelineItem(AppTextConstants.driverAssigned.tr, 'Rajesh Kumar', true),
+          _buildTimelineItem(AppTextConstants.tripStart.tr, 'Scheduled at 08:00 AM', false),
+          _buildTimelineItem(AppTextConstants.destinationReached.tr, 'Expected by 06:00 PM', false, isLast: true),
         ],
       ),
     );
@@ -581,13 +600,13 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const AppText('Total Expenses', style: AppTextStyle.subheading),
-              AppText('₹${trip.totalExpenses}', style: AppTextStyle.heading, color: AppColors.errorColor),
+              AppText(AppTextConstants.totalExpenses.tr, style: AppTextStyle.subheading),
+              Obx(() => AppText('₹${controller.totalExpenseAmount}', style: AppTextStyle.heading, color: AppColors.errorColor)),
             ],
           ),
           const SizedBox(height: 12),
           AppButton.outline(
-            text: 'View All Expenses',
+            text: AppTextConstants.viewAllExpenses.tr,
             onPressed: () => Get.toNamed(RouteHelper.getTripExpenseListRoute(), arguments: trip),
           ),
         ],
@@ -607,6 +626,191 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
           color: color ?? AppColors.textColorPrimary,
         ),
       ],
+    );
+  }
+
+  void _showAddPaymentSheet(String tripId, double pendingAmount) {
+    final amountController = TextEditingController(text: pendingAmount.toStringAsFixed(0));
+    final referenceController = TextEditingController();
+    final notesController = TextEditingController();
+    String selectedType = 'advance';
+    const String selectedMode = 'cash';
+    DateTime selectedDate = DateTime.now();
+
+    final List<String> types = ['advance', 'partial', 'final', 'refund'];
+
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            padding: EdgeInsets.only(
+              left: 20, right: 20, top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: AppText('Add Payment', style: AppTextStyle.heading, fontSize: 18),
+                  ),
+                  const SizedBox(height: 20),
+                  // Amount
+                  TextField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: 'Amount (₹)',
+                      prefixIcon: const Icon(Icons.currency_rupee, color: AppColors.primaryColor),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Payment Type
+                  AppText('Payment Type', style: AppTextStyle.caption, color: AppColors.textColorSecondary),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    children: types.map((t) => ChoiceChip(
+                      label: Text(t[0].toUpperCase() + t.substring(1)),
+                      selected: selectedType == t,
+                      selectedColor: AppColors.primaryColor,
+                      labelStyle: TextStyle(
+                        color: selectedType == t ? Colors.white : AppColors.textColorPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onSelected: (_) => setSheetState(() => selectedType = t),
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  // Date Picker
+                  GestureDetector(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2030),
+                        builder: (ctx, child) => Theme(
+                          data: Theme.of(ctx).copyWith(
+                            colorScheme: const ColorScheme.light(primary: AppColors.primaryColor),
+                          ),
+                          child: child!,
+                        ),
+                      );
+                      if (picked != null) setSheetState(() => selectedDate = picked);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today, color: AppColors.primaryColor, size: 18),
+                          const SizedBox(width: 10),
+                          AppText(
+                            '${selectedDate.day.toString().padLeft(2, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.year}',
+                            style: AppTextStyle.body,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Reference
+                  TextField(
+                    controller: referenceController,
+                    decoration: InputDecoration(
+                      labelText: 'Reference (optional)',
+                      prefixIcon: const Icon(Icons.receipt_long, color: AppColors.primaryColor),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Notes
+                  TextField(
+                    controller: notesController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: 'Notes (optional)',
+                      prefixIcon: const Icon(Icons.notes, color: AppColors.primaryColor),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: AppColors.primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () async {
+                        final amount = double.tryParse(amountController.text.trim());
+                        if (amount == null || amount <= 0) {
+                          Get.snackbar('Error', 'Please enter a valid amount',
+                              snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red.withOpacity(0.1), colorText: Colors.red);
+                          return;
+                        }
+                        if (amount > pendingAmount) {
+                          Get.snackbar('Error', 'Amount cannot exceed pending balance (₹$pendingAmount)',
+                              snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red.withOpacity(0.1), colorText: Colors.red);
+                          return;
+                        }
+                        final paidOn = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+                        Get.back();
+                        final success = await controller.addTripPayment(
+                          tripId: tripId,
+                          amount: amount,
+                          type: selectedType,
+                          mode: selectedMode,
+                          paidOn: paidOn,
+                          reference: referenceController.text.trim(),
+                          notes: notesController.text.trim(),
+                        );
+                        if (success) {
+                          Get.snackbar(
+                            'Success', 'Payment added successfully',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: Colors.green.withOpacity(0.1),
+                            colorText: Colors.green,
+                          );
+                        } else {
+                          Get.snackbar('Error', 'Failed to add payment',
+                              snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red.withOpacity(0.1), colorText: Colors.red);
+                        }
+                      },
+                      child: const Text('Save Payment', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     );
   }
 
@@ -634,12 +838,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const AppText('Update Trip Status', style: AppTextStyle.heading, fontSize: 18),
+            AppText(AppTextConstants.updateTripStatus.tr, style: AppTextStyle.heading, fontSize: 18),
             const SizedBox(height: 24),
-            _buildStatusOption('Pending', 'pending', trip.status.name == 'pending'),
-            _buildStatusOption('Ongoing', 'ongoing', trip.status.name == 'ongoing'),
-            _buildStatusOption('Completed', 'completed', trip.status.name == 'completed'),
-            _buildStatusOption('Cancelled', 'cancelled', trip.status.name == 'cancelled'),
+            _buildStatusOption(AppTextConstants.pending.tr, 'pending', trip.status.name == 'pending'),
+            _buildStatusOption(AppTextConstants.ongoing.tr, 'ongoing', trip.status.name == 'ongoing'),
+            _buildStatusOption(AppTextConstants.completed.tr, 'completed', trip.status.name == 'completed'),
+            _buildStatusOption(AppTextConstants.cancelled.tr, 'cancelled', trip.status.name == 'cancelled'),
             const SizedBox(height: 16),
           ],
         ),
@@ -653,11 +857,12 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
       trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primaryColor) : null,
       onTap: () async {
         Get.back();
+        if (isSelected) return;
         final success = await controller.updateTripStatus(controller.selectedTrip.value!.id!, value);
         if (success) {
           Get.snackbar(
-            'Success', 
-            'Status updated to $label',
+            AppTextConstants.success.tr, 
+            '${AppTextConstants.statusUpdatedTo.tr} $label',
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green.withOpacity(0.1),
             colorText: Colors.green,
@@ -702,14 +907,14 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                 children: [
                   Expanded(
                     child: AppButton.outline(
-                      text: 'Cancel',
+                      text: AppTextConstants.cancel.tr,
                       onPressed: () => Get.back(),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Obx(() => AppButton(
-                      text: 'Remove',
+                      text: AppTextConstants.remove.tr,
                       color: Colors.red,
                       isLoading: controller.isAssigning.value,
                       onPressed: () async {
@@ -717,8 +922,8 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                         if (success) {
                           Get.back(); // Close dialog
                           Get.snackbar(
-                            'Success', 
-                            'Removed successfully',
+                            AppTextConstants.success.tr, 
+                            AppTextConstants.removedSuccessfully.tr,
                             snackPosition: SnackPosition.BOTTOM,
                             backgroundColor: Colors.green.withOpacity(0.1),
                             colorText: Colors.green,
@@ -754,7 +959,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const AppText('Assigned Vehicles', style: AppTextStyle.subheading),
+                AppText(AppTextConstants.assignedVehicles.tr, style: AppTextStyle.subheading),
                 IconButton(
                   onPressed: () {
                     Get.back();
@@ -766,9 +971,9 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
             ),
             const Divider(),
             if (trip.assignedVehicles.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(child: AppText('No vehicles assigned yet', color: AppColors.slate500)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: AppText(AppTextConstants.noVehiclesAssigned.tr, color: AppColors.slate500)),
               )
             else
               ...trip.assignedVehicles.map((v) => ListTile(

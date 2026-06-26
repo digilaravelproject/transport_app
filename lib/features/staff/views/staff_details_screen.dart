@@ -27,7 +27,14 @@ class _StaffDetailsScreenState extends State<StaffDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    staffId = (Get.arguments as StaffModel?)?.id ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
+    final dynamic args = Get.arguments;
+    if (args is String) {
+      staffId = int.tryParse(args) ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
+    } else if (args is int) {
+      staffId = args;
+    } else {
+      staffId = (args as StaffModel?)?.id ?? (controller.staffList.isNotEmpty ? controller.staffList.first.id : 0);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.refreshStaffDetails(staffId);
     });

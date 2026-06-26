@@ -48,55 +48,60 @@ class _DutySheetUploadScreenState extends State<DutySheetUploadScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            AppCard(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Icon(Iconsax.document, size: 64, color: AppColors.primaryColor),
-                  const SizedBox(height: 16),
-                  const AppText(
-                    'Upload Driver Duty Sheet',
-                    style: AppTextStyle.subheading,
-                    fontSize: 18,
+            Expanded(
+              child: SingleChildScrollView(
+                child: AppCard(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(Iconsax.document, size: 64, color: AppColors.primaryColor),
+                      const SizedBox(height: 16),
+                      const AppText(
+                        'Upload Driver Duty Sheet',
+                        style: AppTextStyle.subheading,
+                        fontSize: 18,
+                      ),
+                      const SizedBox(height: 8),
+                      const AppText(
+                        'Please scan or take a photo of the signed duty sheet for record validation.',
+                        style: AppTextStyle.caption,
+                        align: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      if (selectedFile == null)
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildUploadOption(Iconsax.camera, 'Camera', () => _pickImage(ImageSource.camera)),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildUploadOption(Icons.photo_library_rounded, 'Gallery', () => _pickImage(ImageSource.gallery)),
+                            ),
+                          ],
+                        )
+                      else
+                        _buildPreview(),
+                      const SizedBox(height: 24),
+                      AppInputField(
+                        label: 'Notes',
+                        controller: notesController,
+                        hint: 'Enter any notes (optional)',
+                        icon: Iconsax.note_2,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  const AppText(
-                    'Please scan or take a photo of the signed duty sheet for record validation.',
-                    style: AppTextStyle.caption,
-                    align: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  if (selectedFile == null)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildUploadOption(Iconsax.camera, 'Camera', () => _pickImage(ImageSource.camera)),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildUploadOption(Icons.photo_library_rounded, 'Gallery', () => _pickImage(ImageSource.gallery)),
-                        ),
-                      ],
-                    )
-                  else
-                    _buildPreview(),
-                  const SizedBox(height: 24),
-                  AppInputField(
-                    label: 'Notes',
-                    controller: notesController,
-                    hint: 'Enter any notes (optional)',
-                    icon: Iconsax.note_2,
-                  ),
-                ],
+                ),
               ),
             ),
-            const Spacer(),
+            const SizedBox(height: 16),
             Obx(() => AppButton(
               text: 'Submit Duty Sheet',
               isLoading: controller.isLoading.value,
               onPressed: selectedFile != null ? () async {
                 final success = await controller.uploadDutySheet(tripId, selectedFile!, notesController.text);
                 if (success) {
+                  await controller.fetchDutySheets(tripId);
                   Get.back(closeOverlays: true);
                   Get.snackbar(
                     'Success', 

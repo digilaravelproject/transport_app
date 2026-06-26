@@ -960,13 +960,13 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 AppText(AppTextConstants.assignedVehicles.tr, style: AppTextStyle.subheading),
-                IconButton(
-                  onPressed: () {
-                    Get.back();
-                    Get.toNamed(RouteHelper.getAssignVehicleRoute(), arguments: trip.id);
-                  },
-                  icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
-                ),
+                // IconButton(
+                //   onPressed: () {
+                //     Get.back();
+                //     Get.toNamed(RouteHelper.getAssignVehicleRoute(), arguments: trip.id);
+                //   },
+                //   icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
+                // ),
               ],
             ),
             const Divider(),
@@ -1016,13 +1016,13 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const AppText('Assigned Drivers', style: AppTextStyle.subheading),
-                IconButton(
-                  onPressed: () {
-                    Get.back();
-                    Get.toNamed(RouteHelper.getAssignDriverRoute(), arguments: trip.id);
-                  },
-                  icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
-                ),
+                // IconButton(
+                //   onPressed: () {
+                //     Get.back();
+                //     Get.toNamed(RouteHelper.getAssignDriverRoute(), arguments: trip.id);
+                //   },
+                //   icon: const Icon(Iconsax.edit, color: AppColors.primaryColor),
+                // ),
               ],
             ),
             const Divider(),

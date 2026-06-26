@@ -29,7 +29,21 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> {
   void initState() {
     super.initState();
     final dynamic args = Get.arguments;
-    vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+    if (args is String) {
+      final intId = int.tryParse(args);
+      vehicle = controller.vehicles.firstWhere((v) => v.id == intId, 
+        orElse: () => VehicleModel(
+          id: intId,
+          vehicleNumber: 'Loading...',
+          type: '',
+          capacity: 0,
+          year: '',
+          status: VehicleStatus.active,
+        )
+      );
+    } else {
+      vehicle = (args is Map) ? args['vehicle'] : (args as VehicleModel? ?? controller.vehicles.first);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDetails();
     });

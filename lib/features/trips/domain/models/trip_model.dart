@@ -113,14 +113,12 @@ class TripModel {
       vehicleNumber: (parsedVehicles.isNotEmpty ? parsedVehicles.first['registration_number'] : null),
       customerName: customer?['name'],
       customerPhone: customer?['contact'],
-      totalAmount: (payment?['total'] ?? 0).toDouble(),
-      advanceAmount: (payment?['advance'] ?? 0).toDouble(),
-      pendingAmount: (payment?['balance'] ?? 0).toDouble(),
+      totalAmount: _parseDouble(payment?['total']),
+      advanceAmount: _parseDouble(payment?['advance']),
+      pendingAmount: _parseDouble(payment?['balance']),
       status: _parseStatus(json['status']),
       pickupAddress: json['pickup_address'],
-      destinationPoints: json['destination_points'] != null 
-          ? List<Map<String, dynamic>>.from(json['destination_points']) 
-          : null,
+      destinationPoints: _parseDestinationPoints(json['destination_points']),
       invoiceUrl: json['invoice_url'],
       dutySlipUrl: json['duty_slip_url'],
       notes: json['notes'],
@@ -143,6 +141,27 @@ class TripModel {
       default:
         return TripStatus.pending;
     }
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  static List<Map<String, dynamic>>? _parseDestinationPoints(dynamic points) {
+    if (points == null) return null;
+    if (points is List) {
+      if (points.isEmpty) return <Map<String, dynamic>>[];
+      if (points.first is String) {
+        return points.map((p) => <String, dynamic>{'name': p.toString(), 'type': 'stop'}).toList();
+      } else if (points.first is Map) {
+        return List<Map<String, dynamic>>.from(points);
+      }
+    }
+    return null;
   }
 
   double get totalExpenses => expenses.fold(0, (sum, item) => sum + item.amount);

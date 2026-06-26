@@ -29,7 +29,27 @@ class _LeadDetailsScreenState extends State<LeadDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    lead = Get.arguments;
+    final dynamic args = Get.arguments;
+    if (args is String) {
+      lead = controller.leads.firstWhere(
+        (l) => l.id == args, 
+        orElse: () => LeadModel(
+          id: args, 
+          leadNo: '', 
+          customerName: 'Loading...', 
+          phone: '', 
+          route: '', 
+          date: DateTime.now(), 
+          duration: '', 
+          vehicleType: '', 
+          vehicleCount: 1, 
+          totalAmount: 0, 
+          advancePayment: 0
+        )
+      );
+    } else {
+      lead = args as LeadModel;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (lead.id != null) {
         controller.fetchLeadDetails(lead.id!);

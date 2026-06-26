@@ -39,8 +39,8 @@ class MoreScreen extends StatelessWidget {
 
     return AppScaffold(
       appBar: AppHeader(
-        title: AppTextConstants.more.tr, 
-        subtitle: AppTextConstants.exploreAllModules.tr, 
+        title: AppTextConstants.more.tr,
+        subtitle: AppTextConstants.exploreAllModules.tr,
         showBackButton: false,
       ),
       body: GridView.builder(
@@ -66,7 +66,7 @@ class MoreScreen extends StatelessWidget {
                 }
                 return;
               }
-              
+
               if (module.route != null) {
                 Get.toNamed(module.route!);
               } else {

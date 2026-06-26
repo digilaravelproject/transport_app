@@ -113,6 +113,7 @@ class AppTextConstants {
   static const String emergencyName = 'emergency_name';
   static const String emergencyPhone = 'emergency_phone';
   static const String monthlySalary = 'monthly_salary';
+  static const String monthlyPackage = 'monthly_package';
   static const String daPerDay = 'da_per_day';
   static const String hra = 'hra';
   static const String workingShift = 'working_shift';

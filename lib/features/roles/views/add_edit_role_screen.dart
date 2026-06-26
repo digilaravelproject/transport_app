@@ -27,7 +27,6 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
   final controller = Get.find<RoleController>();
 
   static const List<String> _potentialPermissions = ['Trips', 'Vehicles', 'Staff', 'Leads', 'Corporate', 'Finance', 'Inventory', 'Shifts', 'Routes', 'Reports', 'Templates', 'Roles', 'Settings'];
-  List<String> _allPermissions = [];
   List<String> _selectedPermissions = [];
 
   bool get isEdit => widget.role != null;
@@ -38,25 +37,12 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
     _nameCtrl = TextEditingController(text: widget.role?.roleName ?? '');
     _descCtrl = TextEditingController(text: widget.role?.description ?? '');
     
-    // Filter permissions based on Membership
-    // Filter permissions based on Membership
-    if (Get.isRegistered<MembershipController>()) {
-      final membership = Get.find<MembershipController>();
-      final sub = membership.activeSubscription.value;
-      if (sub != null && sub.plan['module_access'] != null) {
-        final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim()).toList();
-        _allPermissions = _potentialPermissions.where((p) => allowedModules.contains(p)).toList();
-      } else {
-        // If no sub yet, keep it empty so it shows loading
-        _allPermissions = [];
-      }
+    if (!Get.isRegistered<MembershipController>()) {
+      Get.put(MembershipController());
     }
     
     _selectedPermissions = List.from(widget.role?.permissions ?? []);
     _isActive = widget.role?.isActive ?? true;
-
-    // Ensure selected permissions only contain allowed ones
-    _selectedPermissions.removeWhere((p) => !_allPermissions.contains(p));
 
     if (isEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _fetchFreshData());
@@ -64,31 +50,18 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
   }
 
   Future<void> _fetchFreshData() async {
-    // 1. Fetch Membership/Subscription details first to know allowed modules
-    final membership = Get.put(MembershipController());
+    final membership = Get.find<MembershipController>();
     await membership.fetchCurrentSubscription();
 
-    // 2. Fetch Role details
     await controller.fetchRoleDetails(widget.role!.id);
     
     final role = controller.selectedRole.value;
     if (role != null) {
       setState(() {
-        // Update available permissions based on fresh membership data
-        final sub = membership.activeSubscription.value;
-        if (sub != null && sub.plan['module_access'] != null) {
-          final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim()).toList();
-          _allPermissions = _potentialPermissions
-              .where((p) => allowedModules.contains(p)).toList();
-        }
-
         _nameCtrl.text = role.roleName;
         _descCtrl.text = role.description;
         _isActive = role.isActive;
         _selectedPermissions = List.from(role.permissions);
-        
-        // Ensure selected permissions only contain currently allowed ones
-        _selectedPermissions.removeWhere((p) => !_allPermissions.contains(p));
       });
     }
   }
@@ -229,35 +202,26 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const AppText('Module *', style: AppTextStyle.subheading, fontSize: 16),
-                            TextButton(
-                              onPressed: () {
-                                final membership = Get.put(MembershipController());
-                                List<String> displayPermissions = List.from(_allPermissions);
-                                final sub = membership.activeSubscription.value;
-                                if (sub != null && sub.plan['module_access'] != null) {
-                                  final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim().toLowerCase()).toList();
-                                  displayPermissions = displayPermissions.where((p) => allowedModules.contains(p.toLowerCase())).toList();
-                                }
-                                
-                                setState(() {
-                                  if (_selectedPermissions.length == displayPermissions.length) {
-                                    _selectedPermissions.clear();
-                                  } else {
-                                    _selectedPermissions = List.from(displayPermissions);
-                                  }
-                                });
-                              },
-                              child: Obx(() {
-                                final membership = Get.put(MembershipController());
-                                List<String> displayPermissions = List.from(_allPermissions);
-                                final sub = membership.activeSubscription.value;
-                                if (sub != null && sub.plan['module_access'] != null) {
-                                  final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim().toLowerCase()).toList();
-                                  displayPermissions = displayPermissions.where((p) => allowedModules.contains(p.toLowerCase())).toList();
-                                }
-                                return Text(_selectedPermissions.length == displayPermissions.length ? 'Deselect All' : 'Select All');
-                              }),
-                            ),
+                            Obx(() {
+                              final membership = Get.find<MembershipController>();
+                              final sub = membership.activeSubscription.value;
+                              if (sub == null || sub.plan['module_access'] == null) {
+                                return const SizedBox();
+                              }
+                              final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim()).toList();
+                              return TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    if (_selectedPermissions.length == allowedModules.length) {
+                                      _selectedPermissions.clear();
+                                    } else {
+                                      _selectedPermissions = List.from(allowedModules);
+                                    }
+                                  });
+                                },
+                                child: Text(_selectedPermissions.length == allowedModules.length ? 'Deselect All' : 'Select All'),
+                              );
+                            }),
                           ],
                         ),
                         if (_selectedPermissions.isEmpty) ...[
@@ -266,10 +230,9 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                         ],
                         const SizedBox(height: 12),
                         Obx(() {
-                          final membership = Get.put(MembershipController());
+                          final membership = Get.find<MembershipController>();
                           
-                          // Show loading if membership data is still fetching
-                          if (membership.isLoading.value || _allPermissions.isEmpty) {
+                          if (membership.isLoading.value) {
                             return const Center(
                               child: Padding(
                                 padding: EdgeInsets.all(16.0),
@@ -278,13 +241,26 @@ class _AddEditRoleScreenState extends State<AddEditRoleScreen> {
                             );
                           }
 
-                          List<String> displayPermissions = List.from(_allPermissions);
-                          
                           final sub = membership.activeSubscription.value;
-                          if (sub != null && sub.plan['module_access'] != null) {
-                            final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim().toLowerCase()).toList();
-                            displayPermissions = displayPermissions.where((p) => allowedModules.contains(p.toLowerCase())).toList();
+                          if (sub == null || sub.plan['module_access'] == null) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 24),
+                              child: Column(
+                                children: [
+                                  const Icon(Iconsax.warning_2, color: AppColors.warningColor, size: 40),
+                                  const SizedBox(height: 12),
+                                  const AppText(
+                                    'Firstly subscribe any plan',
+                                    style: AppTextStyle.caption,
+                                    color: AppColors.textColorSecondary,
+                                  ),
+                                ],
+                              ),
+                            );
                           }
+
+                          final allowedModules = (sub.plan['module_access'] as String).split(',').map((e) => e.trim().toLowerCase()).toList();
+                          final displayPermissions = _potentialPermissions.where((p) => allowedModules.contains(p.toLowerCase())).toList();
 
                           if (displayPermissions.isEmpty) {
                             return const Padding(

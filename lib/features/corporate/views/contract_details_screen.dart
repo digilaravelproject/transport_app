@@ -275,7 +275,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
           _buildInfoRow(AppTextConstants.dutyType.tr, vendor.dutyType ?? 'N/A'),
           _buildInfoRow(AppTextConstants.vehicleType.tr, vendor.vehicleTypeName ?? 'N/A'),
           _buildInfoRow(AppTextConstants.quantity.tr, vendor.quantity.toString()),
-          _buildInfoRow(AppTextConstants.monthlySalary.tr, '₹ ${vendor.monthlyAmount.toStringAsFixed(2)}', isAmount: true),
+          _buildInfoRow(AppTextConstants.monthlyPackage.tr, '₹ ${vendor.monthlyAmount.toStringAsFixed(2)}', isAmount: true),
         ],
       ),
     );

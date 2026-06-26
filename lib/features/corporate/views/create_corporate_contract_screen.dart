@@ -243,7 +243,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                     const SizedBox(height: 8),
                     AppInputField(
                       controller: _monthlyAmountController,
-                      label: AppTextConstants.monthlySalary.tr,
+                      label: AppTextConstants.monthlyPackage.tr,
                       hint: '₹ 0.00',
                       icon: Iconsax.card,
                       keyboardType: TextInputType.number,

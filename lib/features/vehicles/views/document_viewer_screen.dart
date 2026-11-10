@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_scaffold.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_text.dart';
+import '../../../core/services/network/api_client.dart';
 
 import '../domain/models/vehicle_model.dart';
 
@@ -56,11 +56,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     });
 
     try {
-      final dio = Dio();
+      final apiClient = Get.find<ApiClient>();
       final dir = await getTemporaryDirectory();
       final savePath = '${dir.path}/$fileName';
 
-      await dio.download(
+      final success = await apiClient.downloadFile(
         fileUrl,
         savePath,
         onReceiveProgress: (received, total) {
@@ -72,7 +72,12 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
         },
       );
 
-      await OpenFilex.open(savePath);
+      if (success) {
+        await OpenFilex.open(savePath);
+      } else {
+        Get.snackbar('Error', 'Failed to download file',
+            snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+      }
     } catch (e) {
       Get.snackbar('Error', 'Failed to download or open file: $e', 
           snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);

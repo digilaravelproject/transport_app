@@ -374,6 +374,31 @@ class ApiClient {
     }
   }
 
+  Future<bool> downloadFile(
+    String url,
+    String savePath, {
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      final resolvedUrl = url.startsWith('http') ? url : '${_dio.options.baseUrl}/storage/$url';
+      Logger.d('|📥 DOWNLOAD FILE');
+      Logger.d('|📍 URL: $resolvedUrl');
+      Logger.d('|💾 Save Path: $savePath');
+
+      await _dio.download(
+        resolvedUrl,
+        savePath,
+        onReceiveProgress: onReceiveProgress,
+      );
+
+      Logger.d('|✅ DOWNLOAD COMPLETE');
+      return true;
+    } catch (e) {
+      Logger.e('|❌ DOWNLOAD ERROR: $e');
+      return false;
+    }
+  }
+
   Future<ResponseModel> delete(
       String path, {
         dynamic data,

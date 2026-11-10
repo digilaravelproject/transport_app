@@ -212,6 +212,7 @@
   "vendor_registration": "વિક્રેતા નોંધણી",
   "create_vendor_account": "તમારું બસ વિક્રેતા ખાતું બનાવો",
   "company_name": "કંપનીનું નામ",
+  "create_vendor": "વિક્રેતા બનાવો",
   "enter_company_name": "તમારી કંપનીનું નામ દાખલ કરો",
   "owner_name": "માલિકનું નામ",
   "enter_owner_name": "માલિકનું પૂરું નામ દાખલ કરો",
@@ -554,5 +555,7 @@
   "failed_to_create_contract": "કરાર બનાવવામાં અસમર્થ",
   "status_updated_successfully": "સ્થિતિ સફળતાપૂર્વક અપડેટ કરવામાં આવી",
   "failed_to_update_status": "સ્થિતિ અપડેટ કરવામાં અસમર્થ",
-  "error_updating_status": "સ્થિતિ અપડેટ કરવામાં ભૂલ"
+  "error_updating_status": "સ્થિતિ અપડેટ કરવામાં ભૂલ",
+  "save_vendor": "વિક્રેતા સાચવો",
+  "vendor_details": "વિક્રેતા વિગતો"
 }

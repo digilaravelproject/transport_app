@@ -52,7 +52,7 @@ class ApiClient {
           Logger.d('|🔍 Query Parameters: ${options.queryParameters}');
         }
         if (options.data != null) {
-          Logger.d('|📦 Body: ${options.data}');
+          Logger.d('|📦 Body: ${_formatRequestBody(options.data)}');
         }
 
         return handler.next(options);
@@ -83,6 +83,32 @@ class ApiClient {
         return handler.next(error);
       },
     ));
+  }
+
+  String _formatRequestBody(dynamic data) {
+    if (data is FormData) {
+      final fields = <String, dynamic>{};
+      for (final entry in data.fields) {
+        if (fields.containsKey(entry.key)) {
+          final existing = fields[entry.key];
+          if (existing is List) {
+            existing.add(entry.value);
+          } else {
+            fields[entry.key] = [existing, entry.value];
+          }
+        } else {
+          fields[entry.key] = entry.value;
+        }
+      }
+      final files = data.files
+          .map(
+            (e) =>
+                '${e.key}: ${e.value.filename ?? 'file'} (${e.value.length} bytes, ${e.value.contentType})',
+          )
+          .toList();
+      return 'FormData(fields: $fields, files: $files)';
+    }
+    return data.toString();
   }
 
   Future<bool> _checkInternetConnection({bool showDialog = false}) async {

@@ -56,7 +56,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     controller.tripDate.value = DateTime.tryParse(_editTrip!.tripDate ?? '') ?? DateTime.now();
     controller.dateController.text = _editTrip!.tripDate ?? '';
     controller.durationController.text = _editTrip!.durationDays?.toString() ?? '';
-    controller.selectedTripType.value = _editTrip!.tripRoute ?? 'One Way';
+    controller.selectedTripType.value = _normalizeTripType(_editTrip!.tripRoute);
     
     // Route Info
     final points = _editTrip!.destinationPoints ?? [];
@@ -439,6 +439,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     }
   }
 
+  String _normalizeTripType(String? raw) {
+    final normalized = (raw ?? '').trim().toLowerCase().replaceAll('_', ' ');
+    if (normalized.contains('round')) return 'Round Trip';
+    return 'One Way';
+  }
+
   Widget _buildDropdown(String label, RxString value, List<String> items, {String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -453,25 +459,28 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: errorText != null ? Colors.red : AppColors.slate200),
           ),
-          child: Obx(() => DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value.value.isEmpty ? items.first : value.value,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              items: items.map((String item) {
-                return DropdownMenuItem<String>(
-                  value: item,
-                  child: AppText(item, style: AppTextStyle.body, fontSize: 13),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                if (newValue != null) {
-                  setState(() => vehicleTypeError = null);
-                  value.value = newValue;
-                }
-              },
-            ),
-          )),
+          child: Obx(() {
+            final selectedValue = items.contains(value.value) ? value.value : items.first;
+            return DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedValue,
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: items.map((String item) {
+                  return DropdownMenuItem<String>(
+                    value: item,
+                    child: AppText(item, style: AppTextStyle.body, fontSize: 13),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  if (newValue != null) {
+                    setState(() => vehicleTypeError = null);
+                    value.value = newValue;
+                  }
+                },
+              ),
+            );
+          }),
         ),
         if (errorText != null)
           Padding(

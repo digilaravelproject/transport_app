@@ -212,6 +212,7 @@
   "vendor_registration": "विक्रेता नोंदणी",
   "create_vendor_account": "तुमचे बस विक्रेता खाते तयार करा",
   "company_name": "कंपनीचे नाव",
+  "create_vendor": "विक्रेता तयार करा",
   "enter_company_name": "तुमच्या कंपनीचे नाव प्रविष्ट करा",
   "owner_name": "मालकाचे नाव",
   "enter_owner_name": "मालकाचे पूर्ण नाव प्रविष्ट करा",
@@ -554,5 +555,7 @@
   "failed_to_create_contract": "करार तयार करण्यात अक्षम",
   "status_updated_successfully": "स्थिती यशस्वीरित्या अपडेट केली",
   "failed_to_update_status": "स्थिती अपडेट करण्यात अक्षम",
-  "error_updating_status": "स्थिती अपडेट करण्यात त्रुटी"
+  "error_updating_status": "स्थिती अपडेट करण्यात त्रुटी",
+  "save_vendor": "विक्रेता जतन करा",
+  "vendor_details": "विक्रेता तपशील"
 }

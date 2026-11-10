@@ -196,6 +196,7 @@
   "vendor_registration": "विक्रेता पंजीकरण",
   "create_vendor_account": "अपना बस विक्रेता खाता बनाएं",
   "company_name": "कंपनी का नाम",
+  "create_vendor": "विक्रेता बनाएं",
   "enter_company_name": "अपनी कंपनी का नाम दर्ज करें",
   "owner_name": "मालिक का नाम",
   "enter_owner_name": "मालिक का पूरा नाम दर्ज करें",
@@ -636,5 +637,7 @@
   "photo_copy": "फोटो कॉपी",
   "enter_number": "नंबर दर्ज करें",
   "date_format_hint": "डीडी-एमएम-वाईवाईवाईवाई",
-  "save_vehicle": "वाहन सहेजें"
+  "save_vehicle": "वाहन सहेजें",
+  "save_vendor": "विक्रेता सहेजें",
+  "vendor_details": "विक्रेता विवरण"
 }

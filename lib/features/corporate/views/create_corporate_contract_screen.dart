@@ -127,7 +127,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: AppTextConstants.createContract.tr,
+        title: AppTextConstants.createVendor.tr,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -139,7 +139,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppText(AppTextConstants.contractDetails.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
+                    AppText(AppTextConstants.vendorDetails.tr, style: AppTextStyle.subheading, color: AppColors.primaryColor),
                     const SizedBox(height: 8),
                     AppInputField(
                       controller: _vendorNameController,
@@ -267,7 +267,7 @@ class _CreateCorporateContractScreenState extends State<CreateCorporateContractS
               ),
               const SizedBox(height: 32),
               Obx(() => AppButton(
-                text: AppTextConstants.saveContract.tr,
+                text: AppTextConstants.saveVendor.tr,
                 isLoading: controller.isLoading.value,
                 onPressed: _saveContract,
               )),

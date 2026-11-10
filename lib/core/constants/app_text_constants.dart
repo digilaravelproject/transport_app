@@ -538,11 +538,14 @@ class AppTextConstants {
   static const String bank = 'bank';
   static const String accountNumber = 'account_number';
   static const String createContract = 'create_contract';
+  static const String createVendor = 'create_vendor';
+  static const String vendorDetails = 'vendor_details';
   static const String vendorName = 'vendor_name';
   static const String enterVendorName = 'enter_vendor_name';
   static const String contractName = 'contract_name';
   static const String contractNumber = 'contract_number';
   static const String saveContract = 'save_contract';
+  static const String saveVendor = 'save_vendor';
   static const String pleaseSelectVehicleType = 'please_select_vehicle_type';
   static const String endDateBeforeStartDateError =
       'end_date_before_start_date_error';

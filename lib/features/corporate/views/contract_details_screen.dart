@@ -46,7 +46,7 @@ class _ContractDetailsScreenState extends State<ContractDetailsScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       appBar: AppHeader(
-        title: AppTextConstants.contractDetails.tr,
+        title: AppTextConstants.vendorDetails.tr,
         subtitle: company.name,
       ),
       body: RefreshIndicator(

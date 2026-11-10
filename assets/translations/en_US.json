@@ -196,6 +196,7 @@
   "vendor_registration": "Vendor Registration",
   "create_vendor_account": "Create your bus vendor account",
   "company_name": "Company Name",
+  "create_vendor": "Create Vendor",
   "enter_company_name": "Enter your Company name",
   "owner_name": "Owner Name",
   "enter_owner_name": "Enter owner full name",
@@ -636,5 +637,7 @@
   "photo_copy": "Photo Copy",
   "enter_number": "Enter Number",
   "date_format_hint": "DD-MM-YYYY",
-  "save_vehicle": "Save Vehicle"
+  "save_vehicle": "Save Vehicle",
+  "save_vendor": "Save Vendor",
+  "vendor_details": "Vendor Details"
 }

@@ -257,7 +257,7 @@ class FinanceScreen extends GetView<FinanceController> {
                             child: Column(
                               children: [
                                 SizedBox(
-                                  height: 220,
+                                  height: 230,
                                   child: BarChart(
                                     BarChartData(
                                       alignment: BarChartAlignment.spaceAround,
@@ -294,11 +294,12 @@ class FinanceScreen extends GetView<FinanceController> {
                                         bottomTitles: AxisTitles(
                                           sideTitles: SideTitles(
                                             showTitles: true,
+                                            reservedSize: 36,
                                             getTitlesWidget: (value, meta) {
                                               const titles = ['Rev', 'Exp', 'Profit', 'Pend'];
                                               if (value.toInt() >= 0 && value.toInt() < titles.length) {
                                                 return Padding(
-                                                  padding: const EdgeInsets.only(top: 10.0),
+                                                  padding: const EdgeInsets.only(top: 8.0),
                                                   child: AppText(titles[value.toInt()], 
                                                       fontSize: 11, 
                                                       fontWeight: FontWeight.w600,

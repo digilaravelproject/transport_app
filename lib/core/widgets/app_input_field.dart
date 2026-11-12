@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_colors.dart';
 import 'app_text.dart';
 
@@ -26,6 +27,8 @@ class AppInputField extends StatefulWidget {
   final bool isRequired;
   final String? errorText;
   final bool autoFocus;
+  final List<TextInputFormatter>? inputFormatters;
+  final TextCapitalization textCapitalization;
 
   const AppInputField({
     Key? key,
@@ -52,6 +55,8 @@ class AppInputField extends StatefulWidget {
     this.isRequired = false,
     this.errorText,
     this.autoFocus = false,
+    this.inputFormatters,
+    this.textCapitalization = TextCapitalization.none,
   }) : super(key: key);
 
   @override
@@ -102,6 +107,8 @@ class _AppInputFieldState extends State<AppInputField> {
           autofocus: widget.autoFocus,
           controller: widget.controller,
           keyboardType: widget.keyboardType,
+          inputFormatters: widget.inputFormatters,
+          textCapitalization: widget.textCapitalization,
           obscureText: widget.obscureText ?? (widget.isPassword || widget.obscure),
           validator: (val) {
             if (widget.validator != null) {

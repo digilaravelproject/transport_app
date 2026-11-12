@@ -707,4 +707,13 @@ class AppTextConstants {
   static const String totalAmount = 'total_amount';
   static const String pendingAmount = 'pending_amount';
   static const String quotation = 'quotation';
+  static const String pucCertificate = 'puc_certificate';
+  static const String pucNumber = 'puc_number';
+  static const String fitnessCertificate = 'fitness_certificate';
+  static const String fitnessNumber = 'fitness_number';
+  static const String validTill = 'valid_till';
+  static const String gpsSystem = 'gps_system';
+  static const String gpsDeviceId = 'gps_device_id';
+  static const String gpsDeviceIdHint = 'gps_device_id_hint';
+  static const String gpsStatus = 'gps_status';
 }

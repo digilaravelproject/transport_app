@@ -38,6 +38,8 @@ class TripModel {
   String get tripDate => DateFormat('yyyy-MM-dd').format(date);
   String get tripRoute => route;
   int get durationDays => int.tryParse(duration.split(' ')[0]) ?? 1;
+  String get vehicleSummary =>
+      vehicleType == 'Not Assigned' ? 'No Vehicle Assigned' : '$vehicleCount x $vehicleType';
 
   TripModel({
     this.id,
@@ -85,6 +87,7 @@ class TripModel {
     }
 
     final vehicleTypeDetails = json['vehicle_type_details'] as Map<String, dynamic>?;
+    final vehicle = json['vehicle'] as Map<String, dynamic>?;
     final customer = json['customer'] as Map<String, dynamic>?;
     final payment = json['payment'] as Map<String, dynamic>?;
     final driver = json['driver'] as Map<String, dynamic>?;
@@ -99,6 +102,19 @@ class TripModel {
         ? List<Map<String, dynamic>>.from(driversList) 
         : [];
 
+    final firstVehicle = parsedVehicles.isNotEmpty ? parsedVehicles.first : null;
+    String? resolvedVehicleType;
+    for (final candidate in [
+      vehicleTypeDetails?['name']?.toString(),
+      vehicle?['type']?.toString(),
+      firstVehicle?['type']?.toString(),
+    ]) {
+      if (candidate != null && candidate.trim().isNotEmpty) {
+        resolvedVehicleType = candidate;
+        break;
+      }
+    }
+
     return TripModel(
       id: json['id']?.toString(),
       tripNumber: json['trip_number'],
@@ -106,11 +122,14 @@ class TripModel {
       date: parseDate(json['trip_date']),
       duration: "${json['duration_days'] ?? 0} Days",
       tripType: json['trip_route'] ?? 'One Way',
-      vehicleType: vehicleTypeDetails?['name'] ?? 'Luxury Bus',
-      vehicleCount: json['number_of_vehicles'] ?? 1,
-      seatingCapacity: vehicleTypeDetails?['capacity'] ?? 4,
+      vehicleType: resolvedVehicleType ?? 'Not Assigned',
+      vehicleCount: json['number_of_vehicles'] ?? (parsedVehicles.isNotEmpty ? parsedVehicles.length : 1),
+      seatingCapacity: vehicleTypeDetails?['capacity'] ??
+          vehicle?['seating_capacity'] ??
+          firstVehicle?['seating_capacity'] ??
+          0,
       driverName: driver?['name'] ?? (parsedDrivers.isNotEmpty ? parsedDrivers.first['name'] : null),
-      vehicleNumber: (parsedVehicles.isNotEmpty ? parsedVehicles.first['registration_number'] : null),
+      vehicleNumber: firstVehicle?['registration_number'] ?? vehicle?['registration_number'],
       customerName: customer?['name'],
       customerPhone: customer?['contact'],
       totalAmount: _parseDouble(payment?['total']),

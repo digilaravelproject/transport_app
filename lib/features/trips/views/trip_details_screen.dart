@@ -376,7 +376,7 @@ class _TripDetailsScreenState extends State<TripDetailsScreen> {
                     ),
                     const SizedBox(height: 2),
                     AppText(
-                      '${trip.vehicleCount} x ${trip.vehicleType}',
+                      trip.vehicleSummary,
                       style: AppTextStyle.body,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,

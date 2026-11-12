@@ -335,7 +335,7 @@ class _TripCard extends StatelessWidget {
               const Icon(Iconsax.bus, size: 16, color: AppColors.primaryColor),
               const SizedBox(width: 8),
               AppText(
-                '${trip.vehicleCount} x ${trip.vehicleType}',
+                trip.vehicleSummary,
                 style: AppTextStyle.body,
                 fontSize: 13,
               ),

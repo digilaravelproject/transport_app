@@ -24,6 +24,14 @@ class VehicleModel {
   final String? permitNumber;
   final DateTime? permitExpiry;
   final String? permitFileUrl;
+  final String? gpsDeviceId;
+  final String? gpsStatus;
+  final String? pucNumber;
+  final DateTime? pucExpiry;
+  final String? pucFileUrl;
+  final String? fitnessNumber;
+  final DateTime? fitnessExpiry;
+  final String? fitnessFileUrl;
   final bool isAvailable;
   final bool isActive;
   final int tripsCount;
@@ -52,6 +60,14 @@ class VehicleModel {
     this.permitNumber,
     this.permitExpiry,
     this.permitFileUrl,
+    this.gpsDeviceId,
+    this.gpsStatus,
+    this.pucNumber,
+    this.pucExpiry,
+    this.pucFileUrl,
+    this.fitnessNumber,
+    this.fitnessExpiry,
+    this.fitnessFileUrl,
     this.isAvailable = true,
     this.isActive = true,
     this.tripsCount = 0,
@@ -85,6 +101,14 @@ class VehicleModel {
       permitNumber: data['permit_number'],
       permitExpiry: _parseDate(data['permit_expiry']),
       permitFileUrl: data['permit_file_url'],
+      gpsDeviceId: data['gps_device_id'],
+      gpsStatus: data['gps_status'],
+      pucNumber: data['puc_certificate_number'],
+      pucExpiry: _parseDate(data['puc_expiry_date']),
+      pucFileUrl: data['puc_certificate_url'],
+      fitnessNumber: data['fitness_certificate_number'],
+      fitnessExpiry: _parseDate(data['fitness_valid_till']),
+      fitnessFileUrl: data['fitness_certificate_url'],
       isAvailable: data['is_available'] ?? true,
       isActive: data['is_active'] ?? true,
       tripsCount: data['trips_count'] ?? 0,
@@ -127,6 +151,14 @@ class VehicleModel {
     String? permitNumber,
     DateTime? permitExpiry,
     String? permitFileUrl,
+    String? gpsDeviceId,
+    String? gpsStatus,
+    String? pucNumber,
+    DateTime? pucExpiry,
+    String? pucFileUrl,
+    String? fitnessNumber,
+    DateTime? fitnessExpiry,
+    String? fitnessFileUrl,
     bool? isAvailable,
     bool? isActive,
     int? tripsCount,
@@ -154,6 +186,14 @@ class VehicleModel {
       permitNumber: permitNumber ?? this.permitNumber,
       permitExpiry: permitExpiry ?? this.permitExpiry,
       permitFileUrl: permitFileUrl ?? this.permitFileUrl,
+      gpsDeviceId: gpsDeviceId ?? this.gpsDeviceId,
+      gpsStatus: gpsStatus ?? this.gpsStatus,
+      pucNumber: pucNumber ?? this.pucNumber,
+      pucExpiry: pucExpiry ?? this.pucExpiry,
+      pucFileUrl: pucFileUrl ?? this.pucFileUrl,
+      fitnessNumber: fitnessNumber ?? this.fitnessNumber,
+      fitnessExpiry: fitnessExpiry ?? this.fitnessExpiry,
+      fitnessFileUrl: fitnessFileUrl ?? this.fitnessFileUrl,
       isAvailable: isAvailable ?? this.isAvailable,
       isActive: isActive ?? this.isActive,
       tripsCount: tripsCount ?? this.tripsCount,

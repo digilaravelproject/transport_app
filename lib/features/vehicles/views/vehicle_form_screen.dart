@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:iconsax/iconsax.dart';
@@ -35,11 +36,15 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   PlatformFile? rcFile;
   PlatformFile? insuranceFile;
   PlatformFile? permitFile;
+  PlatformFile? pucFile;
+  PlatformFile? fitnessFile;
 
   // Error States
   String? rcFileError;
   String? insuranceFileError;
   String? permitFileError;
+  String? pucFileError;
+  String? fitnessFileError;
   String? vehicleTypeError;
 
   final _regNoController = TextEditingController();
@@ -54,10 +59,18 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
   final _insExpiryController = TextEditingController();
   final _permitNoController = TextEditingController();
   final _permitExpiryController = TextEditingController();
+  final _pucNoController = TextEditingController();
+  final _pucExpiryController = TextEditingController();
+  final _fitnessNoController = TextEditingController();
+  final _fitnessExpiryController = TextEditingController();
+  final _gpsDeviceIdController = TextEditingController();
+  String _gpsStatus = 'active';
 
   DateTime? rcExpiry;
   DateTime? insExpiry;
   DateTime? permitExpiry;
+  DateTime? pucExpiry;
+  DateTime? fitnessExpiry;
 
   void _onVehicleTypeSelected(int? id, String displayName) {
     if (id != null) {
@@ -134,6 +147,24 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       permitExpiry = v.permitExpiry;
       _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(permitExpiry!);
     }
+
+    _pucNoController.text = v.pucNumber ?? '';
+    if (v.pucExpiry != null) {
+      pucExpiry = v.pucExpiry;
+      _pucExpiryController.text = DateFormat('dd-MM-yyyy').format(pucExpiry!);
+    }
+
+    _fitnessNoController.text = v.fitnessNumber ?? '';
+    if (v.fitnessExpiry != null) {
+      fitnessExpiry = v.fitnessExpiry;
+      _fitnessExpiryController.text = DateFormat('dd-MM-yyyy').format(fitnessExpiry!);
+    }
+
+    _gpsDeviceIdController.text = v.gpsDeviceId ?? '';
+    final normalizedGpsStatus = (v.gpsStatus ?? '').toLowerCase();
+    _gpsStatus = (normalizedGpsStatus == 'active' || normalizedGpsStatus == 'inactive')
+        ? normalizedGpsStatus
+        : 'active';
   }
 
   Future<void> _loadVehicleDetails() async {
@@ -165,6 +196,14 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
           permitFile = result.files.first;
           permitFileError = null;
         }
+        if (type == 'PUC') {
+          pucFile = result.files.first;
+          pucFileError = null;
+        }
+        if (type == 'Fitness') {
+          fitnessFile = result.files.first;
+          fitnessFileError = null;
+        }
       });
     }
   }
@@ -176,6 +215,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     if (type == 'RC' && rcExpiry != null && rcExpiry!.isAfter(now)) initial = rcExpiry!;
     if (type == 'Insurance' && insExpiry != null && insExpiry!.isAfter(now)) initial = insExpiry!;
     if (type == 'Permit' && permitExpiry != null && permitExpiry!.isAfter(now)) initial = permitExpiry!;
+    if (type == 'PUC' && pucExpiry != null && pucExpiry!.isAfter(now)) initial = pucExpiry!;
+    if (type == 'Fitness' && fitnessExpiry != null && fitnessExpiry!.isAfter(now)) initial = fitnessExpiry!;
 
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -194,6 +235,12 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
         } else if (type == 'Permit') {
           permitExpiry = picked;
           _permitExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
+        } else if (type == 'PUC') {
+          pucExpiry = picked;
+          _pucExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
+        } else if (type == 'Fitness') {
+          fitnessExpiry = picked;
+          _fitnessExpiryController.text = DateFormat('dd-MM-yyyy').format(picked);
         }
       });
     }
@@ -204,6 +251,8 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
       rcFileError = null;
       insuranceFileError = null;
       permitFileError = null;
+      pucFileError = null;
+      fitnessFileError = null;
       vehicleTypeError = null;
     });
 
@@ -226,25 +275,33 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     if (!isValid) return;
 
     final Map<String, String> data = {
-      'registration_number': _regNoController.text,
+      'registration_number': _regNoController.text.trim().toUpperCase(),
       'type': controller.selectedVehicleTypeId.value.toString(),
       'vehicle_type_id': controller.selectedVehicleTypeId.value.toString(),
       'seating_capacity': _capacityController.text,
-      'model_year': _yearController.text,
+      'model_year': _yearController.text.trim(),
       'per_km_price': _perKmPriceController.text,
       'ac_price_per_km': _acPriceController.text,
-      'rc_number': _rcNoController.text,
+      'rc_number': _rcNoController.text.trim().toUpperCase(),
       'rc_expiry': rcExpiry != null ? DateFormat('yyyy-MM-dd').format(rcExpiry!) : '',
-      'insurance_number': _insNoController.text,
+      'insurance_number': _insNoController.text.trim().toUpperCase(),
       'insurance_expiry': insExpiry != null ? DateFormat('yyyy-MM-dd').format(insExpiry!) : '',
-      'permit_number': _permitNoController.text,
+      'permit_number': _permitNoController.text.trim().toUpperCase(),
       'permit_expiry': permitExpiry != null ? DateFormat('yyyy-MM-dd').format(permitExpiry!) : '',
+      'gps_device_id': _gpsDeviceIdController.text.trim().toUpperCase(),
+      'gps_status': _gpsStatus,
+      'puc_certificate_number': _pucNoController.text.trim().toUpperCase(),
+      'puc_expiry_date': pucExpiry != null ? DateFormat('yyyy-MM-dd').format(pucExpiry!) : '',
+      'fitness_certificate_number': _fitnessNoController.text.trim().toUpperCase(),
+      'fitness_valid_till': fitnessExpiry != null ? DateFormat('yyyy-MM-dd').format(fitnessExpiry!) : '',
     };
 
     final List<MultipartDocument> files = [];
     if (rcFile != null) files.add(MultipartDocument('registration_certificate', rcFile!));
     if (insuranceFile != null) files.add(MultipartDocument('insurance_certificate', insuranceFile!));
     if (permitFile != null) files.add(MultipartDocument('permit_certificate', permitFile!));
+    if (pucFile != null) files.add(MultipartDocument('puc_certificate', pucFile!));
+    if (fitnessFile != null) files.add(MultipartDocument('fitness_certificate', fitnessFile!));
 
     bool success;
     if (isEdit) {
@@ -271,6 +328,11 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     _insExpiryController.dispose();
     _permitNoController.dispose();
     _permitExpiryController.dispose();
+    _pucNoController.dispose();
+    _pucExpiryController.dispose();
+    _fitnessNoController.dispose();
+    _fitnessExpiryController.dispose();
+    _gpsDeviceIdController.dispose();
     super.dispose();
   }
 
@@ -298,7 +360,12 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                           label: AppTextConstants.vehicleNumber.tr,
                           hint: AppTextConstants.vehicleNumberHint.tr,
                           controller: _regNoController,
-                          validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Vehicle Number'),
+                          textCapitalization: TextCapitalization.characters,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\s-]')),
+                            LengthLimitingTextInputFormatter(15),
+                          ],
+                          validator: AppValidators.validateVehicleNumber,
                         ),
                         const SizedBox(height: 8),
                         AppInputField(
@@ -306,7 +373,11 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                           hint: '2022',
                           controller: _yearController,
                           keyboardType: TextInputType.number,
-                          validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Model Year'),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(4),
+                          ],
+                          validator: AppValidators.validateModelYear,
                         ),
                         const SizedBox(height: 8),
                         VehicleTypeDropdown(
@@ -359,6 +430,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                     'Insurance',
                     remoteUrl: vehicle?.insuranceFileUrl,
                     fileError: insuranceFileError,
+                    maxNoLength: 30,
                   ),
                   _buildDocumentSection(
                     AppTextConstants.permitDetails.tr,
@@ -371,6 +443,32 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
                     remoteUrl: vehicle?.permitFileUrl,
                     fileError: permitFileError,
                   ),
+                  _buildDocumentSection(
+                    AppTextConstants.pucCertificate.tr,
+                    pucFile,
+                    _pucNoController,
+                    _pucExpiryController,
+                    () => _pickDocument('PUC'),
+                    AppTextConstants.pucNumber.tr,
+                    'PUC',
+                    remoteUrl: vehicle?.pucFileUrl,
+                    fileError: pucFileError,
+                    isRequired: false,
+                  ),
+                  _buildDocumentSection(
+                    AppTextConstants.fitnessCertificate.tr,
+                    fitnessFile,
+                    _fitnessNoController,
+                    _fitnessExpiryController,
+                    () => _pickDocument('Fitness'),
+                    AppTextConstants.fitnessNumber.tr,
+                    'Fitness',
+                    remoteUrl: vehicle?.fitnessFileUrl,
+                    fileError: fitnessFileError,
+                    isRequired: false,
+                    expiryLabel: AppTextConstants.validTill.tr,
+                  ),
+                  _buildGpsSection(),
                   const SizedBox(height: 16),
                   AppButton(
                     text: isEdit ? AppTextConstants.updateVehicle.tr : AppTextConstants.saveVehicle.tr,
@@ -399,7 +497,7 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
     VoidCallback onUpload,
     String noLabel,
     String type,
-    {String? remoteUrl, String? fileError}
+    {String? remoteUrl, String? fileError, bool isRequired = true, String? expiryLabel, int maxNoLength = 25}
   ) {
     return AppCard(
       padding: const EdgeInsets.all(12),
@@ -441,17 +539,134 @@ class _VehicleFormScreenState extends State<VehicleFormScreen> {
             hint: AppTextConstants.enterNumber.tr,
             controller: noController,
             icon: Iconsax.hashtag,
-            validator: (v) => AppValidators.validateEmpty(v, fieldName: noLabel),
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\-/]')),
+              LengthLimitingTextInputFormatter(maxNoLength),
+            ],
+            validator: (v) {
+              final hasOtherData = file != null ||
+                  remoteUrl != null ||
+                  expiryController.text.trim().isNotEmpty;
+              return AppValidators.validateDocumentNumber(
+                v,
+                fieldName: noLabel,
+                isRequired: isRequired || hasOtherData,
+                minLength: 5,
+                maxLength: maxNoLength,
+              );
+            },
           ),
           const SizedBox(height: 8),
           AppInputField(
-            label: AppTextConstants.expiryDate.tr,
+            label: expiryLabel ?? AppTextConstants.expiryDate.tr,
             hint: AppTextConstants.dateFormatHint.tr,
             controller: expiryController,
             readOnly: true,
             icon: Iconsax.calendar_1,
             onTap: () => _selectDate(context, type),
-            validator: (v) => AppValidators.validateEmpty(v, fieldName: 'Expiry Date'),
+            validator: (v) {
+              final hasOtherData = file != null ||
+                  remoteUrl != null ||
+                  noController.text.trim().isNotEmpty;
+              if (isRequired || hasOtherData) {
+                return AppValidators.validateEmpty(
+                  v,
+                  fieldName: expiryLabel ?? AppTextConstants.expiryDate.tr,
+                );
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGpsSection() {
+    return AppCard(
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Iconsax.gps, size: 16, color: AppColors.primaryColor),
+              ),
+              const SizedBox(width: 10),
+              AppText(
+                AppTextConstants.gpsSystem.tr,
+                style: AppTextStyle.subheading,
+                fontSize: 13,
+                color: AppColors.textColorPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          AppInputField(
+            label: AppTextConstants.gpsDeviceId.tr,
+            hint: AppTextConstants.gpsDeviceIdHint.tr,
+            controller: _gpsDeviceIdController,
+            icon: Iconsax.cpu,
+            textCapitalization: TextCapitalization.characters,
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9\-_]')),
+              LengthLimitingTextInputFormatter(25),
+            ],
+            validator: (v) => AppValidators.validateDocumentNumber(
+              v,
+              fieldName: AppTextConstants.gpsDeviceId.tr,
+              isRequired: false,
+              minLength: 5,
+              maxLength: 25,
+            ),
+          ),
+          const SizedBox(height: 8),
+          AppText(
+            AppTextConstants.gpsStatus.tr,
+            style: AppTextStyle.label,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: 48,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.slate200),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _gpsStatus,
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                items: [
+                  DropdownMenuItem(
+                    value: 'active',
+                    child: AppText(AppTextConstants.active.tr, style: AppTextStyle.body, fontSize: 13),
+                  ),
+                  DropdownMenuItem(
+                    value: 'inactive',
+                    child: AppText(AppTextConstants.inactive.tr, style: AppTextStyle.body, fontSize: 13),
+                  ),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _gpsStatus = val);
+                  }
+                },
+              ),
+            ),
           ),
         ],
       ),

@@ -393,6 +393,8 @@ class _VehicleCard extends StatelessWidget {
               if (vehicle.rcExpiry != null) {'name': 'RC', 'date': vehicle.rcExpiry!},
               if (vehicle.insuranceExpiry != null) {'name': 'Insurance', 'date': vehicle.insuranceExpiry!},
               if (vehicle.permitExpiry != null) {'name': 'Permit', 'date': vehicle.permitExpiry!},
+              if (vehicle.pucExpiry != null) {'name': 'PUC', 'date': vehicle.pucExpiry!},
+              if (vehicle.fitnessExpiry != null) {'name': 'Fitness', 'date': vehicle.fitnessExpiry!},
             ];
 
             if (expiries.isEmpty) {
